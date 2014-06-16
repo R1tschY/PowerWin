@@ -1,0 +1,10 @@
+small.ico
+Makefile
+DesktopEx.ico
+stdafx.h
+resource.h
+PlattformTypes.h
+Plattform.h
+DesktopEx.h
+Plattform.cpp
+DesktopEx.cpp

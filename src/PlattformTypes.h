@@ -1,0 +1,16 @@
+#ifndef PLATTFROMTYPES_H_
+#define PLATTFROMTYPES_H_
+
+#include <string>
+
+////////////////////////////////////////////////////////////////////////////////
+//     String
+////////////////////////////////////////////////////////////////////////////////
+
+#define __(s) L ## s
+#define _(s) __(s)
+
+typedef std::wstring string;
+typedef string::traits_type::char_type char_t;
+
+#endif /* PLATTFROMTYPES_H_ */

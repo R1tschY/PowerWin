@@ -1,0 +1,16 @@
+#ifndef PATH_H
+#define PATH_H
+
+#include <windows.h>
+
+#include "../c++/stringref.h"
+
+namespace Windows {
+
+bool PathExists(Cpp::WStringRef filename) {
+  return (GetFileAttributesW(filename.begin()) != INVALID_FILE_ATTRIBUTES);
+}
+
+} // namespace Windows
+
+#endif // PATH_H
