@@ -1,9 +1,7 @@
-
-#include "StdAfx.h"
-
-#include <boost/lexical_cast.hpp>
-
 #include "ConfigFile.h"
+
+#include <windows.h>
+#include <boost/lexical_cast.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////
 //     ConfigFile

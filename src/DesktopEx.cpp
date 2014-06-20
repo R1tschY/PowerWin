@@ -1,12 +1,9 @@
 // DesktopEx.cpp : Definiert den Einstiegspunkt für die Anwendung.
 //
 
-#include "stdafx.h"
-
 #include "Resource.h"
 #include "DesktopEx.h"
 #include "DesktopHooks.h"
-#include "Plattform.h"
 
 // XP Style
 //#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")

@@ -1,6 +1,6 @@
 #include "PluginManager.h"
 
-#include "extra.h"
+#include "macros.h"
 #include "Plugin.h"
 
 PluginManager::PluginManager() :

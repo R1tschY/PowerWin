@@ -1,7 +1,6 @@
 #ifndef PLUGINMANAGER_H
 #define PLUGINMANAGER_H
 
-#include "stdafx.h"
 #include <vector>
 
 class Plugin;

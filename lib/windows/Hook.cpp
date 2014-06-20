@@ -1,10 +1,8 @@
-#include "StdAfx.h"
-
-#include "algorithm.h"
-#include "extra.h"
+#include "../algorithm.h"
+#include "../macros.h"
+#include "../DesktopHooks.h"
 
 #include "Hook.h"
-#include "DesktopHooks.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Hook

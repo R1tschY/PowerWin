@@ -1,9 +1,8 @@
-#include "StdAfx.h"
 #include "Timeout.h"
-#include "DesktopHooks.h"
-#include "Utils.h"
-#include "windows/debug.h"
-#include "windows/charcodecs.h"
+#include "../DesktopHooks.h"
+#include "../Utils.h"
+#include "../windows/debug.h"
+#include "../windows/charcodecs.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //     Timeout

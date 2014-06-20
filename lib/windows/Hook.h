@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Stdafx.h"
-
+#include <windows.h>
 #include <boost/function.hpp>
 #include <vector>
 #include <cassert>

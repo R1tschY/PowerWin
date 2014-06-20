@@ -1,12 +1,10 @@
 #pragma once
 
-#include "stdafx.h"
-
+#include <windows.h>
 #include <functional>
 #include <vector>
 #include <boost/noncopyable.hpp>
 
-#include "extra.h"
 
 class Hotkey : boost::noncopyable {
 public:
@@ -17,7 +15,7 @@ public:
   
   bool isActive() const { return active_; }
   
-  Hotkey(UINT fsModifiers, UINT vk, Handler handler);
+  Hotkey(unsigned fsModifiers, unsigned vk, Handler handler);
   Hotkey(Hotkey&& other) noexcept;
   ~Hotkey();
   

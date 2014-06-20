@@ -1,38 +1,5 @@
-
-#include "StdAfx.h"
 #include "Hotkey.h"
-#include "DesktopHooks.h"
-
-static ATOM registerUtilWindow() {
-  WNDCLASSW wc;
-
-  wc.style         = 0;
-  wc.lpfnWndProc   = DefWindowProc;
-  wc.cbClsExtra    = 0;
-  wc.cbWndExtra    = 0;
-  wc.hInstance     = WinExtra::getDllInstance();
-  wc.hIcon         = 0;
-  wc.hCursor       = 0;
-  wc.hbrBackground = 0;
-  wc.lpszMenuName  = 0;
-  wc.lpszClassName = L"UtilWindow";
-
-  return RegisterClassW(&wc);
-}
-
-HWND createUtilWindow(WNDPROC wndproc) {
-  static ATOM wndclass = registerUtilWindow();
-  HWND result;
-
-  UNREFERENCED_PARAMETER(wndclass);
-
-  result = CreateWindowExW(WS_EX_TOOLWINDOW, L"UtilWindow",
-    L"", WS_POPUP, 0, 0, 0, 0, 0, 0, WinExtra::getDllInstance(), nullptr);
-  if (wndproc)
-    SetWindowLongPtr(result, GWLP_WNDPROC, (LONG_PTR)wndproc);
-
-  return result;
-}
+#include "../windows/utilwindow.h"
 
 LRESULT CALLBACK HotkeyWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
   switch (msg) {
@@ -55,7 +22,7 @@ LRESULT CALLBACK HotkeyWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 
   return DefWindowProc(hwnd, msg, wparam, lparam);
 }
-static const HWND hotkeywindow = createUtilWindow(HotkeyWndProc);
+static const HWND hotkeywindow = Windows::createUtilWindow(HotkeyWndProc);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Hotkey
@@ -70,7 +37,7 @@ void Hotkey::setHandler(unsigned id, Handler handler) {
   handlers[id] = handler;
 }
 
-Hotkey::Hotkey(UINT modifiers, UINT vk, Handler handler) :
+Hotkey::Hotkey(unsigned modifiers, unsigned vk, Handler handler) :
   modifiers_(modifiers), vk_(vk), handler_(handler), active_(false), id_(++counter)
 { }
 

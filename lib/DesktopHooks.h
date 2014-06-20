@@ -1,5 +1,3 @@
-
-#include "stdafx.h"
 #include "export.h"
 
 #include <windows.h>

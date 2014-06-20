@@ -1,9 +1,5 @@
 #pragma once
 
-#pragma once
-
-#include "stdafx.h"
-
 #include <string>
 #include <vector>
 #include <boost/noncopyable.hpp>
@@ -14,7 +10,7 @@
 class ConfigFile : boost::noncopyable {
 public:
   void loadFromFile(const std::wstring& filename);
-  void save() { };
+  void save() { }
 
   bool existsKey(const wchar_t* section, const wchar_t* key) const;
 

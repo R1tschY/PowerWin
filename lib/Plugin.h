@@ -1,11 +1,8 @@
 #pragma once
 
-#include "stdafx.h"
 #include <string>
 #include <map>
 #include <boost/noncopyable.hpp>
-
-#include "extra.h"
 
 class Plugin : boost::noncopyable {
 public:

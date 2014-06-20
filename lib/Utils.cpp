@@ -1,9 +1,6 @@
-#include "StdAfx.h"
-
 #include <boost/lexical_cast.hpp>
 #include <cstdarg>
 #include "Utils.h"
-#include "extra.h"
 
 void print(const wchar_t* format, ...) {
   wchar_t buffer[1024];
@@ -13,7 +10,11 @@ void print(const wchar_t* format, ...) {
   _vsnwprintf_s(buffer, _TRUNCATE, format, vl);
   va_end(vl);
 
-  OutputDebugString(buffer);
+  //OutputDebugString(buffer);
+
+  FILE* f = fopen("C:\\Users\\Richard\\powerwin.log", "a");
+  fputws(buffer, f);
+  fclose(f);
 }
 
 void print_window_infos(HWND hwnd) {

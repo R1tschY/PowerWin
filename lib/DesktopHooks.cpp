@@ -1,21 +1,19 @@
 // DesktopHooks.cpp : Definiert die exportierten Funktionen für die DLL-Anwendung.
 //
-
-#include "stdafx.h"
-
 #include <string>
 #include <algorithm>
 #include <boost/range/algorithm/equal.hpp>
 
 #include "algorithm.h"
 #include "DesktopHooks.h"
-#include "Hook.h"
-#include "ConfigFile.h"
+#include "windows/Hook.h"
+#include "windows/ConfigFile.h"
 #include "plugins/ActionsPlugin.h"
 #include "plugins/ScrollPlugin.h"
 #include "plugins/FullscreenPlugin.h"
 #include "plugins/SystemMenuPlugin.h"
 #include "Utils.h"
+#include "macros.h"
 #include "PluginManager.h"
 #include "windows/application.h"
 #include "windows/trayicon.h"
