@@ -26,6 +26,9 @@ all: $(BINARY)
 
 $(BUILD_PATH):
 	mkdir $(BUILD_PATH)
+	
+$(BUILD_PATH)\libwinpthread-1.dll:
+	copy ..\3th-party\libwinpthread-1.dll $(BUILD_PATH)\libwinpthread-1.dll
 
 ####
 # ///////(BUILD_PATH).
@@ -34,10 +37,10 @@ $(BUILD_PATH):
 $(BUILD_PATH)/%.o: %.cpp
 	$(CXX) $(FEATURES) $(WARNINGS) $(MACROS) $(INCLUDES) -MMD -MP -MT $@ -MF $@.d -o $@ -c $<
 
-$(BINARY): $(BUILD_PATH) $(OBJECTS)
+$(BINARY): $(BUILD_PATH) $(BUILD_PATH)\libwinpthread-1.dll $(OBJECTS)
 	$(CXX) $(FEATURES) $(WARNINGS) -o $(BINARY) $(OBJECTS) $(LIBS)
 
 clean:
 	rmdir /S /Q $(BUILD_PATH)
 	
-# -include $(wildcard $(BUILD_PATH)/*.o.d)
+-include $(wildcard $(BUILD_PATH)/*.o.d)

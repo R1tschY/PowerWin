@@ -6,8 +6,9 @@
 #include <type_traits>
 #include <boost/lexical_cast.hpp>
 
-#include "../Timeout.h"
+#include "../windows/timeout.h"
 #include "../Utils.h"
+#include "../macros.h"
 
 static LRESULT CALLBACK fullscreen_proc(int code, WPARAM wparam, LPARAM lparam);
 static DLL_SHARED Hook hook(WH_CBT, Hook::THREAD_ID_ALL_THREADS, fullscreen_proc);

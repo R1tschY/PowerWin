@@ -2,6 +2,7 @@
 
 #include <windows.h>
 #include <string>
+#include <memory>
 
 #include "debug.h"
 #include "charcodecs.h"
@@ -10,17 +11,15 @@
 namespace Windows {
 
 static DWORD WINAPI executeInThread_cb(LPVOID data) {
-  Callback* pfunc = static_cast<Callback*>(data);
+  auto pfunc = std::unique_ptr<Callback>(static_cast<Callback*>(data));
 
   try {
     (*pfunc)();
-    delete pfunc;
     return 0;
 
   } catch (std::bad_function_call &error) {
     WIN_CRITICAL(L"executeInThread function call failed: %s",
                  convertFromUtf8(error.what()).c_str());
-    if (pfunc) delete pfunc;
     return 1;
   }
 }

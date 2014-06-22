@@ -6,8 +6,9 @@
 #include <boost/format.hpp>
 
 #include "../Utils.h"
-#include "../Hook.h"
+#include "../windows/Hook.h"
 #include "../c++/utils.h"
+#include "../macros.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Was noch nicht geht:
@@ -15,8 +16,9 @@
 //   Auf Klick reagieren
 // -> theoretisch reicht CBT-Hook (alle Hooks funktionieren nicht)
 
-LRESULT CALLBACK systemmenu_proc(int code, WPARAM wparam, LPARAM lparam);
-static DLL_SHARED Hook hook(WH_GETMESSAGE, Hook::THREAD_ID_ALL_THREADS, systemmenu_proc);
+LRESULT CALLBACK systemmenu_cbt_proc(int code, WPARAM wparam, LPARAM lparam);
+
+static DLL_SHARED Hook cbt_hook(WH_CBT, Hook::THREAD_ID_ALL_THREADS, systemmenu_cbt_proc);
 
 SystemMenuPlugin::SystemMenuPlugin() :
   Plugin(L"system_menu")
@@ -31,7 +33,44 @@ static bool ExistsMenuItem(HMENU menu, unsigned id) {
 }
 
 static bool IsWindowAlwaysOnTop(HWND hwnd) {
-  return (GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
+  return (GetWindowLongPtr(hwnd, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
+}
+
+static void SetWindowAlwaysOnTop(HWND hwnd, bool new_state) {
+  auto exstyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+
+  if (new_state) {
+    #ifdef _WIN64
+      SetWindowLongPtr(hwnd, GWL_EXSTYLE, exstyle | WS_EX_TOPMOST);
+    #else
+      SetWindowLong(hwnd, GWL_EXSTYLE, exstyle | WS_EX_TOPMOST);
+    #endif
+
+    SetWindowPos(hwnd, HWND_TOPMOST, 0,0,0,0,
+                 SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+  } else {
+    #ifdef _WIN64
+      SetWindowLongPtr(hwnd, GWL_EXSTYLE, exstyle & (~WS_EX_TOPMOST));
+    #else
+      SetWindowLong(hwnd, GWL_EXSTYLE, exstyle & (~WS_EX_TOPMOST));
+    #endif
+
+    SetWindowPos(hwnd, HWND_NOTOPMOST, 0,0,0,0,
+                 SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+  }
+}
+
+static void UpdateSystemMenu(HWND hwnd, bool new_state) {
+  HMENU menu = GetSystemMenu(hwnd, false);
+  if (IsMenu(menu)) {
+    UINT state_flag = ((new_state) ? (MF_CHECKED) : (MF_UNCHECKED));
+    ModifyMenu(
+          menu,
+          SystemMenuPlugin::MenuId_AlwaysOnTop,
+          MF_STRING | state_flag,
+          SystemMenuPlugin::MenuId_AlwaysOnTop,
+          L"Immer im Vordergrund");
+  }
 }
 
 /*static std::wstring GetMenuItemDisplayName(HMENU menu, unsigned item) {
@@ -103,7 +142,7 @@ static BOOL CALLBACK upgrade_window(HWND hwnd, LPARAM lParam) {
       // Immer im Vordergrund
       InsertMenu(menu, SC_CLOSE,
                  IsWindowAlwaysOnTop(hwnd) ? MF_CHECKED : MF_UNCHECKED,
-                 SC_CLOSE, //SystemMenuPlugin::MenuId_AlwaysOnTop,
+                 SystemMenuPlugin::MenuId_AlwaysOnTop, // SC_CLOSE,
                  L"Immer im Vordergrund");
 
       // Seperator
@@ -116,7 +155,9 @@ static BOOL CALLBACK upgrade_window(HWND hwnd, LPARAM lParam) {
 
 void SystemMenuPlugin::onActivate(const Plugin::Options& options)
 {
-  hook.activate();
+  print(L"SystemMenuPlugin::onActivate\n");
+  cbt_hook.activate();
+  MessageBeep(MB_OK);
   EnumWindows(upgrade_window, 0);
 }
 
@@ -137,23 +178,27 @@ static BOOL CALLBACK downgrade_window(HWND hwnd, LPARAM lParam) {
 
 void SystemMenuPlugin::onDeactivate()
 {
-  hook.deactivate();
+  cbt_hook.deactivate();
   EnumWindows(downgrade_window, 0);
+
+  MessageBeep(MB_ICONWARNING);
+  print(L"SystemMenuPlugin::onDeactivate\n");
 }
 
-static int i = 0;
-LRESULT CALLBACK systemmenu_proc(int code, WPARAM wparam, LPARAM lparam) {
+LRESULT CALLBACK systemmenu_cbt_proc(int code, WPARAM wparam, LPARAM lparam) {
   if (code >= 0)
   {
-    /*CWPSTRUCT* msg = reinterpret_cast<CWPSTRUCT*>(lparam);
-    if (msg->message == WM_SYSCOMMAND) {
-      print(L"%d: SystemMenu Hook 0x%x 0x%x 0x%x!\n",++i, msg->hwnd,msg->lParam, msg->wParam);
-    }*/
-    MSG* msg = reinterpret_cast<MSG*>(lparam);
-    if (msg->message == WM_SYSCOMMAND) {
-      print(L"%d: SystemMenu Hook 0x%x 0x%x 0x%x!\n",++i, msg->hwnd,msg->lParam, msg->wParam);
+    if (code == HCBT_SYSCOMMAND) {
+      if (wparam == SystemMenuPlugin::MenuId_AlwaysOnTop) {
+        MessageBeep(MB_ICONINFORMATION);
+        auto hwnd = GetForegroundWindow();
+        bool state = IsWindowAlwaysOnTop(hwnd);
+        SetWindowAlwaysOnTop(hwnd, !state);
+        UpdateSystemMenu(hwnd, !state);
+      }
+      return 0;
     }
   }
 
-  return CallNextHookEx(hook.getHandle(), code, wparam, lparam);
+  return CallNextHookEx(cbt_hook.getHandle(), code, wparam, lparam);
 }

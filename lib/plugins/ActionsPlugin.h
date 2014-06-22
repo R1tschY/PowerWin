@@ -1,14 +1,12 @@
 #pragma once
 
-#include "../stdafx.h"
-
 #include <vector>
 #include <string>
 
 #include <boost/noncopyable.hpp>
 
 #include "../Plugin.h"
-#include "../Hotkey.h"
+#include "../windows/hotkey.h"
 
 struct Action {
   const wchar_t* name;

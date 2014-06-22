@@ -47,4 +47,7 @@ $(BINARY): $(BUILD_PATH) $(BUILD_PATH)/plugins $(BUILD_PATH)/windows $(BUILD_PAT
 clean:
 	rmdir /S /Q $(BUILD_PATH)
 	
-# -include $(wildcard $(BUILD_PATH)/*.o.d)
+-include $(wildcard $(BUILD_PATH)/*.o.d)
+-include $(wildcard $(BUILD_PATH)/windows/*.o.d)
+-include $(wildcard $(BUILD_PATH)/plugins/*.o.d)
+-include $(wildcard $(BUILD_PATH)/c++/*.o.d)

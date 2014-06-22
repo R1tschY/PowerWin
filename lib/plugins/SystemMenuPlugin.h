@@ -1,7 +1,6 @@
 #ifndef SYSTEMMENU_H
 #define SYSTEMMENU_H
 
-#include "../stdafx.h"
 #include "../Plugin.h"
 
 class SystemMenuPlugin : public Plugin {
@@ -12,7 +11,7 @@ public:
   virtual void onDeactivate();
 
   enum Menu : unsigned {
-    MenuId_AlwaysOnTop
+    MenuId_AlwaysOnTop = 0x00270
   };
 };
 

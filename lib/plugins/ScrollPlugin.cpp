@@ -3,7 +3,7 @@
 #include <boost/bind.hpp>
 #include <boost/range/algorithm/equal.hpp>
 
-#include "../extra.h"
+#include "../macros.h"
 #include "../algorithm.h"
 #include "../Utils.h"
 #include "../c++/utils.h"

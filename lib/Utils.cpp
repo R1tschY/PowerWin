@@ -10,11 +10,7 @@ void print(const wchar_t* format, ...) {
   _vsnwprintf_s(buffer, _TRUNCATE, format, vl);
   va_end(vl);
 
-  //OutputDebugString(buffer);
-
-  FILE* f = fopen("C:\\Users\\Richard\\powerwin.log", "a");
-  fputws(buffer, f);
-  fclose(f);
+  OutputDebugString(buffer);
 }
 
 void print_window_infos(HWND hwnd) {

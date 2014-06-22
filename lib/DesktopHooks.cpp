@@ -71,9 +71,14 @@ start() {
     }
   });
 
-  tray_icon.add(getMainWindow(),
-                LoadIcon(Windows::Application::getInstance(),
-                         MAKEINTRESOURCE(108)));
+  /*tray_icon.add(getMainWindow(),
+                ExtractIcon(
+                  Windows::Application::getInstance(),
+                  L"C:\\Windows\\system32\\shell32.dll",
+                  -26));
+                  */
+
+  tray_icon.add(getMainWindow(), LoadIcon(NULL, IDI_APPLICATION));
 }
 
 void

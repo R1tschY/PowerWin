@@ -1,8 +1,7 @@
 #pragma once
 
-#include "../stdafx.h"
 #include "../Plugin.h"
-#include "../Hook.h"
+#include "../windows/hook.h"
 
 constexpr int SHIFTED = 0x8000;
 

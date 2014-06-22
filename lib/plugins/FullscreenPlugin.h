@@ -1,10 +1,8 @@
 #pragma once
 
-#include "../stdafx.h"
-
 #include "../Plugin.h"
-#include "../Hook.h"
-#include "../Timeout.h"
+#include "../windows/hook.h"
+#include "../windows/timeout.h"
 
 class FullscreenPlugin : public Plugin {
 public:
