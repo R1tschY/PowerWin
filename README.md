@@ -14,6 +14,7 @@ Future features
 ---------------
 
 * start moving of window by hotkey
+* hotkey to close other processes
 
 
 Known Issues
