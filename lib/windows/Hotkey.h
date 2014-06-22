@@ -3,10 +3,13 @@
 #include <windows.h>
 #include <functional>
 #include <vector>
-#include <boost/noncopyable.hpp>
+
+#include "macros.h"
 
 
-class Hotkey : boost::noncopyable {
+class Hotkey {
+  DISALLOW_COPY_AND_ASSIGN(Hotkey);
+
 public:
   typedef std::function<bool (int, int)> Handler;
 

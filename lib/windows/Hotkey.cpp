@@ -1,5 +1,6 @@
 #include "Hotkey.h"
 #include "../windows/utilwindow.h"
+#include "../windows/debug.h"
 
 LRESULT CALLBACK HotkeyWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
   switch (msg) {
@@ -32,7 +33,7 @@ std::vector<Hotkey::Handler> Hotkey::handlers;
 
 void Hotkey::setHandler(unsigned id, Handler handler) {
   if (id >= handlers.size()) {
-    handlers.resize(id+1, NULL);
+    handlers.resize(id+1, nullptr);
   }
   handlers[id] = handler;
 }
@@ -48,9 +49,9 @@ Hotkey::Hotkey(Hotkey&& other) noexcept :
   other.active_ = false;
 }
 
- Hotkey::~Hotkey() {
-   deactivate();
- }
+Hotkey::~Hotkey() {
+  deactivate();
+}
 
 bool Hotkey::activate() {
   if (!active_) {

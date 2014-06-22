@@ -6,6 +6,7 @@
 #include <string>
 
 #include "windows.h"
+#include "debug.h"
 
 namespace Windows {
 
@@ -18,7 +19,12 @@ class Application {
 
   int run(const Callback& entry) const;
 
-  static HINSTANCE getInstance() { return instance; }
+  static HINSTANCE getInstance() {
+    if (instance == 0) {
+      print(L"too early access of app instance!");
+    }
+    return instance;
+  }
   static WindowsVersion getWindowsVersion() { return winversion; }
   static const std::wstring& getPath() { return path; }
   static const std::wstring& getName() { return name; }

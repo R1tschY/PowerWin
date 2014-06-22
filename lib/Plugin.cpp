@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
 
-#include "Utils.h"
+#include "windows/debug.h"
 #include "PluginManager.h"
 
 Plugin::Plugin(const wchar_t* name) :
@@ -13,7 +13,7 @@ Plugin::Plugin(const wchar_t* name) :
 }
 
 Plugin::~Plugin() {
-  deactivate();
+  active_ = false;
 }
 
 void Plugin::activate() {

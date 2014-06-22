@@ -1,15 +1,18 @@
 #pragma once
 
 #include <windows.h>
-#include <boost/function.hpp>
-#include <boost/noncopyable.hpp>
+#include <functional>
+
+#include "macros.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //     Timeout
 ////////////////////////////////////////////////////////////////////////////////
-class Timeout : boost::noncopyable {
+class Timeout {
+  DISALLOW_COPY_AND_ASSIGN(Timeout);
+
 public:
-  typedef boost::function<void()> Callback;
+  typedef std::function<void()> Callback;
 
   Timeout(const Callback& callback, int seconds);
   ~Timeout();

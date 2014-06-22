@@ -1,7 +1,7 @@
 #pragma once
 
 #include <windows.h>
-#include <boost/function.hpp>
+#include <functional>
 #include <vector>
 #include <cassert>
 #include <cstdio>
@@ -35,8 +35,8 @@ private:
 
 class MouseHook : public Hook {
 public:
-  typedef boost::function<bool (POINT, int)> WheelHandler;
-  typedef boost::function<bool (unsigned, POINT)> ClickHandler;
+  typedef std::function<bool (POINT, int)> WheelHandler;
+  typedef std::function<bool (unsigned, POINT)> ClickHandler;
   
   static MouseHook& get();
   

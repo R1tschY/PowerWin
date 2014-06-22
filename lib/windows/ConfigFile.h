@@ -2,13 +2,18 @@
 
 #include <string>
 #include <vector>
-#include <boost/noncopyable.hpp>
+
+#include "macros.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //     ConfigFile
 ////////////////////////////////////////////////////////////////////////////////
-class ConfigFile : boost::noncopyable {
-public:
+class ConfigFile {
+  DISALLOW_COPY_AND_ASSIGN(ConfigFile);
+
+public:  
+  ConfigFile();
+
   void loadFromFile(const std::wstring& filename);
   void save() { }
 

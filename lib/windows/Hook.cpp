@@ -28,7 +28,7 @@ bool Hook::deactivate() {
 
 ///////////////////////////////////////////////////////////////////////////////
 // MouseHook
-static MouseHook instance DLL_SHARED;
+static MouseHook instance;
 
 MouseHook& MouseHook::get() {
   return instance;

@@ -26,7 +26,6 @@ enum LogLevel {
 #define WIN_ERROR(fmt, ...) printMessage(LL_ERROR, fmt L"\n", ##__VA_ARGS__)
 
 void printMessage(LogLevel level, const wchar_t* format, ...);
-void openLogFile(HWND hwnd);
 
 std::wstring GetWindowsError(DWORD code);
 inline std::wstring
@@ -35,5 +34,8 @@ GetLastWindowsError() {
 }
 
 } // namespace Windows
+
+void print(const wchar_t* format, ...);
+void print_window_infos(HWND hwnd);
 
 #endif // DEBUG_H

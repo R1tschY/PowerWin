@@ -3,16 +3,21 @@
 #include <windows.h>
 #include <functional>
 
+typedef struct {
+  HHOOK systemmenu_hook;
+} SharedMemory;
+
+extern SharedMemory* shared_memory;
+
 namespace WinExtra {
 
-DLL_PUBLIC HINSTANCE getDllInstance     ();
-DLL_PUBLIC void      updateDllInstance  (HINSTANCE instance);
-DLL_PUBLIC void      updateMainWindow   (HWND window);
-DLL_PUBLIC HWND      getMainWindow      ();
-DLL_PUBLIC void      start              ();
-DLL_PUBLIC void      destroy            ();
+HINSTANCE getDllInstance     ();
+void      updateDllInstance  (HINSTANCE instance);
+HWND      getMainWindow      ();
+void      destroy            ();
 
-DLL_PUBLIC int       run               (HINSTANCE hInstance, std::function<int()> callback);
+DLL_PUBLIC int       run               (HINSTANCE hInstance);
+
 
 } //  namespace WinExtra
 

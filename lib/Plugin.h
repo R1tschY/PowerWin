@@ -2,9 +2,13 @@
 
 #include <string>
 #include <map>
-#include <boost/noncopyable.hpp>
 
-class Plugin : boost::noncopyable {
+
+#include "windows/macros.h"
+
+class Plugin {
+  DISALLOW_COPY_AND_ASSIGN(Plugin);
+
 public:
   typedef std::map<std::wstring, std::wstring> Options;
 

@@ -3,8 +3,6 @@
 #include <vector>
 #include <string>
 
-#include <boost/noncopyable.hpp>
-
 #include "../Plugin.h"
 #include "../windows/hotkey.h"
 

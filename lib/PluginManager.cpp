@@ -9,8 +9,12 @@ PluginManager::PluginManager() :
   plugins_.reserve(8);
 }
 
+PluginManager::~PluginManager()
+{
+}
+
 PluginManager& PluginManager::get() {
-  static PluginManager instance DLL_SHARED;
+  static PluginManager instance;
   return instance;
 }
 

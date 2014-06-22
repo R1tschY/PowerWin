@@ -90,6 +90,11 @@ std::vector<std::wstring> ConfigFile::splitStringArray(const wchar_t* p) {
   return std::move(result);
 }
 
+ConfigFile::ConfigFile()
+{
+
+}
+
 void ConfigFile::loadFromFile(const std::wstring& filename) {
   filename_.assign(filename);
 }

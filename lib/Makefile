@@ -3,11 +3,11 @@ SUFFIX = .dll
 BUILD_PATH = ..\build
 
 WARNINGS= -Wall -Wuninitialized -Wno-unused-local-typedefs
-FEATURES= -shared -O2 -s -std=gnu++0x -fvisibility=hidden -fvisibility-inlines-hidden
-# FEATURES= -shared -g -std=gnu++0x  -fvisibility=hidden -fvisibility-inlines-hidden
+FEATURES= -shared -O2 -s -std=gnu++0x
+# FEATURES= -shared -g -std=gnu++0x  -fvisibility=hidden -fvisibility-inlines-hidden -finline-functions
 MACROS  = -DUNICODE -DBUILD_DLL -DPTW32_BUILD_INLINED -DPTW32_STATIC_LIB
-INCLUDES= -I.. -IC:/Users/Richard/include/boost_1_47_0
-LIBS    = -static-libgcc -static-libstdc++ -finline-functions -lwsock32 -static -lpthread
+INCLUDES= -I.. -IC:/include/boost_1_55_0
+LIBS    = -static-libgcc -static-libstdc++ -lwsock32 -static -lpthread
 
 # compile for Windows XP
 MACROS  += -DNTDDI_VERSION=0x05010300 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 \

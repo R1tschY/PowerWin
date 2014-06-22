@@ -11,7 +11,9 @@ public:
   virtual void onDeactivate();
 
   enum Menu : unsigned {
-    MenuId_AlwaysOnTop = 0x00270
+    MenuId_Sep1 = 0xFFFFFF00,
+    MenuId_AlwaysOnTop = 0x00270,
+    MenuId_Sep2 = 0xFFFFFF10,
   };
 };
 

@@ -1,6 +1,5 @@
 #include "Timeout.h"
 #include "../DesktopHooks.h"
-#include "../Utils.h"
 #include "../windows/debug.h"
 #include "../windows/charcodecs.h"
 
@@ -71,7 +70,7 @@ void CALLBACK Timeout::ccallback(HWND hwnd, UINT msg, UINT_PTR callback, DWORD t
 
     try {
       (*cb)();
-    } catch (const boost::bad_function_call& error) {
+    } catch (const std::bad_function_call& error) {
       OutputDebugString(L"! Timeout Funktionsaufruf scheitert:");
       OutputDebugString(Windows::convertFromUtf8(error.what()).c_str());
       OutputDebugString(L"\n");
@@ -90,7 +89,7 @@ void CALLBACK Timeout::cexecallback(HWND hwnd, UINT msg, UINT_PTR callback, DWOR
 
     try {
       (*cb)();
-    } catch (const boost::bad_function_call& error) {
+    } catch (const std::bad_function_call& error) {
       OutputDebugString(L"! Timeout Funktionsaufruf scheitert: %s\n");
       OutputDebugString(Windows::convertFromUtf8(error.what()).c_str());
       OutputDebugString(L"\n");

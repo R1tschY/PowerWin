@@ -5,13 +5,12 @@
 #include <boost/lexical_cast.hpp>
 
 #include "../DesktopHooks.h"
-#include "../Utils.h"
+#include "../windows/debug.h"
 
 ActionsPlugin::ActionsPlugin() : Plugin(L"actions") { }
 
 static bool onActionQuit(int, int) {
   WinExtra::destroy();
-  DestroyWindow(WinExtra::getMainWindow());
   return true;
 }
 

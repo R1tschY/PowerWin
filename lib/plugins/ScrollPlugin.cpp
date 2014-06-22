@@ -1,16 +1,15 @@
 #include "ScrollPlugin.h"
 
-#include <boost/bind.hpp>
-#include <boost/range/algorithm/equal.hpp>
+#include <functional>
 
 #include "../macros.h"
 #include "../algorithm.h"
-#include "../Utils.h"
+#include "../windows/debug.h"
 #include "../c++/utils.h"
 
 ScrollPlugin::ScrollPlugin() :
   Plugin(L"scroll"),
-  hook_(boost::bind(&ScrollPlugin::handle, this, _1, _2))
+  hook_(std::bind(&ScrollPlugin::handle, this, std::placeholders::_1, std::placeholders::_2))
 { }
 
 void ScrollPlugin::onActivate(const Options& options) {

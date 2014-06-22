@@ -2,23 +2,22 @@
 
 #include <vector>
 #include <cstdio>
-#include <boost/lexical_cast.hpp>
-#include <boost/format.hpp>
+//#include <boost/format.hpp>
 
-#include "../Utils.h"
+#include "../windows/debug.h"
 #include "../windows/Hook.h"
 #include "../c++/utils.h"
 #include "../macros.h"
+#include "../DesktopHooks.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Was noch nicht geht:
 //   neu erstellten Fenstern Systemmenü ergänzen
-//   Auf Klick reagieren
-// -> theoretisch reicht CBT-Hook (alle Hooks funktionieren nicht)
+//   64Bit prozesse
 
-LRESULT CALLBACK systemmenu_cbt_proc(int code, WPARAM wparam, LPARAM lparam);
+static LRESULT CALLBACK systemmenu_cbt_proc(int code, WPARAM wparam, LPARAM lparam);
 
-static DLL_SHARED Hook cbt_hook(WH_CBT, Hook::THREAD_ID_ALL_THREADS, systemmenu_cbt_proc);
+//static DLL_SHARED Hook cbt_hook(WH_CBT, Hook::THREAD_ID_ALL_THREADS, systemmenu_cbt_proc);
 
 SystemMenuPlugin::SystemMenuPlugin() :
   Plugin(L"system_menu")
@@ -137,7 +136,7 @@ static BOOL CALLBACK upgrade_window(HWND hwnd, LPARAM lParam) {
       // eigenes Menü hinzufügen
 
       // Seperator
-      InsertMenu(menu, SC_CLOSE, MF_SEPARATOR, 0, nullptr);
+      //InsertMenu(menu, SC_CLOSE, MF_SEPARATOR, SystemMenuPlugin::MenuId_Sep1, nullptr);
 
       // Immer im Vordergrund
       InsertMenu(menu, SC_CLOSE,
@@ -146,21 +145,12 @@ static BOOL CALLBACK upgrade_window(HWND hwnd, LPARAM lParam) {
                  L"Immer im Vordergrund");
 
       // Seperator
-      InsertMenu(menu, SC_CLOSE, MF_SEPARATOR, 0, nullptr);
+      InsertMenu(menu, SC_CLOSE, MF_SEPARATOR, SystemMenuPlugin::MenuId_Sep2, nullptr);
     }
   }
 
   return true;
 }
-
-void SystemMenuPlugin::onActivate(const Plugin::Options& options)
-{
-  print(L"SystemMenuPlugin::onActivate\n");
-  cbt_hook.activate();
-  MessageBeep(MB_OK);
-  EnumWindows(upgrade_window, 0);
-}
-
 
 static BOOL CALLBACK downgrade_window(HWND hwnd, LPARAM lParam) {
   HMENU menu = GetSystemMenu(hwnd, false);
@@ -170,35 +160,59 @@ static BOOL CALLBACK downgrade_window(HWND hwnd, LPARAM lParam) {
     // vorhandenes Menü löschen
     while (ExistsMenuItem(menu, SystemMenuPlugin::MenuId_AlwaysOnTop))
       DeleteMenu(menu, SystemMenuPlugin::MenuId_AlwaysOnTop, MF_BYCOMMAND);
+
+    while (ExistsMenuItem(menu, SystemMenuPlugin::MenuId_Sep1))
+      DeleteMenu(menu, SystemMenuPlugin::MenuId_Sep1, MF_BYCOMMAND);
+
+    while (ExistsMenuItem(menu, SystemMenuPlugin::MenuId_Sep2))
+      DeleteMenu(menu, SystemMenuPlugin::MenuId_Sep2, MF_BYCOMMAND);
+
     InsertMenu(menu, SC_CLOSE, MF_SEPARATOR, 0, nullptr);
   }
 
   return true;
 }
 
-void SystemMenuPlugin::onDeactivate()
+void SystemMenuPlugin::onActivate(const Plugin::Options& options)
 {
-  cbt_hook.deactivate();
+  shared_memory->systemmenu_hook = SetWindowsHookEx(
+        WH_CBT,
+        systemmenu_cbt_proc,
+        WinExtra::getDllInstance(),
+        Hook::THREAD_ID_ALL_THREADS);
+  MessageBeep(MB_OK);
   EnumWindows(downgrade_window, 0);
-
-  MessageBeep(MB_ICONWARNING);
-  print(L"SystemMenuPlugin::onDeactivate\n");
+  EnumWindows(upgrade_window, 0);
 }
 
-LRESULT CALLBACK systemmenu_cbt_proc(int code, WPARAM wparam, LPARAM lparam) {
+void SystemMenuPlugin::onDeactivate()
+{
+  EnumWindows(downgrade_window, 0);
+  UnhookWindowsHookEx(shared_memory->systemmenu_hook);
+
+  MessageBeep(MB_ICONWARNING);
+}
+
+LRESULT CALLBACK systemmenu_cbt_proc(int code, WPARAM wParam, LPARAM lParam) {
   if (code >= 0)
   {
-    if (code == HCBT_SYSCOMMAND) {
-      if (wparam == SystemMenuPlugin::MenuId_AlwaysOnTop) {
-        MessageBeep(MB_ICONINFORMATION);
-        auto hwnd = GetForegroundWindow();
-        bool state = IsWindowAlwaysOnTop(hwnd);
-        SetWindowAlwaysOnTop(hwnd, !state);
-        UpdateSystemMenu(hwnd, !state);
-      }
-      return 0;
+    if (code == HCBT_SYSCOMMAND &&
+        wParam == SystemMenuPlugin::MenuId_AlwaysOnTop)
+    {
+      // menu item was clicked
+      MessageBeep(MB_ICONINFORMATION);
+      auto hwnd = GetForegroundWindow();
+      bool state = IsWindowAlwaysOnTop(hwnd);
+      SetWindowAlwaysOnTop(hwnd, !state);
+      UpdateSystemMenu(hwnd, !state);
+      return 1;
+    }
+
+    if (code == HCBT_CREATEWND) {
+      // new window was createded
+      upgrade_window((HWND)wParam, 0);
     }
   }
 
-  return CallNextHookEx(cbt_hook.getHandle(), code, wparam, lparam);
+  return CallNextHookEx(shared_memory->systemmenu_hook, code, wParam, lParam);
 }

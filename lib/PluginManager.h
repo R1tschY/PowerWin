@@ -2,6 +2,7 @@
 #define PLUGINMANAGER_H
 
 #include <vector>
+#include "windows/debug.h"
 
 class Plugin;
 
@@ -10,6 +11,8 @@ public:
   static PluginManager& get();
 
   void addPlugin(Plugin* plugin);
+
+  ~PluginManager();
 
   template<typename Func>
   void forEach(Func func) {

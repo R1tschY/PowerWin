@@ -1,7 +1,2 @@
-small.ico
 Makefile
-DesktopEx.ico
-resource.h
-DesktopEx.h
-DesktopEx.cpp
-DesktopEx.rc
+main.cpp

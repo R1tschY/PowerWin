@@ -5,7 +5,7 @@ BUILD_PATH = ..\build
 WARNINGS= -Wall -Wuninitialized -Wno-unused-local-typedefs
 FEATURES= -O2 -s -std=gnu++0x -mwindows
 MACROS  = -DUNICODE
-INCLUDES= -I../lib -IC:/Users/Richard/include/boost_1_47_0
+INCLUDES= -I../lib
 LIBS    = -L$(BUILD_PATH) -static-libgcc -static-libstdc++ -lpowerwin -mwindows
 
 
