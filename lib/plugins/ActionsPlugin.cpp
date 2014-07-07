@@ -10,7 +10,7 @@
 ActionsPlugin::ActionsPlugin() : Plugin(L"actions") { }
 
 static bool onActionQuit(int, int) {
-  WinExtra::destroy();
+  win_destroy();
   return true;
 }
 

@@ -12,7 +12,7 @@ Timeout::Timeout(const Callback& callback, int seconds):
   if (seconds == -1) return ;
 
   UINT_PTR id;
-  id = SetTimer(WinExtra::getMainWindow(), (UINT_PTR)&callback_, seconds * 1000, ccallback);
+  id = SetTimer(win_getMainWindow(), (UINT_PTR)&callback_, seconds * 1000, ccallback);
   if (id != (UINT_PTR)&callback_) {
     print(L"! Timeout-Timer-Erstellung scheitert: %s\n", Windows::GetLastWindowsError().c_str());
   } else {
@@ -22,21 +22,21 @@ Timeout::Timeout(const Callback& callback, int seconds):
 
 Timeout::~Timeout() {
   if (enabled_) {
-    KillTimer(WinExtra::getMainWindow(), (UINT_PTR)&callback_);
+    KillTimer(win_getMainWindow(), (UINT_PTR)&callback_);
   }
 }
 
 void Timeout::setInterval(int seconds) {
   if (seconds < 0) {
     if (enabled_) {
-      KillTimer(WinExtra::getMainWindow(), (UINT_PTR)&callback_);
+      KillTimer(win_getMainWindow(), (UINT_PTR)&callback_);
       enabled_ = false;
     }
     return ;
   }
 
   UINT_PTR id;
-  id = SetTimer(WinExtra::getMainWindow(), (UINT_PTR)&callback_, seconds * 1000, ccallback);
+  id = SetTimer(win_getMainWindow(), (UINT_PTR)&callback_, seconds * 1000, ccallback);
   if (id != (UINT_PTR)&callback_) {
     print(L"! Timeout-Timer-Erstellung scheitert: %s\n", Windows::GetLastWindowsError().c_str());
   } else {
@@ -52,7 +52,7 @@ void Timeout::execute(const Callback& callback, int seconds) {
   UINT_PTR id;
   UINT_PTR cb = reinterpret_cast<UINT_PTR>(new Callback(callback));
 
-  id = SetTimer(WinExtra::getMainWindow(), cb, seconds * 1000, cexecallback);
+  id = SetTimer(win_getMainWindow(), cb, seconds * 1000, cexecallback);
   if (id != cb) {
     print(L"! Timeout-Timer-Erstellung scheitert: %s\n", Windows::GetLastWindowsError().c_str());
     delete reinterpret_cast<Callback*>(cb);
@@ -95,7 +95,7 @@ void CALLBACK Timeout::cexecallback(HWND hwnd, UINT msg, UINT_PTR callback, DWOR
       OutputDebugString(L"\n");
     }
 
-    KillTimer(WinExtra::getMainWindow(), callback);
+    KillTimer(win_getMainWindow(), callback);
     delete cb;
   }
 }

@@ -2,51 +2,59 @@
 #define STRINGREF_H
 
 #include <string>
+#include <iterator>
+#include <boost/range/iterator_range_core.hpp>
 
-namespace Cpp {
+namespace cpp {
 
 template<typename CharT>
-class GeneralStringRef
+class basic_string_ref : public boost::iterator_range<const CharT*>
 {
 public:
-  constexpr explicit
-  GeneralStringRef() { }
-
-  GeneralStringRef(const std::basic_string<CharT>& string) :
-    begin_(string.begin()), end_(string.end())
-  { }
-
-  GeneralStringRef(const CharT* string) :
-    begin_(string), end_(string + strlen(string))
-  { }
-
-  const CharT* begin() const {
-    return begin_;
-  }
-
-  const CharT* end() const {
-    return end_;
-  }
-
-  const CharT* cbegin() const {
-    return begin_;
-  }
-
-  const CharT* cend() const {
-    return end_;
-  }
-
-  std::size_t size() const {
-    return end_ - begin_;
-  }
+  typedef boost::iterator_range<const CharT*> base_type;
+  typedef CharT char_type;
+  typedef std::char_traits<CharT> traits;
 
 private:
-  const CharT* begin_;
-  const CharT* end_;
+  typedef basic_string_ref<CharT> self_type;
+
+public:
+  constexpr explicit
+  basic_string_ref() { }
+
+  constexpr
+  basic_string_ref(const basic_string_ref& other) :
+    base_type(other.begin(), other.end())
+  { }
+
+  basic_string_ref(const std::basic_string<CharT>& string) :
+    base_type(string.data(), string.data() + string.length())
+  { }
+
+  basic_string_ref(const CharT* string) :
+    base_type(string, string + traits::length(string))
+  { }
+
+  basic_string_ref(const CharT* begin, const CharT* end) :
+    base_type(begin, end)
+  { }
+
+  template<std::size_t N>
+  void copy_to(CharT (&dest)[N]) const {
+    traits::copy(dest, base_type::begin(), std::min((std::size_t)base_type::size(), N));
+  }
+
+  void copy_to(std::basic_string<CharT>& dest) const {
+    dest.assign(base_type::begin(), base_type::end());
+  }
+
+  basic_string_ref<char_type> to_string() const {
+    return basic_string_ref<char_type>(base_type::begin(), base_type::end());
+  }
 };
 
-typedef GeneralStringRef<char> StringRef;
-typedef GeneralStringRef<wchar_t> WStringRef;
+typedef basic_string_ref<char> string_ref;
+typedef basic_string_ref<wchar_t> wstring_ref;
 
 } // namespace Cpp
 

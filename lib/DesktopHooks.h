@@ -1,24 +1,26 @@
 #include "export.h"
 
 #include <windows.h>
-#include <functional>
-
+/*
 typedef struct {
   HHOOK systemmenu_hook;
 } SharedMemory;
 
-extern SharedMemory* shared_memory;
+extern SharedMemory* shared_memory;*/
 
-namespace WinExtra {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-HINSTANCE getDllInstance     ();
-void      updateDllInstance  (HINSTANCE instance);
-HWND      getMainWindow      ();
-void      destroy            ();
+HINSTANCE win_getDllInstance     ();
+void      win_updateDllInstance  (HINSTANCE instance);
+HWND      win_getMainWindow      ();
+void      win_destroy            ();
 
-DLL_PUBLIC int       run               (HINSTANCE hInstance);
+DLL_PUBLIC int       win_run               (HINSTANCE hInstance);
 
-
-} //  namespace WinExtra
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 

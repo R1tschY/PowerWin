@@ -11,29 +11,29 @@
 
 class Hook {
 public:
-  static const DWORD THREAD_ID_ALL_THREADS = 0;
+  static const DWORD AllThreads = 0;
 
-  bool activate();
-  bool deactivate();
+  void init() { hook_ = nullptr; }
+  bool create(int hook_id, DWORD thread_id, HOOKPROC func);
+  bool destroy();
   
-  bool isActive() const { return hook_ != NULL; }
+  bool isActive() const { return hook_ != nullptr; }
   HHOOK getHandle() const { return hook_; }
   
-  Hook(int hook_id, DWORD thread_id, HOOKPROC func) :
-    hook_id_(hook_id), thread_id_(thread_id), func_(func), hook_(NULL)
-  { }
+  Hook() { }
+
+  LRESULT callNext(int code, WPARAM wparam, LPARAM lparam) const {
+    return CallNextHookEx(hook_, code, wparam, lparam);
+  }
   
 private:
-  int hook_id_;
-  DWORD thread_id_;
-  HOOKPROC func_;
   HHOOK hook_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 // MouseHook
 
-class MouseHook : public Hook {
+class MouseHook {
 public:
   typedef std::function<bool (POINT, int)> WheelHandler;
   typedef std::function<bool (unsigned, POINT)> ClickHandler;
@@ -45,9 +45,11 @@ public:
   }
 
   MouseHook() :
-    Hook(WH_MOUSE_LL, THREAD_ID_ALL_THREADS, hookProc),
+    hook_(),
     wheel_hooks_()
-  { }
+  {
+    hook_.init();
+  }
   
 protected:
   template<typename Proc>
@@ -59,6 +61,7 @@ protected:
   void removeHandler(ClickHandler* proc);
   
 private:  
+  Hook hook_;
   std::vector<WheelHandler*> wheel_hooks_;
   std::vector<ClickHandler*> click_hooks_;
   

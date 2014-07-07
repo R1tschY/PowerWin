@@ -21,7 +21,7 @@ public:
   bool isActive() const { return active_; }
   const wchar_t* getName() const { return name_; }
 
-  void setOptions(Options&& options) { options_ = std::move(options); }
+  void setOptions(Options options) { options_ = std::move(options); }
   bool getBooleanOption(const std::wstring& key, bool default_);
 
 protected:

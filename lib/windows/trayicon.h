@@ -10,12 +10,12 @@ namespace Windows {
 
 class TrayIcon {
 public:
-  typedef enum class {
+  enum class Icon {
     None    = NIIF_NONE,
     Info    = NIIF_INFO,
     Warning = NIIF_WARNING,
     Error   = NIIF_ERROR
-  } IconType;
+  };
 
   static const unsigned int MessageId = WM_USER + 21;
 
@@ -25,10 +25,10 @@ public:
   void add(HWND hwnd, HICON icon);
   void remove();
 
-  void setToolTip(Cpp::WStringRef src);
-  void showBalloon(Cpp::WStringRef title,
-                   Cpp::WStringRef msg,
-                   IconType icontype);
+  void setToolTip(cpp::wstring_ref src);
+  void showBalloon(cpp::wstring_ref title,
+                   cpp::wstring_ref msg,
+                   Icon icontype);
 
 private:
   NOTIFYICONDATAW trayicon_;

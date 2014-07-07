@@ -1,7 +1,9 @@
 #include <string>
 #include <algorithm>
+#include <memory>
+#include <vector>
 
-#include "algorithm.h"
+#include "c++/algorithm.h"
 #include "DesktopHooks.h"
 #include "windows/Hook.h"
 #include "windows/ConfigFile.h"
@@ -12,27 +14,63 @@
 #include "plugins/SystemMenuPlugin.h"
 #include "windows/debug.h"
 #include "macros.h"
-#include "PluginManager.h"
 #include "windows/application.h"
 #include "windows/trayicon.h"
 
-static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+namespace {
 
-static HINSTANCE dllinstance_ = nullptr;
-static HWND window = 0;
+HINSTANCE dllinstance_ = nullptr;
 
-SharedMemory* shared_memory;
+// /////////////////////////////////////////////////////////////////////////////
 
-static struct {
-  ActionsPlugin actions;
-  ScrollPlugin scroll;
-//  FullscreenPlugin fullscreen;
-  SystemMenuPlugin systemmenu;
-} plugins;
+class PowerWin {
+public:
+  PowerWin();
 
-static Windows::TrayIcon tray_icon;
+  static int run();
 
-ATOM MyRegisterClass(HINSTANCE hInstance) {
+  static PowerWin* get() {
+    return instance_;
+  }
+
+  HWND getWindow() {
+    return window_;
+  }
+
+private:
+  std::vector<std::unique_ptr<Plugin>> plugins_;
+
+  Windows::TrayIcon tray_icon_;
+  HWND window_;
+
+
+  static PowerWin* instance_;
+
+  static ATOM RegisterWinClass(HINSTANCE hInstance);
+  void start(HWND hwnd);
+  void onDestroy();
+
+  static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+};
+
+PowerWin* PowerWin::instance_ = nullptr;
+
+PowerWin::PowerWin() :
+  plugins_(),
+  tray_icon_(),
+  window_(nullptr)
+{
+#ifdef MAIN_MODULE
+  plugins_.push_back(std::unique_ptr<Plugin>(new ActionsPlugin()));
+  plugins_.push_back(std::unique_ptr<Plugin>(new ScrollPlugin()));
+  //plugins_.push_back(std::unique_ptr<Plugin>(new FullscreenPlugin()));
+  plugins_.push_back(std::unique_ptr<Plugin>(new SystemMenuPlugin()));
+#else
+  plugins_.push_back(std::unique_ptr<Plugin>(new SystemMenuPlugin()));
+#endif
+}
+
+ATOM PowerWin::RegisterWinClass(HINSTANCE hInstance) {
   WNDCLASSEX wcex;
 
   wcex.cbSize = sizeof(WNDCLASSEX);
@@ -52,9 +90,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance) {
   return RegisterClassEx(&wcex);
 }
 
-
-static
-int app_entry() {
+int PowerWin::run() {
   //  init Comctl32.dll
   /*const INITCOMMONCONTROLSEX icce = {
     sizeof(INITCOMMONCONTROLSEX),
@@ -66,19 +102,22 @@ int app_entry() {
 
   print(L"app_entry %d\n", GetCurrentThreadId());
 
-  MyRegisterClass(Windows::Application::getInstance());
+  PowerWin powerwin;
+  instance_ = &powerwin;
 
-  window = CreateWindowW(L"PowerWin",
-                         L"PowerWin",
-                         WS_OVERLAPPEDWINDOW,
-                         CW_USEDEFAULT,
-                         0,
-                         CW_USEDEFAULT,
-                         0,
-                         NULL,
-                         NULL,
-                         Windows::Application::getInstance(),
-                         NULL);
+  RegisterWinClass(Windows::Application::getInstance());
+
+  powerwin.window_ = CreateWindowW(L"PowerWin",
+                           L"PowerWin",
+                           WS_OVERLAPPEDWINDOW,
+                           CW_USEDEFAULT,
+                           0,
+                           CW_USEDEFAULT,
+                           0,
+                           NULL,
+                           NULL,
+                           Windows::Application::getInstance(),
+                           NULL);
 
   // main message loop
   MSG msg;
@@ -92,47 +131,13 @@ int app_entry() {
   return 0;
 }
 
-namespace WinExtra {
+void PowerWin::start(HWND hwnd) {
+  window_ = hwnd;
 
-HINSTANCE getDllInstance() {
-  if (dllinstance_ == 0) {
-    print(L"too early access of dll instance!");
-  }
-
-  return dllinstance_;
-}
-
-void updateDllInstance(HINSTANCE instance) {
-  if (dllinstance_ == NULL) {
-    dllinstance_ = instance;
-  }
-}
-
-HWND getMainWindow() {
-  if (window == 0) {
-    print(L"too early access of main window!");
-  }
-
-  return window;
-}
-
-int run(HINSTANCE hInstance) {
-  Windows::Application app(L"PowerWin", hInstance);
-  return app.run(app_entry);
-}
-
-void destroy() {
-  DestroyWindow(window);
-}
-
-} //  namespace WinExtra
-
-static
-void start() {
   ConfigFile config;
-  config.loadFromFile(Windows::Application::getExeDir());
+  config.loadFromFile(Windows::Application::getExecutablePath() + L"\\config.ini");
 
-  PluginManager::get().forEach([&](Plugin* plugin) {
+  for (auto& plugin : plugins_) {
     Plugin::Options opts;
     for (const std::wstring& key : config.getKeys(plugin->getName())) {
       opts[key] = config.getString(plugin->getName(), key.c_str(), nullptr);
@@ -140,45 +145,50 @@ void start() {
     plugin->setOptions(std::move(opts));
 
     if (plugin->getBooleanOption(L"active", true)) {
-      print(L"activate plugin (0x%p) %s\n", plugin, plugin->getName());
+      print(L"activate plugin (0x%p) %s\n", plugin.get(), plugin->getName());
       plugin->activate();
     }
-  });
+  }
 
   /*tray_icon.add(WinExtra::getMainWindow(),
                 ExtractIcon(
                   Windows::Application::getInstance(),
                   L"C:\\Windows\\system32\\shell32.dll",
                   -26));*/
+#ifdef MAIN_MODULE
+  tray_icon_.add(window_, LoadIcon(NULL, IDI_APPLICATION));
+#endif
 
-  tray_icon.add(window, LoadIcon(NULL, IDI_APPLICATION));
+  // start 64Bit-DLL
+  if (Windows::Application::Is64BitWindows()) {
+
+  }
 }
 
-void onDestroy() {
+void PowerWin::onDestroy() {
   try {
-    PluginManager::get().forEach([&](Plugin* plugin) {
+    for (auto& plugin : plugins_) {
       print(L"deactivate plugin %s\n", plugin->getName());
       plugin->deactivate();
-    });
+    }
   } catch (...) {
     MessageBox(NULL, L"Ups", L"!!!", MB_ICONERROR | MB_OK);
   }
 
-  tray_icon.remove();
+  tray_icon_.remove();
 
   PostQuitMessage(0);
 }
 
-static
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+LRESULT CALLBACK PowerWin::WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+{
   switch (msg) {
   case WM_CREATE:
-    window = hwnd;
-    start();
+    PowerWin::get()->start(hwnd);
     break;
 
   case WM_DESTROY:
-    onDestroy();
+    PowerWin::get()->onDestroy();
     break;
 
   default:
@@ -186,6 +196,49 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
   }
   return 0;
 }
+
+} // namespace
+
+extern "C" {
+
+HINSTANCE win_getDllInstance() {
+  if (dllinstance_ == 0) {
+    print(L"too early access of dll instance!");
+  }
+
+  return dllinstance_;
+}
+
+void win_updateDllInstance(HINSTANCE instance) {
+  if (dllinstance_ == NULL) {
+    dllinstance_ = instance;
+  }
+}
+
+HWND win_getMainWindow() {
+  PowerWin* instance = PowerWin::get();
+  if (instance == nullptr) {
+    print(L"not in powerwin process!");
+  }
+
+  HWND window = instance->getWindow();
+  if (window == nullptr) {
+    print(L"too early access of main window!");
+  }
+
+  return window;
+}
+
+int win_run(HINSTANCE hInstance) {
+  Windows::Application app(L"PowerWin", hInstance);
+  return app.run(PowerWin::run);
+}
+
+void win_destroy() {
+  DestroyWindow(win_getMainWindow());
+}
+
+} // extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Windowpicker

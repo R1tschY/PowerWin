@@ -17,11 +17,13 @@
 
 static LRESULT CALLBACK systemmenu_cbt_proc(int code, WPARAM wparam, LPARAM lparam);
 
-//static DLL_SHARED Hook cbt_hook(WH_CBT, Hook::THREAD_ID_ALL_THREADS, systemmenu_cbt_proc);
+DLL_SHARED Hook cbt_hook;
 
 SystemMenuPlugin::SystemMenuPlugin() :
   Plugin(L"system_menu")
-{ }
+{
+  cbt_hook.init();
+}
 
 static bool ExistsMenuItem(HMENU menu, unsigned id) {
   MENUITEMINFO info;
@@ -118,25 +120,14 @@ static void UpdateSystemMenu(HWND hwnd, bool new_state) {
 
 static BOOL CALLBACK upgrade_window(HWND hwnd, LPARAM lParam) {
   wchar_t class_name[255];
-  GetClassNameW(hwnd, class_name, Cpp::length(class_name));
+  GetClassNameW(hwnd, class_name, cpp::length(class_name));
   HMENU menu = GetSystemMenu(hwnd, false);
 
   if (IsMenu(menu)) {
     // hat Systemmenu
-    /*wprintf_s(L"Fenster: %s: %p\n", class_name, menu);
-    int n = GetMenuItemCount(menu);
-    for (int i = 0; i < n; i++) {
-      wprintf_s(L"  MenuItem: %s\n", GetMenuItemDisplayName(menu, i).c_str());
-    }*/
 
     if (ExistsMenuItem(menu, SC_CLOSE)) {
-      // evtl. noch vorhandenes Menü löschen
-      DeleteMenu(menu, SystemMenuPlugin::MenuId_AlwaysOnTop, MF_BYCOMMAND);
-
       // eigenes Menü hinzufügen
-
-      // Seperator
-      //InsertMenu(menu, SC_CLOSE, MF_SEPARATOR, SystemMenuPlugin::MenuId_Sep1, nullptr);
 
       // Immer im Vordergrund
       InsertMenu(menu, SC_CLOSE,
@@ -145,13 +136,14 @@ static BOOL CALLBACK upgrade_window(HWND hwnd, LPARAM lParam) {
                  L"Immer im Vordergrund");
 
       // Seperator
-      InsertMenu(menu, SC_CLOSE, MF_SEPARATOR, SystemMenuPlugin::MenuId_Sep2, nullptr);
+      InsertMenu(menu, SC_CLOSE, MF_SEPARATOR, SystemMenuPlugin::MenuId_AlwaysOnTop, nullptr);
     }
   }
 
   return true;
 }
 
+#ifdef MAIN_MODULE
 static BOOL CALLBACK downgrade_window(HWND hwnd, LPARAM lParam) {
   HMENU menu = GetSystemMenu(hwnd, false);
   if (IsMenu(menu)) {
@@ -160,39 +152,34 @@ static BOOL CALLBACK downgrade_window(HWND hwnd, LPARAM lParam) {
     // vorhandenes Menü löschen
     while (ExistsMenuItem(menu, SystemMenuPlugin::MenuId_AlwaysOnTop))
       DeleteMenu(menu, SystemMenuPlugin::MenuId_AlwaysOnTop, MF_BYCOMMAND);
-
-    while (ExistsMenuItem(menu, SystemMenuPlugin::MenuId_Sep1))
-      DeleteMenu(menu, SystemMenuPlugin::MenuId_Sep1, MF_BYCOMMAND);
-
-    while (ExistsMenuItem(menu, SystemMenuPlugin::MenuId_Sep2))
-      DeleteMenu(menu, SystemMenuPlugin::MenuId_Sep2, MF_BYCOMMAND);
-
-    InsertMenu(menu, SC_CLOSE, MF_SEPARATOR, 0, nullptr);
   }
 
   return true;
 }
+#endif
 
 void SystemMenuPlugin::onActivate(const Plugin::Options& options)
 {
-  shared_memory->systemmenu_hook = SetWindowsHookEx(
-        WH_CBT,
-        systemmenu_cbt_proc,
-        WinExtra::getDllInstance(),
-        Hook::THREAD_ID_ALL_THREADS);
+  cbt_hook.create(WH_CBT, Hook::AllThreads, systemmenu_cbt_proc);
+
+#ifdef MAIN_MODULE
   MessageBeep(MB_OK);
   EnumWindows(downgrade_window, 0);
   EnumWindows(upgrade_window, 0);
+#endif
 }
 
 void SystemMenuPlugin::onDeactivate()
 {
+#ifdef MAIN_MODULE
+  MessageBeep(MB_OK);
   EnumWindows(downgrade_window, 0);
-  UnhookWindowsHookEx(shared_memory->systemmenu_hook);
+#endif
 
-  MessageBeep(MB_ICONWARNING);
+  cbt_hook.destroy();
 }
 
+static
 LRESULT CALLBACK systemmenu_cbt_proc(int code, WPARAM wParam, LPARAM lParam) {
   if (code >= 0)
   {
@@ -214,5 +201,5 @@ LRESULT CALLBACK systemmenu_cbt_proc(int code, WPARAM wParam, LPARAM lParam) {
     }
   }
 
-  return CallNextHookEx(shared_memory->systemmenu_hook, code, wParam, lParam);
+  return cbt_hook.callNext(code, wParam, lParam);
 }

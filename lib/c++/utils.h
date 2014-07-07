@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-namespace Cpp {
+namespace cpp {
 
 template <typename T, std::size_t N>
 constexpr inline
@@ -25,18 +25,18 @@ inline const wchar_t* display_bool(bool b) {
 // Window Utils
 
 constexpr inline
-int toHighWord(short l) {
+int high_word(short l) {
   return l << 16;
 }
 
 constexpr inline
-int toLowWord(short l) {
+int low_word(short l) {
   return l;
 }
 
 constexpr inline
-int toDword(short high, short low) {
-  return toHighWord(high) | toLowWord(low);
+int dword(short high, short low) {
+  return high_word(high) | low_word(low);
 }
 
 } // namespace Cpp

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "macros.h"
+#include "../c++/stringref.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //     ConfigFile
@@ -14,7 +15,7 @@ class ConfigFile {
 public:  
   ConfigFile();
 
-  void loadFromFile(const std::wstring& filename);
+  void loadFromFile(const cpp::wstring_ref& filename);
   void save() { }
 
   bool existsKey(const wchar_t* section, const wchar_t* key) const;

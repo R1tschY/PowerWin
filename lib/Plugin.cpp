@@ -4,12 +4,10 @@
 #include <boost/algorithm/string.hpp>
 
 #include "windows/debug.h"
-#include "PluginManager.h"
 
 Plugin::Plugin(const wchar_t* name) :
   active_(false), options_(), name_(name)
 {
-  PluginManager::get().addPlugin(this);
 }
 
 Plugin::~Plugin() {

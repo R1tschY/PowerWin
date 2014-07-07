@@ -101,16 +101,40 @@ Application::run(const Callback& entry) const {
   return 0;
 }
 
+bool Application::Is64BitWindows()
+{
+  // We can check if the operating system is 64-bit by checking whether
+  // we are running under Wow64 (we are 32-bit code). We must check if this
+  // function is implemented before we call it, because some older 32-bit
+  // versions of kernel32.dll (eg. Windows 2000) don't know about it.
+  // See "IsWow64Process", http://msdn.microsoft.com/en-us/library/ms684139.aspx
+
+  typedef BOOL (WINAPI *IsWow64Process_t) (HANDLE, BOOL*);
+
+  auto IsWow64Process = (IsWow64Process_t)
+      GetProcAddress(GetModuleHandle(L"kernel32"), "IsWow64Process");
+  if (IsWow64Process != nullptr) {
+    BOOL isWow64 = false;
+    if (IsWow64Process(GetCurrentProcess(), &isWow64)) {
+      return isWow64;
+    }
+  }
+
+  return false;
+}
+
 
 // Utils
 
-std::wstring Application::getExeDir() {
-  wchar_t result[MAX_PATH];
-  GetModuleFileNameW(NULL, result, sizeof(result));
-  return std::wstring(result, wcsrchr(result, '\\') - result);
+cpp::wstring_ref Application::getExecutableFilename() {
+  return static_cast<const wchar_t*>(_wpgmptr);
 }
 
-std::wstring Application::getConigDir() {
+std::wstring Application::getExecutablePath() {
+  return std::wstring(_wpgmptr, wcsrchr(_wpgmptr, L'\\') - _wpgmptr);
+}
+
+std::wstring Application::getConigPath() {
   wchar_t path[MAX_PATH+1];
 
   HRESULT hr = SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, 0, path);

@@ -7,6 +7,7 @@
 
 #include "windows.h"
 #include "debug.h"
+#include "../c++/stringref.h"
 
 namespace Windows {
 
@@ -26,14 +27,16 @@ class Application {
     return instance;
   }
   static WindowsVersion getWindowsVersion() { return winversion; }
+  static bool Is64BitWindows();
   static const std::wstring& getPath() { return path; }
   static const std::wstring& getName() { return name; }
   // TODO: static string getWindowsVersionString();
 
-  static std::wstring getExeDir();
-  static std::wstring getConigDir();
+  static cpp::wstring_ref getExecutableFilename();
+  static std::wstring getExecutablePath();
+  static std::wstring getConigPath();
 
- private:
+private:
   HANDLE mutex_;
   bool is_running_;
 

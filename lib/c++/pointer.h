@@ -3,9 +3,9 @@
 
 #include <cstddef>
 
-namespace Cpp {
+namespace cpp {
 
-namespace Pointer {
+namespace pointer {
 
 template<typename T>
 inline void* packFrom(T t) {

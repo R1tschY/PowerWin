@@ -95,7 +95,7 @@ ConfigFile::ConfigFile()
 
 }
 
-void ConfigFile::loadFromFile(const std::wstring& filename) {
-  filename_.assign(filename);
+void ConfigFile::loadFromFile(const cpp::wstring_ref& filename) {
+  filename.copy_to(filename_);
 }
 

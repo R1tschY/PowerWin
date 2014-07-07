@@ -18,7 +18,6 @@ ScrollPlugin.h
 Timeout.cpp
 Timeout.h
 Makefile
-algorithm.h
 plugins/systemmenu.h
 plugins/ActionsPlugin.cpp
 plugins/ActionsPlugin.h
@@ -28,8 +27,6 @@ plugins/ScrollPlugin.cpp
 plugins/ScrollPlugin.h
 plugins/SystemMenuPlugin.cpp
 plugins/SystemMenuPlugin.h
-PluginManager.h
-PluginManager.cpp
 windows/timer.h
 windows/timer.cpp
 windows/windows.h
@@ -90,3 +87,4 @@ windows/utilwindow.cpp
 windows/utilwindow.h
 windows/windows.cpp
 windows/windows.h
+c++/algorithm.h

@@ -45,26 +45,26 @@ TrayIcon::~TrayIcon(void) {
 }
 
 void
-TrayIcon::setToolTip(Cpp::WStringRef src) {
+TrayIcon::setToolTip(cpp::wstring_ref src) {
 #if (WINVER < 0x0600)
   trayicon_.uFlags = NIF_TIP;
 #else
   trayicon_.uFlags = NIF_TIP | NIF_SHOWTIP;
 #endif
-  wcscpy(trayicon_.szTip, src.begin());
+  src.copy_to(trayicon_.szTip);
   Shell_NotifyIconW(NIM_MODIFY, &trayicon_);
 }
 
 void
-TrayIcon::showBalloon(Cpp::WStringRef title, Cpp::WStringRef msg, IconType icontype) {
+TrayIcon::showBalloon(cpp::wstring_ref title, cpp::wstring_ref msg, Icon icontype) {
 #if (WINVER < 0x0600)
   trayicon_.uFlags = NIF_INFO;
 #else
   trayicon_.uFlags = NIF_INFO | NIF_SHOWTIP;
 #endif
   trayicon_.dwInfoFlags = static_cast<int>(icontype);
-  wcscpy(trayicon_.szInfoTitle, title.begin());
-  wcscpy(trayicon_.szInfo, msg.begin());
+  title.copy_to(trayicon_.szInfoTitle);
+  msg.copy_to(trayicon_.szInfo);
 
   Shell_NotifyIconW(NIM_MODIFY, &trayicon_);
 }

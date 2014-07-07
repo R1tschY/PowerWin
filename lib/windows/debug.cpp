@@ -3,6 +3,7 @@
 #include <cerrno>  // für errno
 #include <cstdio>  // für printf
 #include <sstream>
+#include <wchar.h>
 
 #include "../c++/utils.h"
 
@@ -39,7 +40,7 @@ void printMessage(LogLevel level, const wchar_t* format, ...) {
   va_list vl;
 
   va_start(vl, format);
-  int result = swprintf(buffer, Cpp::length(buffer) - 1, format, vl);
+  int result = vsnwprintf(buffer, cpp::length(buffer) - 1, format, vl);
   va_end(vl);
 
   if (result < 0) {
@@ -74,11 +75,26 @@ void print(const wchar_t* format, ...) {
   va_list vl;
 
   va_start(vl, format);
-  _vsnwprintf_s(buffer, _TRUNCATE, format, vl);
+  vsnwprintf(buffer, 1023, format, vl);
   va_end(vl);
 
-  OutputDebugString(buffer);
+  buffer[1023] = L'\0';
+
+  OutputDebugStringW(buffer);
 }
+
+/*void print(const char* format, ...) {
+  char buffer[1024];
+  va_list vl;
+
+  va_start(vl, format);
+  vsnprintf(buffer, 1023, format, vl);
+  va_end(vl);
+
+  buffer[1023] = '\0';
+
+  OutputDebugStringA(buffer);
+}*/
 
 void print_window_infos(HWND hwnd) {
   OutputDebugStringW(L"---------------------------------------------------------\n");

@@ -7,42 +7,42 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Hook
 
-bool Hook::activate() {
+bool Hook::create(int hook_id, DWORD thread_id, HOOKPROC func) {
   if (!hook_) {
-    hook_ = SetWindowsHookEx(hook_id_, func_, WinExtra::getDllInstance(), thread_id_);
-    if (hook_ == NULL)  MessageBeep(MB_ICONERROR);
-    return (hook_ != NULL);
+    hook_ = SetWindowsHookEx(hook_id, func, win_getDllInstance(), thread_id);
+    if (hook_ == nullptr)  MessageBeep(MB_ICONERROR);
+    return (hook_ != nullptr);
   } else {
     return true;
   }
 }
 
-bool Hook::deactivate() {
+bool Hook::destroy() {
   if (hook_ && UnhookWindowsHookEx(hook_)) {
-    hook_ = NULL;
+    hook_ = nullptr;
     return true;
   } else {
-    return (hook_ == NULL);
+    return (hook_ == nullptr);
   }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // MouseHook
-static MouseHook instance;
 
 MouseHook& MouseHook::get() {
+  static MouseHook instance;
   return instance;
 }
 
 void MouseHook::addHandler(MouseHook::WheelHandler* proc) {
   wheel_hooks_.push_back(proc);
-  activate();
+  hook_.create(WH_MOUSE_LL, Hook::AllThreads, hookProc);
 }
 
 void MouseHook::removeHandler(MouseHook::WheelHandler* proc) {
   extra::remove(wheel_hooks_, proc);
   if (empty()) {
-    if (!deactivate()) {
+    if (!hook_.destroy()) {
       MessageBeep(MB_ICONERROR);
     }
   }
@@ -50,13 +50,13 @@ void MouseHook::removeHandler(MouseHook::WheelHandler* proc) {
 
 void MouseHook::addHandler(MouseHook::ClickHandler* proc) {
   click_hooks_.push_back(proc);
-  activate();
+  hook_.create(WH_MOUSE_LL, Hook::AllThreads, hookProc);
 }
 
 void MouseHook::removeHandler(MouseHook::ClickHandler* proc) {
   extra::remove(click_hooks_, proc);
   if (empty()) {
-    if (!deactivate()) {
+    if (!hook_.destroy()) {
       MessageBeep(MB_ICONERROR);
     }
   }
@@ -65,7 +65,7 @@ void MouseHook::removeHandler(MouseHook::ClickHandler* proc) {
 __attribute__((hot))
 LRESULT CALLBACK MouseHook::hookProc(int code, WPARAM wparam, LPARAM lparam) {
   if (code != HC_ACTION) {
-    return CallNextHookEx(get().getHandle(), code, wparam, lparam);
+    return CallNextHookEx(get().hook_.getHandle(), code, wparam, lparam);
   }
     
   bool processed = false;
@@ -89,7 +89,7 @@ LRESULT CALLBACK MouseHook::hookProc(int code, WPARAM wparam, LPARAM lparam) {
   }
     
   if (!processed) {
-    return CallNextHookEx(instance.getHandle(), code, wparam, lparam);
+    return CallNextHookEx(get().hook_.getHandle(), code, wparam, lparam);
   } else {
     return 1;
   }

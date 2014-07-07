@@ -3,28 +3,32 @@ SUFFIX = .dll
 BUILD_PATH = ..\build
 
 WARNINGS= -Wall -Wuninitialized -Wno-unused-local-typedefs
-FEATURES= -shared -O2 -s -std=gnu++0x
-# FEATURES= -shared -g -std=gnu++0x  -fvisibility=hidden -fvisibility-inlines-hidden -finline-functions
-MACROS  = -DUNICODE -DBUILD_DLL -DPTW32_BUILD_INLINED -DPTW32_STATIC_LIB
+FEATURES= -shared -O2 -s -std=gnu++0x -fvisibility=hidden -fvisibility-inlines-hidden -finline-functions
+# FEATURES= -shared -g -std=gnu++0x
+MACROS  = -DUNICODE -DBUILD_DLL
 INCLUDES= -I.. -IC:/include/boost_1_55_0
-LIBS    = -static-libgcc -static-libstdc++ -lwsock32 -static -lpthread
+LIBS    = -static-libgcc -static-libstdc++
 
 # compile for Windows XP
 MACROS  += -DNTDDI_VERSION=0x05010300 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 \
           -D_WIN32_IE=0x0700
 MACROS  += -DWIN32_LEAN_AND_MEAN
 
-
-RM      = del
 CXX     = g++
 
-BINARY = $(BUILD_PATH)/$(NAME)$(SUFFIX)
-OBJECTS = $(patsubst %.cpp, $(BUILD_PATH)/%.o, $(wildcard *.cpp))
-OBJECTS += $(patsubst plugins/%.cpp, $(BUILD_PATH)/plugins/%.o, $(wildcard plugins/*.cpp))
-OBJECTS += $(patsubst c++/%.cpp, $(BUILD_PATH)/c++/%.o, $(wildcard c++/*.cpp))
-OBJECTS += $(patsubst windows/%.cpp, $(BUILD_PATH)/windows/%.o, $(wildcard windows/*.cpp))
+BINARY32 = $(BUILD_PATH)/$(NAME)32$(SUFFIX)
+OBJECTS32 = $(patsubst %.cpp, $(BUILD_PATH)/%.o32, $(wildcard *.cpp))
+OBJECTS32 += $(patsubst plugins/%.cpp, $(BUILD_PATH)/plugins/%.o32, $(wildcard plugins/*.cpp))
+OBJECTS32 += $(patsubst c++/%.cpp, $(BUILD_PATH)/c++/%.o32, $(wildcard c++/*.cpp))
+OBJECTS32 += $(patsubst windows/%.cpp, $(BUILD_PATH)/windows/%.o32, $(wildcard windows/*.cpp))
 
-all: $(BINARY)
+BINARY64 = $(BUILD_PATH)/$(NAME)64$(SUFFIX)
+OBJECTS64 = $(patsubst %.cpp, $(BUILD_PATH)/%.o64, $(wildcard *.cpp))
+OBJECTS64 += $(patsubst plugins/%.cpp, $(BUILD_PATH)/plugins/%.o64, $(wildcard plugins/*.cpp))
+OBJECTS64 += $(patsubst c++/%.cpp, $(BUILD_PATH)/c++/%.o64, $(wildcard c++/*.cpp))
+OBJECTS64 += $(patsubst windows/%.cpp, $(BUILD_PATH)/windows/%.o64, $(wildcard windows/*.cpp))
+
+all: $(BINARY32) $(BINARY64)
 
 $(BUILD_PATH):
 	mkdir $(BUILD_PATH)
@@ -38,11 +42,17 @@ $(BUILD_PATH)/windows:
 $(BUILD_PATH)/c++:
 	mkdir $(BUILD_PATH)\c++
 
-$(BUILD_PATH)/%.o: %.cpp
+$(BUILD_PATH)/%.o32: %.cpp
+	$(CXX) -m32 -DMAIN_MODULE $(FEATURES) $(WARNINGS) $(MACROS) $(INCLUDES) -MMD -MP -MT $@ -MF $@.d -o $@ -c $<
+
+$(BUILD_PATH)/%.o64: %.cpp
 	$(CXX) $(FEATURES) $(WARNINGS) $(MACROS) $(INCLUDES) -MMD -MP -MT $@ -MF $@.d -o $@ -c $<
 
-$(BINARY): $(BUILD_PATH) $(BUILD_PATH)/plugins $(BUILD_PATH)/windows $(BUILD_PATH)/c++ $(OBJECTS)
-	$(CXX) $(FEATURES) $(WARNINGS) -o $(BINARY) $(OBJECTS) $(LIBS)
+$(BINARY32): $(BUILD_PATH) $(BUILD_PATH)/plugins $(BUILD_PATH)/windows $(BUILD_PATH)/c++ $(OBJECTS32)
+	$(CXX) -m32 $(FEATURES) $(WARNINGS) -o $(BINARY32) $(OBJECTS32) $(LIBS)
+
+$(BINARY64): $(BUILD_PATH) $(BUILD_PATH)/plugins $(BUILD_PATH)/windows $(BUILD_PATH)/c++ $(OBJECTS64)
+	$(CXX) $(FEATURES) $(WARNINGS) -o $(BINARY64) $(OBJECTS64) $(LIBS)
 
 clean:
 	rmdir /S /Q $(BUILD_PATH)

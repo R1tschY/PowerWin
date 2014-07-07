@@ -36,6 +36,7 @@ GetLastWindowsError() {
 } // namespace Windows
 
 void print(const wchar_t* format, ...);
+//void print(const char* format, ...);
 void print_window_infos(HWND hwnd);
 
 #endif // DEBUG_H

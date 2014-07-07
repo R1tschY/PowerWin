@@ -8,15 +8,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
                      LPSTR lpCmdLine,
                      int nCmdShow)
 {
-  UNREFERENCED_PARAMETER(hPrevInstance);
-  UNREFERENCED_PARAMETER(lpCmdLine);
-  UNREFERENCED_PARAMETER(nCmdShow);
-
-  WinExtra::run(hInstance);
-
-  OutputDebugString(L"the end 3\n");
-
-  return 0;
+  return win_run(hInstance);
 }
 
 

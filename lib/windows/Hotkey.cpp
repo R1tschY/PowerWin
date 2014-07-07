@@ -23,13 +23,13 @@ LRESULT CALLBACK HotkeyWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 
   return DefWindowProc(hwnd, msg, wparam, lparam);
 }
-static const HWND hotkeywindow = Windows::createUtilWindow(HotkeyWndProc);
+static const HWND hotkeywindow = Windows::createUtilWindow(HotkeyWndProc); // FIXME
 
 ///////////////////////////////////////////////////////////////////////////////
 // Hotkey
 
 unsigned Hotkey::counter = 0;
-std::vector<Hotkey::Handler> Hotkey::handlers;
+std::vector<Hotkey::Handler> Hotkey::handlers; // FIXME
 
 void Hotkey::setHandler(unsigned id, Handler handler) {
   if (id >= handlers.size()) {
