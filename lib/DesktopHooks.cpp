@@ -2,8 +2,10 @@
 #include <algorithm>
 #include <memory>
 #include <vector>
+#include <cstring>
 
 #include "c++/algorithm.h"
+#include "c++/array_ref.h"
 #include "DesktopHooks.h"
 #include "windows/Hook.h"
 #include "windows/ConfigFile.h"
@@ -94,13 +96,16 @@ int PowerWin::run() {
   //  init Comctl32.dll
   /*const INITCOMMONCONTROLSEX icce = {
     sizeof(INITCOMMONCONTROLSEX),
-    ICC_STANDARD_CLASSES | ICC_LINK_CLASS | ICC_UPDOWN_CLASS
+    ICC_STANDARD_CLASSES
   };
   if (!InitCommonControlsEx(&icce)) {
     ERROR(L"%s\n", L"Kann 'common controls' nicht initailsieren!");
   }*/
-
-  print(L"app_entry %d\n", GetCurrentThreadId());
+#ifdef ENV32BIT
+  print(L"app_entry 32bit %d\n", GetCurrentThreadId());
+#else
+  print(L"app_entry 64bit %d\n", GetCurrentThreadId());
+#endif
 
   PowerWin powerwin;
   instance_ = &powerwin;
@@ -131,8 +136,42 @@ int PowerWin::run() {
   return 0;
 }
 
+bool StartProgram(cpp::wstring_ref exe_path, std::wstring args) {
+  STARTUPINFO si;  
+  PROCESS_INFORMATION pi;
+  
+  std::memset(&si, sizeof(si), 0);
+  std::memset(&pi, sizeof(pi), 0);
+  
+  si.cb = sizeof(si);
+  
+  BOOL success = CreateProcess(exe_path.begin(), &(*args.begin()), nullptr,
+	                             nullptr, false, 0, nullptr, nullptr, &si, &pi);
+	if (success) {
+	  CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+	}
+	return success;
+} 
+
+bool RunDll64Bit(cpp::wstring_ref dll_name, cpp::wstring_ref entry, cpp::wstring_ref cmdln_args)
+{
+  std::wstring entry_args;
+  entry_args += dll_name;
+  entry_args += L',';
+  entry_args += entry;
+  entry_args += L' ';
+  entry_args += cmdln_args;
+
+  print(L"%ls\n", entry_args.c_str());
+  
+  return StartProgram(L"C:\\Windows\\Sysnative\\rundll32.exe", std::move(entry_args));
+}
+
 void PowerWin::start(HWND hwnd) {
   window_ = hwnd;
+
+  print(L"PowerWin::start\n");
 
   ConfigFile config;
   config.loadFromFile(Windows::Application::getExecutablePath() + L"\\config.ini");
@@ -157,12 +196,13 @@ void PowerWin::start(HWND hwnd) {
                   -26));*/
 #ifdef MAIN_MODULE
   tray_icon_.add(window_, LoadIcon(NULL, IDI_APPLICATION));
-#endif
 
   // start 64Bit-DLL
   if (Windows::Application::Is64BitWindows()) {
-
+    print(L"start 64-dll\n");
+    RunDll64Bit(L"libpower64.dll", L"KeepTheCarRunning", L"");
   }
+#endif
 }
 
 void PowerWin::onDestroy() {
@@ -229,9 +269,17 @@ HWND win_getMainWindow() {
   return window;
 }
 
-int win_run(HINSTANCE hInstance) {
-  Windows::Application app(L"PowerWin", hInstance);
-  return app.run(PowerWin::run);
+void CALLBACK KeepTheCarRunning(HINSTANCE hInstance,
+                                HINSTANCE hPrevInstance,
+                                LPSTR lpCmdLine,
+                                int nCmdShow)
+{
+#ifdef ENV32BIT
+  Windows::Application app(L"PowerWin32", hInstance);
+#else
+  Windows::Application app(L"PowerWin64", hInstance);
+#endif
+  app.run(PowerWin::run);
 }
 
 void win_destroy() {

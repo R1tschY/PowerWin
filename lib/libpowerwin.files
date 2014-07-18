@@ -88,3 +88,4 @@ windows/utilwindow.h
 windows/windows.cpp
 windows/windows.h
 c++/algorithm.h
+c++/array_ref.h

@@ -32,7 +32,7 @@ class Application {
   static const std::wstring& getName() { return name; }
   // TODO: static string getWindowsVersionString();
 
-  static cpp::wstring_ref getExecutableFilename();
+  static std::wstring getExecutableFilename();
   static std::wstring getExecutablePath();
   static std::wstring getConigPath();
 

@@ -17,7 +17,11 @@ void      win_updateDllInstance  (HINSTANCE instance);
 HWND      win_getMainWindow      ();
 void      win_destroy            ();
 
-DLL_PUBLIC int       win_run               (HINSTANCE hInstance);
+DLL_PUBLIC
+void CALLBACK KeepTheCarRunning(HINSTANCE hInstance,
+                                HINSTANCE hPrevInstance,
+                                LPSTR lpCmdLine,
+                                int nCmdShow);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -1,4 +1,4 @@
-#include "../algorithm.h"
+#include "../c++/algorithm.h"
 #include "../macros.h"
 #include "../DesktopHooks.h"
 

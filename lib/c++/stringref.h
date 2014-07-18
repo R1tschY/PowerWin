@@ -15,6 +15,8 @@ public:
   typedef CharT char_type;
   typedef std::char_traits<CharT> traits;
 
+  typedef const CharT* value_type;
+
 private:
   typedef basic_string_ref<CharT> self_type;
 
@@ -52,6 +54,11 @@ public:
     return basic_string_ref<char_type>(base_type::begin(), base_type::end());
   }
 };
+
+template<typename CharT>
+std::basic_string<CharT>& operator += (std::basic_string<CharT>& str, const basic_string_ref<CharT> ref) {
+	return str.append(ref.begin(), ref.end());
+}
 
 typedef basic_string_ref<char> string_ref;
 typedef basic_string_ref<wchar_t> wstring_ref;

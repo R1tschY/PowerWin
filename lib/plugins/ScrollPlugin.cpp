@@ -3,7 +3,7 @@
 #include <functional>
 
 #include "../macros.h"
-#include "../algorithm.h"
+#include "../c++/algorithm.h"
 #include "../windows/debug.h"
 #include "../c++/utils.h"
 

@@ -4,6 +4,7 @@
 #include <Shlobj.h>
 
 #include "debug.h"
+#include "macros.h"
 
 namespace Windows {
 
@@ -103,6 +104,7 @@ Application::run(const Callback& entry) const {
 
 bool Application::Is64BitWindows()
 {
+#ifdef ENV32BIT
   // We can check if the operating system is 64-bit by checking whether
   // we are running under Wow64 (we are 32-bit code). We must check if this
   // function is implemented before we call it, because some older 32-bit
@@ -121,17 +123,32 @@ bool Application::Is64BitWindows()
   }
 
   return false;
+#else
+	return true;
+#endif
 }
 
 
 // Utils
 
-cpp::wstring_ref Application::getExecutableFilename() {
-  return static_cast<const wchar_t*>(_wpgmptr);
+std::wstring Application::getExecutableFilename() {
+  if (_wpgmptr) {
+    return std::wstring(_wpgmptr);
+  } else {
+    wchar_t result[MAX_PATH];
+    GetModuleFileNameW(NULL, result, sizeof(result));
+    return std::wstring(result);
+  }
 }
 
 std::wstring Application::getExecutablePath() {
-  return std::wstring(_wpgmptr, wcsrchr(_wpgmptr, L'\\') - _wpgmptr);
+  if (_wpgmptr) {
+    return std::wstring(_wpgmptr, wcsrchr(_wpgmptr, L'\\') - _wpgmptr);
+  } else {
+    wchar_t result[MAX_PATH];
+    GetModuleFileNameW(NULL, result, sizeof(result));
+    return std::wstring(result, wcsrchr(result, '\\') - result);
+  }
 }
 
 std::wstring Application::getConigPath() {

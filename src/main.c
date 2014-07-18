@@ -8,7 +8,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
                      LPSTR lpCmdLine,
                      int nCmdShow)
 {
-  return win_run(hInstance);
+  KeepTheCarRunning(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+  return 0;
 }
 
 
