@@ -40,7 +40,7 @@ void MouseHook::addHandler(MouseHook::WheelHandler* proc) {
 }
 
 void MouseHook::removeHandler(MouseHook::WheelHandler* proc) {
-  extra::remove(wheel_hooks_, proc);
+  cpp::remove(wheel_hooks_, proc);
   if (empty()) {
     if (!hook_.destroy()) {
       MessageBeep(MB_ICONERROR);
@@ -54,7 +54,7 @@ void MouseHook::addHandler(MouseHook::ClickHandler* proc) {
 }
 
 void MouseHook::removeHandler(MouseHook::ClickHandler* proc) {
-  extra::remove(click_hooks_, proc);
+  cpp::remove(click_hooks_, proc);
   if (empty()) {
     if (!hook_.destroy()) {
       MessageBeep(MB_ICONERROR);

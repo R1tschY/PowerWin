@@ -1,12 +1,6 @@
 #include "export.h"
 
 #include <windows.h>
-/*
-typedef struct {
-  HHOOK systemmenu_hook;
-} SharedMemory;
-
-extern SharedMemory* shared_memory;*/
 
 #ifdef __cplusplus
 extern "C" {

@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-namespace extra {
+namespace cpp {
 
 template<typename Container, typename T> inline
 bool any_of_equal(const Container& container, const T& val) {
@@ -24,6 +24,13 @@ Container& remove_if(Container& container, Predicate pred) {
   auto new_end = std::remove_if(std::begin(container), old_end, pred);
   container.erase(new_end, old_end);
   return container;
+}
+
+template<typename T>
+T& zero(T& obj) {
+  std::fill(reinterpret_cast<char*>(std::addressof(obj)),
+            reinterpret_cast<char*>(std::addressof(obj) + 1), 0);
+  return obj;
 }
 
 } // namespace extra

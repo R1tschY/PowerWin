@@ -7,7 +7,7 @@
 
 namespace Windows {
 
-bool PathExists(cpp::wstring_ref filename) {
+inline bool PathExists(cpp::wstring_ref filename) {
   return (GetFileAttributesW(filename.begin()) != INVALID_FILE_ATTRIBUTES);
 }
 

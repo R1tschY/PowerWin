@@ -2,6 +2,7 @@
 
 #include <time.h>
 #include <Shlobj.h>
+#include <Shlwapi.h>
 
 #include "debug.h"
 #include "macros.h"
@@ -142,13 +143,11 @@ std::wstring Application::getExecutableFilename() {
 }
 
 std::wstring Application::getExecutablePath() {
-  if (_wpgmptr) {
-    return std::wstring(_wpgmptr, wcsrchr(_wpgmptr, L'\\') - _wpgmptr);
-  } else {
-    wchar_t result[MAX_PATH];
-    GetModuleFileNameW(NULL, result, sizeof(result));
-    return std::wstring(result, wcsrchr(result, '\\') - result);
-  }
+  wchar_t result[MAX_PATH];
+  HMODULE hModule = GetModuleHandleW(NULL);
+  GetModuleFileNameW(hModule, result, sizeof(result));
+  PathRemoveFileSpecW(result);
+  return result;
 }
 
 std::wstring Application::getConigPath() {

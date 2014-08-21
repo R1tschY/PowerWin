@@ -23,7 +23,7 @@ LRESULT CALLBACK HotkeyWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 
   return DefWindowProc(hwnd, msg, wparam, lparam);
 }
-static const HWND hotkeywindow = Windows::createUtilWindow(HotkeyWndProc); // FIXME
+static HWND hotkeywindow = nullptr;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Hotkey
@@ -56,6 +56,11 @@ Hotkey::~Hotkey() {
 bool Hotkey::activate() {
   if (!active_) {
     setHandler(id_, handler_);
+
+    if (hotkeywindow == nullptr) {
+      hotkeywindow = Windows::createUtilWindow(HotkeyWndProc);
+    }
+
     BOOL success = RegisterHotKey(hotkeywindow, id_, modifiers_, vk_);
     if (!success) {
       //CRITICAL(L"RegisterHotKey failed: %s", GetLastWindowsError().c_str());

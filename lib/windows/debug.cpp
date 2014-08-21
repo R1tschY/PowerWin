@@ -4,6 +4,7 @@
 #include <cstdio>  // für printf
 #include <sstream>
 #include <wchar.h>
+#include <string>
 
 #include "../c++/utils.h"
 
@@ -73,11 +74,16 @@ void printMessage(LogLevel level, const wchar_t* format, ...) {
 void print(const wchar_t* format, ...) {
   wchar_t buffer[1024];
   va_list vl;
+  static std::size_t line = 0;
+  line++;
+
+  snwprintf(buffer, 5, L"%03d:", line);
 
   va_start(vl, format);
-  vsnwprintf(buffer, 1023, format, vl);
+  vsnwprintf(buffer + 5, 1023 - 5, format, vl);
   va_end(vl);
 
+  buffer[4] = L' ';
   buffer[1023] = L'\0';
 
   OutputDebugStringW(buffer);

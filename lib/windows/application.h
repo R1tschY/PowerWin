@@ -22,7 +22,7 @@ class Application {
 
   static HINSTANCE getInstance() {
     if (instance == 0) {
-      print(L"too early access of app instance!");
+      print(L"too early access of app instance!\n");
     }
     return instance;
   }
