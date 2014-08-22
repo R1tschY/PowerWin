@@ -20,6 +20,7 @@ Future features
 * hotkey to close other processes.
 * rollup window (by system menu or hotkey).
 * configure with gui.
+* kill windows like xkill for X11 (by hotkey)
 
 Known Issues
 ------------
