@@ -10,29 +10,37 @@
 
 namespace Windows {
 
-std::wstring
-GetWindowsError(DWORD code) {
+static LocalPtr<wchar_t>
+GetErrorString(DWORD code) {
   wchar_t* buffer;
   DWORD bytes;
 
   bytes = FormatMessageW(
-      FORMAT_MESSAGE_ALLOCATE_BUFFER |
-      FORMAT_MESSAGE_FROM_SYSTEM |
-      FORMAT_MESSAGE_IGNORE_INSERTS,
-      NULL,
+      FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+      nullptr,
       code,
       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
       (wchar_t*)&buffer,
-      0, NULL);
+      0,
+      nullptr);
+  if (bytes == 0) {
+    LocalFree(buffer);
+    buffer = nullptr;
+  }
 
-  if (bytes == 0 || buffer == NULL) {
+  return buffer;
+}
+
+std::wstring
+GetWindowsError(DWORD code) {
+  auto error_string = GetErrorString(code);
+  if (!error_string) {
     std::wstringstream strstream;
     strstream << code;
     return strstream.str();
   }
 
-  std::wstring result(buffer);
-  LocalFree(buffer);
+  std::wstring result(error_string.get());
   return result;
 }
 
@@ -60,12 +68,24 @@ void printMessage(LogLevel level, const wchar_t* format, ...) {
 
   switch (level) {
   case LL_CRITICAL:
-    MessageBoxW(NULL, buffer, L"Kritscher Fehler", MB_OK | MB_ICONWARNING);
+//    MessageBoxW(NULL, buffer, L"critical error", MB_OK | MB_ICONWARNING);
     break;
   case LL_ERROR:
-    MessageBoxW(NULL, buffer, L"Fataler Fehler", MB_OK | MB_ICONERROR);
+    MessageBoxW(NULL, buffer, L"Fatal error", MB_OK | MB_ICONERROR);
     ExitProcess(1);
   default:;
+  }
+}
+
+void printLastError(cpp::wzstring_ref error_message) {
+  auto error_code = GetLastError();
+  auto error_string = GetErrorString(error_code);
+  if (error_string) {
+    WIN_CRITICAL(L"Error while call of %s: %s", error_message, error_string.get());
+  }
+  else
+  {
+    WIN_CRITICAL(L"Error while call of %s: error code %d.", error_message, code);
   }
 }
 

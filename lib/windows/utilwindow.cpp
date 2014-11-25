@@ -8,7 +8,7 @@
 namespace Windows {
 
 static ATOM registerUtilWindow() {
-  WNDCLASSW wc;
+  WNDCLASSW wc = { };
 
   wc.style         = 0;
   wc.lpfnWndProc   = DefWindowProc;
@@ -30,8 +30,33 @@ HWND createUtilWindow(WNDPROC wndproc) {
 
   UNREFERENCED_PARAMETER(wndclass);
 
-  result = CreateWindowExW(WS_EX_TOOLWINDOW, L"UtilWindow",
-    L"", WS_POPUP, 0, 0, 0, 0, 0, 0, Application::getInstance(), NULL);
+  result = CreateWindowExW(
+             // exstyle
+             WS_EX_TOOLWINDOW,
+
+             // window class
+             L"UtilWindow",
+
+             // window title
+             L"",
+
+             // style
+             WS_POPUP,
+
+             // x, y, w, h
+             0, 0, 0, 0,
+
+             // parent
+             HWND_MESSAGE,
+
+             // menu
+             nullptr,
+
+             // instance
+             Application::getInstance(),
+
+             // user data
+             nullptr);
   if (wndproc)
     SetWindowLongPtr(result, GWLP_WNDPROC, (LONG_PTR)wndproc);
 
@@ -49,7 +74,7 @@ LRESULT CALLBACK UtilWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) 
       try {
         (*pfunc)();
       } catch (std::bad_function_call &error) {
-        WIN_CRITICAL(L"executeInMainThread scheitert: %s",
+        WIN_CRITICAL(L"callback failed: %s",
                      convertFromUtf8(error.what()).c_str());
       }
       delete pfunc;

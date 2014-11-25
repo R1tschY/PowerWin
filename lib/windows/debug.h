@@ -4,6 +4,8 @@
 #include <windows.h>
 #include <string>
 
+#include "../c++/zstringref.h"
+
 namespace Windows {
 
 enum LogLevel {
@@ -14,6 +16,9 @@ enum LogLevel {
 
   LL_MAX
 };
+
+//
+// Print debug message
 
 #ifdef NDEBUG
 # define WIN_MESSAGE(fmt, ...)
@@ -27,13 +32,41 @@ enum LogLevel {
 
 void printMessage(LogLevel level, const wchar_t* format, ...);
 
+//
+// Windows API error
+
 std::wstring GetWindowsError(DWORD code);
 inline std::wstring
 GetLastWindowsError() {
   return GetWindowsError(GetLastError());
 }
 
+void printLastError(cpp::wzstring_ref error_message);
+
+//
+// Check return value
+
+#define win_check(expr) (checkReturnValue((expr), __PRETTY_FUNCTION__ " (" __FILE__ ":" __LINE__ ")"))
+#define win_return_if_failed(expr,value) \
+  WIN_BEGIN_MACRO_BLOCK \
+    if (!expr) { \
+      return value; \
+    } \
+  WIN_END_MACRO_BLOCK
+
+template<typename ReturnValue>
+inline checkReturnValue(ReturnValue return_value, cpp::wzstring_ref fail_message) {
+  if (!return_value) {
+    printLastError(fail_message);
+  }
+  return return_value;
+}
+
+
+
 } // namespace Windows
+
+
 
 void print(const wchar_t* format, ...);
 //void print(const char* format, ...);

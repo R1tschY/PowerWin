@@ -10,7 +10,7 @@
 
 namespace Windows {
 
-static DWORD WINAPI executeInThread_cb(LPVOID data) {
+static DWORD WINAPI executeInThread_cb(void* data) {
   auto pfunc = std::unique_ptr<Callback>(static_cast<Callback*>(data));
 
   try {

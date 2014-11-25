@@ -88,5 +88,13 @@ windows/utilwindow.h
 windows/windows.cpp
 windows/windows.h
 c++/algorithm.h
-c++/array_ref.h
+c++/arrayref.h
 c++/boolean.h
+c++/uninitized.h
+c++/construct.h
+c++/macros.h
+c++/storage.h
+c++/zstringref.h
+windows/window.h
+windows/window.cpp
+windows/memory.h

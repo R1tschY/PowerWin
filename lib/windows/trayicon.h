@@ -23,6 +23,7 @@ public:
   ~TrayIcon();
 
   void add(HWND hwnd, HICON icon);
+  void add(HWND hwnd, HICON icon, cpp::wstring_ref tooltip);
   void remove();
 
   void setToolTip(cpp::wstring_ref src);

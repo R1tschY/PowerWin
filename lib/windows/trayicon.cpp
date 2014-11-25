@@ -11,7 +11,7 @@ TrayIcon::TrayIcon():
 {}
 
 void
-TrayIcon::add(HWND hwnd, HICON icon) {
+TrayIcon::add(HWND hwnd, HICON icon, cpp::wstring_ref tooltip) {
     trayicon_.cbSize = sizeof(NOTIFYICONDATAW);
 #if (WINVER < 0x0600)
     trayicon_.uVersion         = NOTIFYICON_VERSION;
@@ -25,7 +25,28 @@ TrayIcon::add(HWND hwnd, HICON icon) {
     trayicon_.uCallbackMessage = MessageId;
     trayicon_.hIcon            = icon;
 
-    wcscpy(trayicon_.szTip, Application::getName().c_str());
+    tooltip.copy_to(trayicon_.szTip);
+
+    Shell_NotifyIconW(NIM_ADD, &trayicon_);
+    Shell_NotifyIconW(NIM_SETVERSION, &trayicon_);
+
+    added_ = true;
+}
+
+void
+TrayIcon::add(HWND hwnd, HICON icon) {
+    trayicon_.cbSize = sizeof(NOTIFYICONDATAW);
+#if (WINVER < 0x0600)
+    trayicon_.uVersion         = NOTIFYICON_VERSION;
+    trayicon_.uFlags           = NIF_MESSAGE | NIF_ICON;
+#else
+    trayicon_.uVersion         = NOTIFYICON_VERSION_4;
+    trayicon_.uFlags           = NIF_MESSAGE | NIF_ICON;
+#endif
+    trayicon_.hWnd             = hwnd;
+    trayicon_.uID              = ++LastId;
+    trayicon_.uCallbackMessage = MessageId;
+    trayicon_.hIcon            = icon;
 
     Shell_NotifyIconW(NIM_ADD, &trayicon_);
     Shell_NotifyIconW(NIM_SETVERSION, &trayicon_);

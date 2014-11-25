@@ -5,7 +5,7 @@
 #include <cstring>
 
 #include "c++/algorithm.h"
-#include "c++/array_ref.h"
+#include "c++/arrayref.h"
 #include "c++/boolean.h"
 #include "DesktopHooks.h"
 #include "windows/Hook.h"
