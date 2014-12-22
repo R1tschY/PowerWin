@@ -11,9 +11,9 @@ std::size_t length(const T(&) [N]) {
   return N;
 }
 
-template <typename T, std::size_t N>
+template <typename Container, std::size_t N>
 constexpr inline
-std::size_t length(const T& t) {
+std::size_t length(const Container& t) {
   return t.size();
 }
 

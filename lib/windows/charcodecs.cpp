@@ -4,7 +4,7 @@
 
 namespace Windows {
 
-std::string to_string(const std::wstring& src) {
+std::string to_string(cpp::wstring_view src) {
   std::string dest;
 
   if (src.empty())
@@ -19,7 +19,7 @@ std::string to_string(const std::wstring& src) {
   return dest;
 }
 
-std::wstring to_wstring(const std::string& src) {
+std::wstring to_wstring(cpp::wstring_view src) {
   std::wstring dest(src.length(), '\0');
 
   if (src.empty())

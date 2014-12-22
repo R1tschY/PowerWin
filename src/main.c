@@ -1,14 +1,13 @@
-#include "DesktopHooks.h"
+#include <windows.h>
 
-// XP Style
-//#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#include "DesktopHooks.h"
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPSTR lpCmdLine,
                      int nCmdShow)
 {
-  KeepTheCarRunning(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+  FixWindows(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
   return 0;
 }
 

@@ -3,12 +3,23 @@
 
 #include <windows.h>
 
-#include "../c++/stringref.h"
+#include <c++/stringview.h>
 
 namespace Windows {
 
-inline bool PathExists(cpp::wstring_ref filename) {
-  return (GetFileAttributesW(filename.begin()) != INVALID_FILE_ATTRIBUTES);
+class Path {
+public:
+  explicit Path(cpp::wstring_view path);
+
+  // static interface
+  static bool exists(cpp::wstring_view filename);
+
+private:
+  const std::wstring path;
+};
+
+inline bool Path::exists(cpp::wstring_view filename) {
+  return (GetFileAttributesW(filename.c_str()) != INVALID_FILE_ATTRIBUTES);
 }
 
 } // namespace Windows

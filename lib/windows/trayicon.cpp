@@ -11,7 +11,7 @@ TrayIcon::TrayIcon():
 {}
 
 void
-TrayIcon::add(HWND hwnd, HICON icon, cpp::wstring_ref tooltip) {
+TrayIcon::add(HWND hwnd, HICON icon, cpp::string_view tooltip) {
     trayicon_.cbSize = sizeof(NOTIFYICONDATAW);
 #if (WINVER < 0x0600)
     trayicon_.uVersion         = NOTIFYICON_VERSION;
@@ -66,7 +66,7 @@ TrayIcon::~TrayIcon(void) {
 }
 
 void
-TrayIcon::setToolTip(cpp::wstring_ref src) {
+TrayIcon::setToolTip(cpp::wstring_view src) {
 #if (WINVER < 0x0600)
   trayicon_.uFlags = NIF_TIP;
 #else
@@ -77,7 +77,7 @@ TrayIcon::setToolTip(cpp::wstring_ref src) {
 }
 
 void
-TrayIcon::showBalloon(cpp::wstring_ref title, cpp::wstring_ref msg, Icon icontype) {
+TrayIcon::showBalloon(cpp::wstring_view title, cpp::wstring_view msg, Icon icontype) {
 #if (WINVER < 0x0600)
   trayicon_.uFlags = NIF_INFO;
 #else

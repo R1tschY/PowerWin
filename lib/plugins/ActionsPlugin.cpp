@@ -7,7 +7,7 @@
 #include "../DesktopHooks.h"
 #include "../windows/debug.h"
 
-ActionsPlugin::ActionsPlugin() : Plugin(L"actions") { }
+ActionsPlugin::ActionsPlugin() : Plugin(lit("actions")) { }
 
 static bool onActionQuit(int, int) {
   win_destroy();

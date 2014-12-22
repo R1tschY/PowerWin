@@ -62,7 +62,7 @@ WindowsVersion Application::winversion = Application_getWindowsVersion();
 std::wstring Application::path = Application_getPath();
 std::wstring Application::name;
 
-Application::Application(const wchar_t* name, HINSTANCE instance) {
+Application::Application(cpp::wstring_view name, HINSTANCE instance) {
   setlocale(LC_ALL, "");
   _tzset();
 

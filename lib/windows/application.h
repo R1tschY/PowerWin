@@ -7,7 +7,7 @@
 
 #include "windows.h"
 #include "debug.h"
-#include "../c++/stringref.h"
+#include <c++/stringref.h>
 
 namespace Windows {
 
@@ -15,7 +15,7 @@ class Application {
  public:
   typedef std::function<int()> Callback;
 
-  Application(const wchar_t* name, HINSTANCE instance);
+  Application(cpp::wstring_view name, HINSTANCE instance);
   ~Application();
 
   int run(const Callback& entry) const;

@@ -77,15 +77,15 @@ void printMessage(LogLevel level, const wchar_t* format, ...) {
   }
 }
 
-void printLastError(cpp::wzstring_ref error_message) {
+void printLastError(cpp::wstring_view error_message) {
   auto error_code = GetLastError();
   auto error_string = GetErrorString(error_code);
   if (error_string) {
-    WIN_CRITICAL(L"Error while call of %s: %s", error_message, error_string.get());
+    WIN_CRITICAL(L"Error while call of %s: %s", error_message.c_str(), error_string.get());
   }
   else
   {
-    WIN_CRITICAL(L"Error while call of %s: error code %d.", error_message, code);
+    WIN_CRITICAL(L"Error while call of %s: error code %d.", error_message.c_str(), code);
   }
 }
 

@@ -42,32 +42,29 @@ const std::wstring& Window::getWindowClassName() {
 // Window
 
 Window::Window(Window&& other) :
-  handle_(nullptr)
+  handle_(std::move(other.handle_))
 {
-  std::swap(handle_, other.handle_);
   SetWindowLongPtr(handle_, GWLP_USERDATA, this);
 }
 
-Window::~Window() {
-  destroy();
-}
+Window::~Window()
+{ }
 
 Window& Window::operator=(Window&& other)
 {
-  destroy();
-  std::swap(handle_, other.handle_);
+  handle_ = std::move(other.handle_);
   SetWindowLongPtr(handle_, GWLP_USERDATA, this);
 }
 
 Window::Handle Window::createWindow(
     wchar_t* window_class,
-    Handle parent,
-    cpp::wzstring_ref title,
+    HWND parent,
+    cpp::wstring_view title,
     DWORD style,
     DWORD ex_style)
 {
   Handle handle =
-      CreateWindowEx(
+      CreateWindowExW(
         // Optional window styles
         ex_style,
 
@@ -87,7 +84,7 @@ Window::Handle Window::createWindow(
         parent,
 
         // Menu
-        NULL,
+        nullptr,
 
         // Instance handle
         Application::getInstance(),
@@ -100,24 +97,17 @@ Window::Handle Window::createWindow(
   return handle;
 }
 
-void Window::init(Window::Handle parent, cpp::wzstring_ref title, DWORD style, DWORD ex_style)
+void Window::create(HWND parent, cpp::wstring_view title, DWORD style, DWORD ex_style)
 {
-  if (!okay()) {
-    handle_ = createWindow(parent, title, style, ex_style);
-  }
-  else
-    throw std::logic_error("Window is already inited.");
+  handle_ = createWindow(parent, title, style, ex_style);
 }
 
 void Window::destroy() {
-  if (okay()) {
-    DestroyWindow(handle_);
-    // TODO: Error Checking
-    handle_ = nullptr;
-  }
+  handle_ = nullptr;
 }
 
-
+//
+// message handling
 
 LRESULT Window::onMessage(UINT msg, WPARAM wparam, LPARAM lparam) {
   switch (msg) {
@@ -126,13 +116,11 @@ LRESULT Window::onMessage(UINT msg, WPARAM wparam, LPARAM lparam) {
     return 0;
 
   default:
-    return DefWindowProc(m_hwnd, uMsg, wParam, lParam);
+    return DefWindowProc(handle_.get(), uMsg, wParam, lParam);
   }
 }
 
-
-
-LRESULT CALLBACK Window::MessageEntry(Handle handle, UINT msg, WPARAM wparam, LPARAM lparam) {
+LRESULT CALLBACK Window::MessageEntry(HWND handle, UINT msg, WPARAM wparam, LPARAM lparam) {
   auto window = static_cast<Window*>(GetWindowLongPtr(handle, GWLP_USERDATA));
   if (!window) {
     if (msg == WM_NCCREATE) {
@@ -149,6 +137,16 @@ LRESULT CALLBACK Window::MessageEntry(Handle handle, UINT msg, WPARAM wparam, LP
   }
 
   return window->onMessage(msg, wparam, lparam);
+}
+
+void Window::processMessages()
+{
+  // main message loop
+  MSG msg;
+  while (GetMessage(&msg, nullptr, 0, 0)) {
+    TranslateMessage(&msg);
+    DispatchMessage(&msg);
+  }
 }
 
 } // namespace Windows

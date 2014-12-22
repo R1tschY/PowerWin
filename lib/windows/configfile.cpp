@@ -6,15 +6,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 //     ConfigFile
 ////////////////////////////////////////////////////////////////////////////////
-bool ConfigFile::existsKey(const wchar_t* section, const wchar_t* key) const {
-  const wchar_t* test = L"?#ßüäö§$%&!";
-
-  return getString(section, key, test).compare(test) != 0;
+bool ConfigFile::existsKey(cpp::wstring_view section, cpp::wstring_view key) const {
+  cpp::wstring_view test = lit("?#ßüäö§$%&!");
+  return getString(section, key, test) == test;
 }
 
-std::wstring ConfigFile::getString(const wchar_t* section,
-                                   const wchar_t* key,
-                                   const wchar_t* default_value) const
+std::wstring ConfigFile::getString(cpp::wstring_view section,
+                                   cpp::wstring_view key,
+                                   cpp::wstring_view default_value) const
 {
   wchar_t buffer[255];
   DWORD bytes;
@@ -25,15 +24,15 @@ std::wstring ConfigFile::getString(const wchar_t* section,
   return std::wstring(buffer);
 }
 
-int ConfigFile::getInteger(const wchar_t* section,
-                           const wchar_t* key,
+int ConfigFile::getInteger(cpp::wstring_view section,
+                           cpp::wstring_view key,
                            int default_value) const
 {
   return GetPrivateProfileInt(section, key, default_value, filename_.c_str());
 }
 
-void ConfigFile::setString(const wchar_t* section,
-                           const wchar_t* key,
+void ConfigFile::setString(cpp::wstring_view section,
+                           cpp::wstring_view key,
                            const std::wstring& value)
 {
   BOOL success = WritePrivateProfileStringW(section, key, value.c_str(), filename_.c_str());
@@ -42,8 +41,8 @@ void ConfigFile::setString(const wchar_t* section,
   }
 }
 
-void ConfigFile::setInteger(const wchar_t* section,
-                            const wchar_t* key,
+void ConfigFile::setInteger(cpp::wstring_view section,
+                            cpp::wstring_view key,
                             int value)
 {
 
@@ -57,7 +56,6 @@ void ConfigFile::setInteger(const wchar_t* section,
 std::vector<std::wstring> ConfigFile::getSections() const {
   wchar_t buffer[2048];
   DWORD bytes;
-  std::vector<std::wstring> result;
 
   bytes = GetPrivateProfileStringW(NULL, NULL, NULL, buffer, sizeof(buffer), filename_.c_str());
   // TODO: Puffer zu klein -> bytes == sizeof(buffer)-2
@@ -65,10 +63,9 @@ std::vector<std::wstring> ConfigFile::getSections() const {
   return splitStringArray(buffer);
 }
 
-std::vector<std::wstring> ConfigFile::getKeys(const wchar_t* section) const {
+std::vector<std::wstring> ConfigFile::getKeys(cpp::wstring_view section) const {
   wchar_t buffer[2048];
   DWORD bytes;
-  std::vector<std::wstring> result;
 
   bytes = GetPrivateProfileStringW(section, NULL, NULL, buffer, sizeof(buffer), filename_.c_str());
   // TODO: Puffer zu klein -> bytes == sizeof(buffer)-2
@@ -76,7 +73,7 @@ std::vector<std::wstring> ConfigFile::getKeys(const wchar_t* section) const {
   return splitStringArray(buffer);
 }
 
-std::vector<std::wstring> ConfigFile::splitStringArray(const wchar_t* p) {
+std::vector<std::wstring> ConfigFile::splitStringArray(cpp::wstring_view p) {
   std::vector<std::wstring> result;
   const wchar_t* section;
 
@@ -95,7 +92,7 @@ ConfigFile::ConfigFile()
 
 }
 
-void ConfigFile::loadFromFile(const cpp::wstring_ref& filename) {
+void ConfigFile::loadFromFile(cpp::wstring_view filename) {
   filename.copy_to(filename_);
 }
 

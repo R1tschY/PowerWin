@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <c++/stringview.h>
 
 
 #include "windows/macros.h"
@@ -12,17 +13,17 @@ class Plugin {
 public:
   typedef std::map<std::wstring, std::wstring> Options;
 
-  Plugin(const wchar_t* name);
+  Plugin(cpp::string_view name);
   virtual ~Plugin();
 
   void activate();
   void deactivate();
 
   bool isActive() const { return active_; }
-  const wchar_t* getName() const { return name_; }
+  cpp::string_view getName() const { return name_; }
 
   void setOptions(Options options) { options_ = std::move(options); }
-  bool getBooleanOption(const std::wstring& key, bool default_);
+  bool getBooleanOption(cpp::wstring_view key, bool default_);
 
 protected:
   virtual void onActivate(const Options& options) = 0;
@@ -31,6 +32,6 @@ protected:
 private:
   bool active_;
   Options options_;
-  const wchar_t* name_;
+  const std::wstring name_;
 };
 

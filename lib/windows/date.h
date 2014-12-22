@@ -6,10 +6,10 @@
 
 namespace Windows {
 
-std::wstring getDate(const wchar_t* format);
+std::wstring getDate(cpp::wstring_view format);
 void getDate(struct tm* newtime);
-std::wstring getDate(const wchar_t* format, struct tm* time);
-bool getCTime(const wchar_t* ctime, struct tm* desttime);
+std::wstring getDate(cpp::wstring_view format, struct tm* time);
+bool getCTime(cpp::wstring_view ctime, struct tm* desttime);
 
 } // namespace Windows
 

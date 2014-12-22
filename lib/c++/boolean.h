@@ -5,8 +5,8 @@
 
 namespace cpp {
 
-cpp::wstring_ref to_wstring_ref(bool value) {
-  return cpp::wstring_ref(value ? L"yes" : L"no");
+cpp::wsubstring to_wstring_ref(bool value) {
+  return cpp::wsubstring(value ? L"yes" : L"no");
 }
 
 }

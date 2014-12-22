@@ -10,24 +10,26 @@
 // /////////////////////////////////////////////////////////////////////////////
 // Check for 64bit
 
-// Check windows
-#if _WIN32 || _WIN64
-   #if _WIN64
-     #define ENV64BIT
-  #else
-    #define ENV32BIT
-  #endif
-#endif
-
 // Check GCC
-#if __GNUC__
-  #if __x86_64__ || __ppc64__
-    #define ENV64BIT
+#if __defined__(__GNUC__)
+  #if __defined__(__x86_64__) || __defined__(__ppc64__)
+    #define CPUBITSET 64
   #else
-    #define ENV32BIT
+    #define CPUBITSET 32
+  #endif
+#else
+
+  // Check windows
+  #ifdef _WIN32
+    #ifdef _WIN64
+      #define CPUBITSET 64
+    #else
+      #define CPUBITSET 32
   #endif
 #endif
 
-#if !defined(ENV64BIT) && !defined(ENV32BIT)
-    #error "Must define either ENV32BIT or ENV64BIT"
+#endif
+
+#ifndef CPUBITSET
+    #error "Must define CPUBITSET"
 #endif

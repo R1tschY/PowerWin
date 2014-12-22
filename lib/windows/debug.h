@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <string>
 
-#include "../c++/zstringref.h"
+#include <c++/stringview.h>
 
 namespace Windows {
 
@@ -36,12 +36,13 @@ void printMessage(LogLevel level, const wchar_t* format, ...);
 // Windows API error
 
 std::wstring GetWindowsError(DWORD code);
+
 inline std::wstring
 GetLastWindowsError() {
   return GetWindowsError(GetLastError());
 }
 
-void printLastError(cpp::wzstring_ref error_message);
+void printLastError(cpp::wstring_view error_message);
 
 //
 // Check return value
@@ -55,7 +56,7 @@ void printLastError(cpp::wzstring_ref error_message);
   WIN_END_MACRO_BLOCK
 
 template<typename ReturnValue>
-inline checkReturnValue(ReturnValue return_value, cpp::wzstring_ref fail_message) {
+inline checkReturnValue(ReturnValue return_value, cpp::wstring_view fail_message) {
   if (!return_value) {
     printLastError(fail_message);
   }

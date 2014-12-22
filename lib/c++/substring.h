@@ -8,36 +8,38 @@
 namespace cpp {
 
 template<typename CharT>
-class basic_string_ref : public boost::iterator_range<const CharT*>
+class basic_substring : public boost::iterator_range<const CharT*>
 {
 public:
   typedef boost::iterator_range<const CharT*> base_type;
   typedef CharT char_type;
   typedef std::char_traits<CharT> traits;
 
-  typedef const CharT* value_type;
+  typedef Char value_type;
+  typedef const Char* iterator;
+  typedef const Char* const_iterator;
 
 private:
-  typedef basic_string_ref<CharT> self_type;
+  typedef basic_substring<CharT> self_type;
 
 public:
   constexpr explicit
-  basic_string_ref() { }
+  basic_substring() { }
 
   constexpr
-  basic_string_ref(const basic_string_ref& other) :
+  basic_substring(const basic_substring& other) :
     base_type(other.begin(), other.end())
   { }
 
-  basic_string_ref(const std::basic_string<CharT>& string) :
+  basic_substring(const std::basic_string<CharT>& string) :
     base_type(string.data(), string.data() + string.length())
   { }
 
-  basic_string_ref(const CharT* string) :
+  basic_substring(const CharT* string) :
     base_type(string, string + traits::length(string))
   { }
 
-  basic_string_ref(const CharT* begin, const CharT* end) :
+  basic_substring(const CharT* begin, const CharT* end) :
     base_type(begin, end)
   { }
 
@@ -50,18 +52,18 @@ public:
     dest.assign(base_type::begin(), base_type::end());
   }
 
-  basic_string_ref<char_type> to_string() const {
-    return basic_string_ref<char_type>(base_type::begin(), base_type::end());
+  basic_substring<char_type> to_string() const {
+    return basic_substring<char_type>(base_type::begin(), base_type::end());
   }
 };
 
 template<typename CharT>
-std::basic_string<CharT>& operator += (std::basic_string<CharT>& str, const basic_string_ref<CharT> ref) {
-	return str.append(ref.begin(), ref.end());
+std::basic_string<CharT>& operator += (std::basic_string<CharT>& str, const basic_substring<CharT> ref) {
+  return str.append(ref.begin(), ref.end());
 }
 
-typedef basic_string_ref<char> string_ref;
-typedef basic_string_ref<wchar_t> wstring_ref;
+typedef basic_substring<char> substring;
+typedef basic_substring<wchar_t> wsubstring;
 
 } // namespace Cpp
 

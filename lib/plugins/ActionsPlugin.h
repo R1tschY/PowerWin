@@ -3,11 +3,13 @@
 #include <vector>
 #include <string>
 
+#include <c++/stringview.h>
+
 #include "../Plugin.h"
 #include "../windows/hotkey.h"
 
 struct Action {
-  const wchar_t* name;
+  cpp::wstring_view name;
   bool (*handler)(int, int);
 };
 
@@ -23,6 +25,6 @@ private:
   std::vector<Hotkey> hotkeys_;
   static Action actions_[];
 
-  static bool parseHotkey(std::wstring hotkey, std::pair<unsigned,unsigned>* result);
+  static bool parseHotkey(std::wstring_view hotkey, std::pair<unsigned,unsigned>* result);
 };
 

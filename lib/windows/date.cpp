@@ -1,10 +1,11 @@
 #include "date.h"
+#include "defines.h"
 
 #include <time.h>
 
 namespace Windows {
 
-std::wstring getDate(const wchar_t* format) {
+std::wstring getDate(cpp::wstring_view format) {
   __time64_t t;
   _time64(&t);
   return getDate(format, _localtime64(&t));
@@ -16,7 +17,7 @@ void getDate(tm* newtime) {
   *newtime = *_localtime64(&t);
 }
 
-std::wstring getDate(const wchar_t* format, tm* time) {
+std::wstring getDate(cpp::wstring_view format, tm* time) {
   wchar_t buffer[64];
 
   wcsftime(buffer, sizeof(buffer), format, time);
@@ -24,10 +25,13 @@ std::wstring getDate(const wchar_t* format, tm* time) {
   return std::wstring(buffer);
 }
 
-static const wchar_t* mouths[12] = {
-  L"Jan", L"Feb", L"Mar", L"Apr", L"May", L"Jun", L"Jul", L"Aug", L"Sep", L"Oct", L"Nov", L"Dec"
+static cpp::wstring_view mouths[12] = {
+  lit("Jan"), lit("Feb"), lit("Mar"),
+  lit("Apr"), lit("May"), lit("Jun"),
+  lit("Jul"), lit("Aug"), lit("Sep"),
+  lit("Oct"), lit("Nov"), lit("Dec")
 };
-bool getCTime(const wchar_t* ctime, tm* desttime) {
+bool getCTime(cpp::wstring_view ctime, tm* desttime) {
   const wchar_t* p = ctime;
   getDate(desttime);
 

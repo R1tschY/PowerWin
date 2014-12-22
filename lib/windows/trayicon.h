@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <shellapi.h>
 
-#include "../c++/stringref.h"
+#include <c++/stringview.h>
 
 namespace Windows {
 
@@ -23,12 +23,12 @@ public:
   ~TrayIcon();
 
   void add(HWND hwnd, HICON icon);
-  void add(HWND hwnd, HICON icon, cpp::wstring_ref tooltip);
+  void add(HWND hwnd, HICON icon, cpp::wstring_view tooltip);
   void remove();
 
-  void setToolTip(cpp::wstring_ref src);
-  void showBalloon(cpp::wstring_ref title,
-                   cpp::wstring_ref msg,
+  void setToolTip(cpp::wstring_view src);
+  void showBalloon(cpp::wstring_view title,
+                   cpp::wstring_view msg,
                    Icon icontype);
 
 private:

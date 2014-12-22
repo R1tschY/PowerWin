@@ -2,6 +2,7 @@
 #define ALGORITHM_H
 
 #include <algorithm>
+#include <cstring>
 
 namespace cpp {
 
@@ -26,10 +27,9 @@ Container& remove_if(Container& container, Predicate pred) {
   return container;
 }
 
-template<typename T>
+template<typename T> inline
 T& zero(T& obj) {
-  std::fill(reinterpret_cast<char*>(std::addressof(obj)),
-            reinterpret_cast<char*>(std::addressof(obj) + 1), 0);
+  std::memset(std::addressof(obj), 0, sizeof(T));
   return obj;
 }
 

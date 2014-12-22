@@ -5,7 +5,7 @@
 
 #include "windows/debug.h"
 
-Plugin::Plugin(const wchar_t* name) :
+Plugin::Plugin(cpp::wstring_view name) :
   active_(false), options_(), name_(name)
 {
 }
@@ -30,7 +30,7 @@ void Plugin::deactivate() {
   }
 }
 
-bool Plugin::getBooleanOption(const std::wstring& key, bool default_) {
+bool Plugin::getBooleanOption(cpp::wstring_view key, bool default_) {
   auto opt = options_.find(key);
   if (opt != options_.end()) {
     // Schlüssel vorhanden
