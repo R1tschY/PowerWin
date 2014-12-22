@@ -1,45 +1,82 @@
-#include "Hotkey.h"
+#include "hotkey.h"
 #include "../windows/utilwindow.h"
 #include "../windows/debug.h"
 
-LRESULT CALLBACK HotkeyWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+namespace Windows {
+
+namespace {
+
+class HotkeyManager final {
+  HotkeyManager();
+
+public:
+  HotkeyManager& get();
+
+  static unsigned getUniqueId() { return get().getUniqueId(); }
+  unsigned getUniqueId() {
+    return counter_++;
+  }
+
+  static bool registerHotkey() { return get().registerHotkey(); }
+  bool registerHotkey(ShortCut shortcut, HotkeyHandler handler);
+  static bool unregisterHotkey() { return get().unregisterHotkey(); }
+  bool unregisterHotkey(const Hotkey& hotkey);
+
+private:
+  MessageSink message_sink_;
+
+  std::map<unsigned, HotkeyHandler> handlers_;
+  unsigned counter_;
+
+  LRESULT HotkeyManager::WndProc(UINT msg, WPARAM wparam, LPARAM lparam);
+};
+
+HotkeyManager::HotkeyManager() :
+  message_sink_(WndProc)
+{
+  create();
+}
+
+HotkeyManager& HotkeyManager::get()
+{
+  static HotkeyManager hotkey_manager;
+  return hotkey_manager;
+}
+
+bool HotkeyManager::registerHotkey(const Hotkey& hotkey)
+{
+  bool success = RegisterHotkey(message_sink_.getNativeHandle(), hotkey.id_, hotkey.modifiers_, hotkey.vk_);
+  if (success) {
+    handlers_[hotkey.id_] = hotkey.handler_;
+  }
+  return success;
+}
+
+bool HotkeyManager::unregisterHotkey(const Hotkey& hotkey)
+{
+  handlers_.erase(hotkey.id_);
+  return UnregisterHotkey(message_sink_.getNativeHandle(), hotkey.id_);
+}
+
+LRESULT HotkeyManager::WndProc(UINT msg, WPARAM wparam, LPARAM lparam) {
   switch (msg) {
-  case WM_HOTKEY:
-    if (wparam > 0) {
-      if (Hotkey::handlers[wparam](LOWORD(lparam), HIWORD(lparam))) {
-        return 0;
-      }
+  case WM_HOTKEY: {
+    auto func = get().handlers_.find(wparam);
+    if (func != get().handlers_.end()) {
+      (*func)();
     }
-    break;
-
-  case WM_CREATE:
-    // Initialize the window.
-  case WM_DESTROY:
-    // Clean up window-specific data objects.
-
-  default:
-    break;
+    return 0;
+  }
   }
 
-  return DefWindowProc(hwnd, msg, wparam, lparam);
+  return Control::onMessage(msg, wparam, lparam);
 }
-static HWND hotkeywindow = nullptr;
 
-///////////////////////////////////////////////////////////////////////////////
-// Hotkey
-
-unsigned Hotkey::counter = 0;
-std::vector<Hotkey::Handler> Hotkey::handlers; // FIXME
-
-void Hotkey::setHandler(unsigned id, Handler handler) {
-  if (id >= handlers.size()) {
-    handlers.resize(id+1, nullptr);
-  }
-  handlers[id] = handler;
-}
+} // namespace
 
 Hotkey::Hotkey(unsigned modifiers, unsigned vk, Handler handler) :
-  modifiers_(modifiers), vk_(vk), handler_(handler), active_(false), id_(++counter)
+  modifiers_(modifiers), vk_(vk), handler_(handler), active_(false),
+  id_(HotkeyManager::getUniqueId())
 { }
 
 Hotkey::Hotkey(Hotkey&& other) noexcept :
@@ -55,29 +92,23 @@ Hotkey::~Hotkey() {
 
 bool Hotkey::activate() {
   if (!active_) {
-    setHandler(id_, handler_);
-
-    if (hotkeywindow == nullptr) {
-      hotkeywindow = Windows::createUtilWindow(HotkeyWndProc);
-    }
-
-    BOOL success = RegisterHotKey(hotkeywindow, id_, modifiers_, vk_);
+    bool success = HotkeyManager::registerHotkey(*this);
     if (!success) {
       //CRITICAL(L"RegisterHotKey failed: %s", GetLastWindowsError().c_str());
       return false;
-    } else {
-      return active_ = true;
     }
-  } else {
-    return true;
+    active_ = true;
   }
+  return true;
 }
 
 bool Hotkey::deactivate() {
-  if (active_ && UnregisterHotKey(hotkeywindow, id_)) {
+  if (active_ && HotkeyManager::unregisterHotkey(*this)) {
     active_ = false;
-    return true;
-  } else {
-    return true;
   }
+  return true;
 }
+
+} // namespace Windows
+
+

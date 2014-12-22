@@ -8,13 +8,13 @@ WARNINGS = -Wall -Wextra -Wuninitialized -Wno-unused-local-typedefs
 FEATURES = -shared -std=gnu++0x
 MACROS   = -DUNICODE -DBUILD_DLL
 INCLUDES = -I. -I.. -I$(BOOST_PATH)
-LIBS     = -static-libgcc -static-libstdc++ -lShlwapi
+LIBS     = -static-libgcc -static-libstdc++
 
 # Release:
 FEATURES += -O2 -s -flto -fvisibility=hidden -fvisibility-inlines-hidden -finline-functions
 
 # Debug
-# FEATURES += -g
+# FEATURES += -g -DNDEBUG
 
 # compile for Windows XP
 MACROS  += -DNTDDI_VERSION=0x05010300 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 \

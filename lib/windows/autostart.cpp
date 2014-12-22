@@ -15,7 +15,7 @@ bool setProgramToAutostart(bool value) {
     0, NULL, REG_OPTION_NON_VOLATILE,
     KEY_ALL_ACCESS, NULL, &key, 0);
   if (error != ERROR_SUCCESS) {
-    WIN_WARNING(L"Kann Autostart Registry Schlüssel nicht öffnen: %s", GetLastWindowsError().c_str());
+    WIN_WARNING(L"cannot open autostart registry key: %s", GetLastWindowsError().c_str());
     return false;
   }
 
@@ -23,14 +23,13 @@ bool setProgramToAutostart(bool value) {
     error = RegSetValueExW(key, Application::getName().c_str(), 0, REG_SZ,
       (LPBYTE)(Application::getPath().c_str()), (DWORD)((Application::getPath().size() + 1) * sizeof(wchar_t)));
   } else {
-    // Prüfe ob Wert existiert:
     if (RegQueryValueExW(key, Application::getName().c_str(),0,0,0,0) != ERROR_FILE_NOT_FOUND)
       error = RegDeleteValueW(key, Application::getName().c_str());
   }
 
   RegCloseKey(key);
   if (error != ERROR_SUCCESS) {
-    WIN_WARNING(L"Kann Autostart Registry Wert nicht verändern: %s", GetLastWindowsError().c_str());
+    WIN_WARNING(L"cannot set autostart registry value: %s", GetLastWindowsError().c_str());
     return false;
   }
   return true;
@@ -46,7 +45,7 @@ bool isProgramInAutostart() {
     0, NULL, REG_OPTION_NON_VOLATILE,
     KEY_ALL_ACCESS, NULL, &key, 0);
   if (error != ERROR_SUCCESS) {
-    WIN_WARNING(L"Kann Autostart Registry Schlüssel nicht öffnen: %s", GetLastWindowsError().c_str());
+    WIN_WARNING(L"cannot open autostart registry key: %s", GetLastWindowsError().c_str());
     return false;
   }
 
@@ -57,7 +56,7 @@ bool isProgramInAutostart() {
   DWORD type;
   error = RegQueryValueEx(key, Application::getName().c_str(), NULL,  &type, NULL, &buffersize);
   if (type != REG_SZ) {
-    WIN_WARNING(L"%s", L"Autostart Registry Wert hat falschen Typ");
+    WIN_WARNING(L"%s", L"autostart registry value has wrong type.");
     RegCloseKey(key);
     return false;
   }
@@ -75,7 +74,7 @@ bool isProgramInAutostart() {
   bool result;
   if (error != ERROR_SUCCESS) {
     if (error != ERROR_FILE_NOT_FOUND) {
-      WIN_WARNING(L"Kann Autostart Registry Wert nicht lesen: %s", GetLastWindowsError().c_str());
+      WIN_WARNING(L"cannot read autostart registry value: %s", GetLastWindowsError().c_str());
     }
     result = false;
   } else {

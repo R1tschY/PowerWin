@@ -1,20 +1,23 @@
-#include "Timeout.h"
-#include "../DesktopHooks.h"
-#include "../windows/debug.h"
-#include "../windows/charcodecs.h"
+#include "timeout.h"
 
-////////////////////////////////////////////////////////////////////////////////
-//     Timeout
-////////////////////////////////////////////////////////////////////////////////
+#include <memory>
+
+#include "debug.h"
+#include "charcodecs.h"
+#include "utilwindow.h"
+
+namespace Windows {
+
 Timeout::Timeout(const Callback& callback, int seconds):
-  callback_(callback), enabled_(false) {
+  callback_(callback), enabled_(false)
+{
 
   if (seconds == -1) return ;
 
   UINT_PTR id;
-  id = SetTimer(win_getMainWindow(), (UINT_PTR)&callback_, seconds * 1000, ccallback);
+  id = SetTimer(getCallbackWindow(), (UINT_PTR)&callback_, seconds * 1000, ccallback);
   if (id != (UINT_PTR)&callback_) {
-    print(L"! Timeout-Timer-Erstellung scheitert: %s\n", Windows::GetLastWindowsError().c_str());
+    print(L"SetTimer failed: %s\n", GetLastWindowsError().c_str());
   } else {
     enabled_ = true;
   }
@@ -22,23 +25,23 @@ Timeout::Timeout(const Callback& callback, int seconds):
 
 Timeout::~Timeout() {
   if (enabled_) {
-    KillTimer(win_getMainWindow(), (UINT_PTR)&callback_);
+    KillTimer(getCallbackWindow(), (UINT_PTR)&callback_);
   }
 }
 
 void Timeout::setInterval(int seconds) {
   if (seconds < 0) {
     if (enabled_) {
-      KillTimer(win_getMainWindow(), (UINT_PTR)&callback_);
+      KillTimer(getCallbackWindow(), (UINT_PTR)&callback_);
       enabled_ = false;
     }
     return ;
   }
 
   UINT_PTR id;
-  id = SetTimer(win_getMainWindow(), (UINT_PTR)&callback_, seconds * 1000, ccallback);
+  id = SetTimer(getCallbackWindow(), (UINT_PTR)&callback_, seconds * 1000, ccallback);
   if (id != (UINT_PTR)&callback_) {
-    print(L"! Timeout-Timer-Erstellung scheitert: %s\n", Windows::GetLastWindowsError().c_str());
+    print(L"SetTimer failed: %s\n", Windows::GetLastWindowsError().c_str());
   } else {
     enabled_ = true;
   }
@@ -52,51 +55,49 @@ void Timeout::execute(const Callback& callback, int seconds) {
   UINT_PTR id;
   UINT_PTR cb = reinterpret_cast<UINT_PTR>(new Callback(callback));
 
-  id = SetTimer(win_getMainWindow(), cb, seconds * 1000, cexecallback);
+  id = SetTimer(getCallbackWindow(), cb, seconds * 1000, cexecallback);
   if (id != cb) {
-    print(L"! Timeout-Timer-Erstellung scheitert: %s\n", Windows::GetLastWindowsError().c_str());
+    print(L"SetTimer failed: %s\n", GetLastWindowsError().c_str());
     delete reinterpret_cast<Callback*>(cb);
   }
 }
 
 void CALLBACK Timeout::ccallback(HWND hwnd, UINT msg, UINT_PTR callback, DWORD time) {
   if (msg == WM_TIMER) {
-    Callback* cb = reinterpret_cast<Callback*>(callback);
+    auto cb = std::unique_ptr<Callback*>(reinterpret_cast<Callback*>(callback));
 
-    if (cb == nullptr) {
-       OutputDebugString(L"Timeout Funktionsaufruf scheitert: callback == NULL\n");
+    if (!cb) {
+       print(L"timeout callback call failed: callback == NULL\n");
        return ;
     }
 
     try {
       (*cb)();
     } catch (const std::bad_function_call& error) {
-      OutputDebugString(L"! Timeout Funktionsaufruf scheitert:");
-      OutputDebugString(Windows::convertFromUtf8(error.what()).c_str());
-      OutputDebugString(L"\n");
+      print(L"timeout callback call failed: %s\n",
+            CharCodecs::toWide(error.what()).c_str());
     }
   }
 }
 
 void CALLBACK Timeout::cexecallback(HWND hwnd, UINT msg, UINT_PTR callback, DWORD time) {
   if (msg == WM_TIMER) {
-    Callback* cb = reinterpret_cast<Callback*>(callback);
+    auto cb = std::unique_ptr<Callback*>(reinterpret_cast<Callback*>(callback));
 
-    if (cb == NULL) {
-       OutputDebugString(L"Timeout Funktionsaufruf scheitert: callback == NULL\n");
+    if (!cb) {
+       print(L"timeout callback call failed: callback == NULL\n");
        return ;
     }
 
     try {
       (*cb)();
     } catch (const std::bad_function_call& error) {
-      OutputDebugString(L"! Timeout Funktionsaufruf scheitert: %s\n");
-      OutputDebugString(Windows::convertFromUtf8(error.what()).c_str());
-      OutputDebugString(L"\n");
+      print(L"timeout callback call failed: %s\n",
+            CharCodecs::toWide(error.what()).c_str());
     }
 
-    KillTimer(win_getMainWindow(), callback);
-    delete cb;
+    KillTimer(getCallbackWindow(), callback);
   }
 }
 
+} // namespace Windows

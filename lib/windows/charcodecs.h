@@ -5,9 +5,15 @@
 
 namespace Windows {
 
-std::string convertToUtf8(cpp::wstring_view src);
+namespace CharCodecs {
 
-std::wstring convertFromUtf8(cpp::wstring_view src);
+std::string toUtf8(cpp::string_view src) { return src; }
+std::string toUtf8(cpp::wstring_view src);
+
+std::wstring toWide(cpp::string_view src);
+std::wstring toWide(cpp::wstring_view src) { return src; }
+
+} // namespace CharCodecs
 
 } // namespace Windows
 

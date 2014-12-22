@@ -27,13 +27,13 @@ static DWORD WINAPI executeInThread_cb(void* data) {
 void executeInThread(const Callback& func) {
   Callback* pfunc = new Callback(func);
 
-  CreateThread(NULL, 0, executeInThread_cb, pfunc, 0, NULL); // TODO Fehlerbehandlung
+  CreateThread(NULL, 0, executeInThread_cb, pfunc, 0, NULL); // TODO error handling
 }
 
 void executeInMainThread(const Callback& func) {
   Callback* pfunc = new Callback(func);
 
-  PostMessageW(getCallbackWindow(), WM_CALLBACK, 0, (LPARAM)pfunc);// TODO Fehlerbehandlung
+  PostMessageW(getCallbackWindow(), WM_CALLBACK, 0, (LPARAM)pfunc);// TODO error handling
 }
 
 } // namespace Windows

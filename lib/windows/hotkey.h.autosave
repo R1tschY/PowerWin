@@ -16,26 +16,6 @@ struct ShortCut {
 
 typedef std::function<void()> HotkeyHandler;
 
-class HotkeyManager {
-  HotkeyManager();
-
-public:
-  HotkeyManager& get();
-
-  static void registerHotkey() { get().registerHotkey(); }
-  void registerHotkey(ShortCut shortcut, HotkeyHandler handler);
-  static void unregisterHotkey() { get().unregisterHotkey(); }
-  void unregisterHotkey(const Hotkey& hotkey);
-
-private:
-  MessageSink message_sink_;
-
-  std::map<unsigned, HotkeyHandler> handlers_;
-  unsigned counter_;
-
-  LRESULT HotkeyManager::WndProc(UINT msg, WPARAM wparam, LPARAM lparam);
-};
-
 class Hotkey {
   DISALLOW_COPY_AND_ASSIGN(Hotkey);
 

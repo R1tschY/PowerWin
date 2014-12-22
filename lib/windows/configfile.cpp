@@ -1,4 +1,4 @@
-#include "ConfigFile.h"
+#include "configfile.h"
 
 #include <windows.h>
 #include <boost/lexical_cast.hpp>

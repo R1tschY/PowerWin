@@ -49,7 +49,6 @@ windows/concurrent.cpp
 windows/date.h
 windows/date.cpp
 c++/pointer.h
-windows/types.h
 windows/macros.h
 c++/utils.h
 powerwin.cpp
@@ -93,8 +92,8 @@ c++/construct.h
 c++/macros.h
 c++/storage.h
 c++/stringview.h
-windows/window.h
-windows/window.cpp
+windows/control.h
+windows/control.cpp
 windows/memory.h
 c++/stringliteral.h
 windows/application.cpp
@@ -138,3 +137,10 @@ windows/rundll.h
 windows/rundll.cpp
 windows/process.h
 windows/process.cpp
+windows/controls/window.h
+windows/controls/window.cpp
+windows/controls.h
+windows/controls/messagesink.h
+windows/controls/messagesink.cpp
+windows/controls/onscreendisplay.h
+windows/controls/onscreendisplay.cpp

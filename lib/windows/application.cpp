@@ -2,54 +2,27 @@
 
 #include <time.h>
 #include <Shlobj.h>
-#include <Shlwapi.h>
 
 #include "debug.h"
 #include "macros.h"
+#include "charcodecs.h"
 
 namespace Windows {
 
-static WindowsVersion Application_getWindowsVersion() {
-  OSVERSIONINFO wininfo;
-  WindowsVersion result;
-
-  wininfo.dwOSVersionInfoSize = sizeof(wininfo);
-  GetVersionEx(&wininfo);
-
-  if (wininfo.dwMajorVersion == 5) {
-    result = (wininfo.dwMinorVersion==0)?WIN_2000:WIN_XP;
-  } else if (wininfo.dwMajorVersion == 6) {
-    result = (wininfo.dwMinorVersion==0)?WIN_VISTA:WIN_7;
-  } else {
-    result = WIN_NEWER;
-  }
-
-  if (result == WIN_2000) {
-    WIN_ERROR(L"%s", L"Betriebssystem älter als Windows XP.");
-  }
-
-  if (result == WIN_NEWER) {
-    WIN_WARNING(L"%s", L"Betriebssystem neuer als Windows 7.");
-  }
-
-  return result;
-}
-
-static std::wstring Application_getPath() {
-  wchar_t exefilepath[MAX_PATH];
-
-  GetModuleFileNameW(NULL, exefilepath, sizeof(exefilepath));
-
-  return std::wstring(exefilepath);
-}
+//static WindowsVersion Application_getWindowsVersion() {
+//  OSVERSIONINFO wininfo;
+//  wininfo.dwOSVersionInfoSize = sizeof(wininfo);
+//  GetVersionEx(&wininfo);
+//  return (wininfo.dwMajorVersion << 8) | (wininfo.dwMinorVersion);
+//}
 
 static void Application_newfailed() {
-  _putws(L"Zu wenig Speicher!");
+  _putws(L"not enough memory!");
   abort();
 }
 
 static void Application_terminate() {
-  _putws(L"Nicht aufgefangene Ausnahme!");
+  _putws(L"uncatched exception!");
   abort();
 }
 
@@ -57,55 +30,61 @@ static void Application_unexpected() {
   throw;
 }
 
-HINSTANCE Application::instance = 0;
-WindowsVersion Application::winversion = Application_getWindowsVersion();
-std::wstring Application::path = Application_getPath();
-std::wstring Application::name;
+Application* Application::instance_ = nullptr;
 
-Application::Application(cpp::wstring_view name, HINSTANCE instance) {
+Application::Application(cpp::wstring_view name, HINSTANCE instance) :
+  appinstance_(instance), name_(name)
+{
+  if (instance_ != nullptr) {
+    is_running_ = true;
+    return;
+  }
+  instance_ = this;
+
   setlocale(LC_ALL, "");
   _tzset();
+  std::set_new_handler(Application_newfailed);
+  std::set_unexpected(Application_unexpected);
+  std::set_terminate(Application_terminate);
 
-  mutex_ = CreateMutex(NULL, FALSE, name);
+  mutex_ = CreateMutex(nullptr, false, name);
   DWORD error = GetLastError();
   if (!mutex_) {
-    WIN_WARNING(L"Konnte Mutex nicht erstellen: %s",
+    WIN_WARNING(L"cannot create application mutex: %s",
                 GetWindowsError(error).c_str());
   }
 
   is_running_ = (error == ERROR_ALREADY_EXISTS);
-  Application::instance = instance;
-  Application::name.assign(name);
-
-  std::set_new_handler(Application_newfailed);
-  std::set_unexpected(Application_unexpected);
-  std::set_terminate(Application_terminate);
-}
-
-Application::~Application() {
-  if (mutex_) {
-    CloseHandle(mutex_);
-  }
 }
 
 int
-Application::run(const Callback& entry) const {
-  if (!is_running_) {
-    try {
-      return entry();
-    } catch (const std::exception& e) {
-      WIN_ERROR(L"Unerwartete Ausnahme: %s", e.what());
-    } catch (...) {
-      WIN_ERROR(L"Unerwartete Ausnahme!");
-    }
+Application::run(ExecuteFunc entry) const {
+  if (is_running_) return 0;
+
+  try {
+    return entry();
+  } catch (const std::exception& e) {
+    WIN_ERROR(L"uncatched exception: %s", CharCodecs::toWide(e.what()));
+  } catch (...) {
+    WIN_ERROR(L"uncatched exception!");
   }
 
   return 0;
 }
 
+void Application::processMessages()
+{
+  // main message loop
+  MSG msg;
+  while (GetMessage(&msg, nullptr, 0, 0)) {
+    TranslateMessage(&msg);
+    DispatchMessage(&msg);
+  }
+}
+
 bool Application::Is64BitWindows()
 {
-#ifdef ENV32BIT
+#ifdef CPUBITSET == 32
   // We can check if the operating system is 64-bit by checking whether
   // we are running under Wow64 (we are 32-bit code). We must check if this
   // function is implemented before we call it, because some older 32-bit
@@ -132,28 +111,15 @@ bool Application::Is64BitWindows()
 
 // Utils
 
-std::wstring Application::getExecutableFilename() {
-  if (_wpgmptr) {
-    return std::wstring(_wpgmptr);
-  } else {
-    wchar_t result[MAX_PATH];
-    GetModuleFileNameW(NULL, result, sizeof(result));
-    return std::wstring(result);
-  }
+boost::filesystem::path Application::getExecutableFilename() {
+  wchar_t result[MAX_PATH+1];
+  GetModuleFileNameW(nullptr, result, sizeof(result));
+  return std::wstring(result);
 }
 
-std::wstring Application::getExecutablePath() {
-  wchar_t result[MAX_PATH];
-  HMODULE hModule = GetModuleHandleW(NULL);
-  GetModuleFileNameW(hModule, result, sizeof(result));
-  PathRemoveFileSpecW(result);
-  return result;
-}
-
-std::wstring Application::getConigPath() {
+boost::filesystem::path Application::getConigPath() {
   wchar_t path[MAX_PATH+1];
-
-  HRESULT hr = SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, 0, path);
+  HRESULT hr = SHGetFolderPathW(nullptr, CSIDL_APPDATA, nullptr, 0, path);
   return std::wstring((hr == S_OK)?path:L"");
 }
 

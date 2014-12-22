@@ -20,7 +20,7 @@
 #include "macros.h"
 #include "windows/application.h"
 #include "windows/trayicon.h"
-#include "windows/window.h"
+#include "windows/controls.h"
 
 #if CPUBITSET == 32
 # define POWERWIN_APP_NAME L"PowerWin32"

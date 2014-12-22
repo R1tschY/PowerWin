@@ -8,7 +8,6 @@ namespace Windows {
 class Timer {
 public:
   Timer();
-  ~Timer();
 
   void start();
   void stop();
@@ -17,8 +16,6 @@ public:
 private:
   LARGE_INTEGER start_;
   LARGE_INTEGER stop_;
-
-  static const double Frequency;
 };
 
 } // namespace Windows

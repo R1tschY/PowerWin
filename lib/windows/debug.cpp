@@ -126,11 +126,11 @@ void print_window_infos(HWND hwnd) {
   OutputDebugStringW(L"---------------------------------------------------------\n");
   wchar_t window_name[255];
   GetWindowText(hwnd, window_name, sizeof(window_name));
-  print(L"Fenstertitel:\n\t%s\n", window_name);
+  print(L"window title:\n\t%s\n", window_name);
 
   wchar_t class_name[255];
   GetClassNameW(hwnd, class_name, sizeof(class_name));
-  print(L"Fensterklassenname:\n\t%s\n", class_name);
+  print(L"window class name:\n\t%s\n", class_name);
 
   RECT geometry;
   GetWindowRect(hwnd, &geometry);

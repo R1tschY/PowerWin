@@ -4,21 +4,26 @@
 
 namespace Windows {
 
-static double getFrequency() {
+static double computeFrequency() {
   LARGE_INTEGER proc_freq;
 
-  if (!QueryPerformanceFrequency (&proc_freq))
-    WIN_ERROR(L"%s", L"Aufruf von QueryPerformanceFrequency() gescheitert");
+  if (!QueryPerformanceFrequency (&proc_freq)) {
+    WIN_ERROR(L"%s", L"QueryPerformanceFrequency failed!");
+    return nan();
+  }
 
   return 1.0/((double)proc_freq.QuadPart);
 }
 
-const double Timer::Frequency = getFrequency();
+static double getFrequency() {
+  static const double frequency = computeFrequency();
+  return frequency;
+}
+
 
 Timer::Timer() {
   start();
 }
-Timer::~Timer() {}
 
 void Timer::start() {
   DWORD_PTR oldmask = SetThreadAffinityMask(GetCurrentThread(), 0);

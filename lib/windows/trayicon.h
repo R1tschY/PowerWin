@@ -5,10 +5,13 @@
 #include <shellapi.h>
 
 #include <c++/stringview.h>
+#include "macros.h"
 
 namespace Windows {
 
 class TrayIcon {
+  DISALLOW_COPY_AND_ASSIGN(TrayIcon);
+
 public:
   enum class Icon {
     None    = NIIF_NONE,
@@ -22,7 +25,6 @@ public:
   TrayIcon();
   ~TrayIcon();
 
-  void add(HWND hwnd, HICON icon);
   void add(HWND hwnd, HICON icon, cpp::wstring_view tooltip);
   void remove();
 

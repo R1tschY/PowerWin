@@ -2,12 +2,13 @@
 #define UTILWINDOW_H
 
 #include <windows.h>
+#include <functional>
 
 namespace Windows {
 
-#define WM_CALLBACK     (WM_USER + 20)
+typedef std::function<void()> Callback;
 
-HWND createUtilWindow(WNDPROC wndproc);
+#define WM_CALLBACK     (WM_USER + 20)
 
 HWND getCallbackWindow();
 
