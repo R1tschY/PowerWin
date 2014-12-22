@@ -19,14 +19,14 @@ class Application final {
 
 public:
   // types
-  typedef std::function<int()> Callback;
+  typedef std::function<int()> ExecuteFunc;
 
   // ctor
   Application(cpp::wstring_view name, HINSTANCE instance);
 
   // run
-  static int run(Callback entry) { return self().run(entry); }
-  int run(Callback entry);
+  static int run(ExecuteFunc entry) { return self().run(entry); }
+  int run(ExecuteFunc entry);
 
   // application properties
   static HINSTANCE getInstance() { return self().appinstance_; }
