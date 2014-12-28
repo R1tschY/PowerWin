@@ -144,3 +144,5 @@ windows/controls/messagesink.h
 windows/controls/messagesink.cpp
 windows/controls/onscreendisplay.h
 windows/controls/onscreendisplay.cpp
+windows/dll.h
+windows/dll.cpp

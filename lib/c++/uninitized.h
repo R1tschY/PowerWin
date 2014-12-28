@@ -13,7 +13,6 @@ template<typename T>
 class uninitized {
 private:
   NOT_COPYABLE(uninitized);
-  NOT_MOVABLE(uninitized);
 
 public:
   template<class... Args>
@@ -27,15 +26,15 @@ public:
   }
 
   T& operator -> () {
-    return get(&data);
+    return get(data);
   }
 
   T& operator * () {
-    return get(&data);
+    return get(data);
   }
 
   T* operator & () {
-    return !get(&data);
+    return &get(data);
   }
 
 private:

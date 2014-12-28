@@ -6,6 +6,8 @@
 #include <cassert>
 #include <cstdio>
 
+namespace Windows {
+
 //////////////////////////////////////////////////////////////////////////////
 // Hook
 
@@ -13,19 +15,18 @@ class Hook {
 public:
   static const DWORD AllThreads = 0;
 
-  void init() { hook_ = nullptr; }
   bool create(int hook_id, DWORD thread_id, HOOKPROC func);
   bool destroy();
-  
+
   bool isActive() const { return hook_ != nullptr; }
   HHOOK getHandle() const { return hook_; }
-  
-  Hook() { }
+
+  Hook() : hook_(nullptr) { }
 
   LRESULT callNext(int code, WPARAM wparam, LPARAM lparam) const {
     return CallNextHookEx(hook_, code, wparam, lparam);
   }
-  
+
 private:
   HHOOK hook_;
 };
@@ -37,9 +38,9 @@ class MouseHook {
 public:
   typedef std::function<bool (POINT, int)> WheelHandler;
   typedef std::function<bool (unsigned, POINT)> ClickHandler;
-  
+
   static MouseHook& get();
-  
+
   bool empty() const {
     return wheel_hooks_.empty() && click_hooks_.empty(); // && *.empty();
   }
@@ -47,24 +48,22 @@ public:
   MouseHook() :
     hook_(),
     wheel_hooks_()
-  {
-    hook_.init();
-  }
-  
+  { }
+
 protected:
   template<typename Proc>
   friend class MouseHookProxy;
-  
+
   void addHandler(WheelHandler* proc);
   void addHandler(ClickHandler* proc);
   void removeHandler(WheelHandler* proc);
   void removeHandler(ClickHandler* proc);
-  
-private:  
+
+private:
   Hook hook_;
   std::vector<WheelHandler*> wheel_hooks_;
   std::vector<ClickHandler*> click_hooks_;
-  
+
   static LRESULT CALLBACK hookProc(int code, WPARAM wparam, LPARAM lparam);
 };
 
@@ -77,10 +76,14 @@ public:
   explicit MouseHookProxy(Proc proc) :
     proc_(proc), active_(false)
   { }
-  
+
+  ~MouseHookProxy() {
+    deactivate();
+  }
+
   void activate();
   void deactivate();
-  
+
   bool isActive() const {
     return active_;
   }
@@ -108,3 +111,7 @@ void MouseHookProxy<Proc>::deactivate(){
 
 typedef MouseHookProxy<MouseHook::WheelHandler> MouseWheelHook;
 typedef MouseHookProxy<MouseHook::ClickHandler> MouseClickHook;
+
+} // namespace Windows
+
+

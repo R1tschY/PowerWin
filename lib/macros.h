@@ -11,8 +11,8 @@
 // Check for 64bit
 
 // Check GCC
-#if __defined__(__GNUC__)
-  #if __defined__(__x86_64__) || __defined__(__ppc64__)
+#ifdef __GNUC__
+  #if defined(__x86_64__) || defined(__ppc64__)
     #define CPUBITSET 64
   #else
     #define CPUBITSET 32

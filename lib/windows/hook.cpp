@@ -1,8 +1,9 @@
 #include "../c++/algorithm.h"
 #include "../macros.h"
-#include "../DesktopHooks.h"
 
-#include "Hook.h"
+#include "hook.h"
+
+namespace Windows {
 
 ///////////////////////////////////////////////////////////////////////////////
 // Hook
@@ -67,17 +68,17 @@ LRESULT CALLBACK MouseHook::hookProc(int code, WPARAM wparam, LPARAM lparam) {
   if (code != HC_ACTION) {
     return CallNextHookEx(get().hook_.getHandle(), code, wparam, lparam);
   }
-    
+
   bool processed = false;
   MSLLHOOKSTRUCT* data = reinterpret_cast<MSLLHOOKSTRUCT*>(lparam);
 
   switch (wparam) {
-  case WM_MOUSEWHEEL: 
+  case WM_MOUSEWHEEL:
     for (auto& hook : get().wheel_hooks_) {
       if ((*hook)(data->pt, HIWORD(data->mouseData))) processed = true;
     }
     break;
-                     
+
   case WM_LBUTTONDOWN:
   case WM_LBUTTONUP:
   case WM_RBUTTONDOWN:
@@ -87,10 +88,14 @@ LRESULT CALLBACK MouseHook::hookProc(int code, WPARAM wparam, LPARAM lparam) {
     }
     break;
   }
-    
+
   if (!processed) {
     return CallNextHookEx(get().hook_.getHandle(), code, wparam, lparam);
   } else {
     return 1;
   }
 }
+
+} // namespace Windows
+
+

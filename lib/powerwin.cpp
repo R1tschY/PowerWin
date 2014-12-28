@@ -48,6 +48,8 @@ public:
   }
 
   LRESULT onMessage(UINT msg, WPARAM wparam, LPARAM lparam) override;
+  void onCreate() override;
+  void onDestroy() override;
 
 private:
   std::vector<std::unique_ptr<Plugin>> plugins_;
@@ -90,7 +92,7 @@ int PowerWin::run() {
   PowerWin powerwin;
   instance_ = &powerwin;
 
-  powerwin.create(nullptr, lit(POWERWIN_APP_NAME), WS_OVERLAPPEDWINDOW);
+  powerwin.create(nullptr, lit(POWERWIN_APP_NAME));
 
   print(L"%ls hwnd: %d\n", POWERWIN_APP_NAME, powerwin.getNativeHandle());
 
@@ -101,7 +103,7 @@ int PowerWin::run() {
   return 0;
 }
 
-void PowerWin::start() {
+void PowerWin::onCreate() {
   print(L"PowerWin::start\n");
 
   ConfigFile config;
@@ -165,62 +167,18 @@ void PowerWin::onDestroy() {
     MessageBox(NULL, L"Ups", L"!!!", MB_ICONERROR | MB_OK);
   }
 
+#ifdef MAIN_MODULE
   // remove tray icon
   tray_icon_.remove();
+#endif
 
   // exit process
   PostQuitMessage(0);
 }
 
-LRESULT PowerWinWindow::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
-{
-  switch (msg) {
-  case WM_CREATE:
-    start(hwnd);
-    break;
-
-  case WM_DESTROY:
-    onDestroy();
-    break;
-
-  default:
-    return Window::onMessage(msg, wparam, lparam);
-  }
-
-  return 0;
-}
-
 } // namespace
 
-extern "C" {
-
-HINSTANCE win_getDllInstance() {
-  if (dllinstance_ == 0) {
-    print(L"win_getDllInstance: too early access of dll instance!\n");
-  }
-
-  return dllinstance_;
-}
-
-HWND win_getMainWindow() {
-  PowerWin* instance = PowerWin::get();
-  if (instance == nullptr) {
-    print(L"not in powerwin process!\n");
-  }
-
-  HWND window = instance->getWindow();
-  if (window == nullptr) {
-    print(L"too early access of main window!\n");
-  }
-
-  return window;
-}
-
-void win_destroy() {
-  DestroyWindow(win_getMainWindow());
-}
-
-
+extern "C"
 void CALLBACK FixWindows(HINSTANCE hInstance,
                          HINSTANCE hPrevInstance,
                          LPSTR lpCmdLine,
@@ -229,26 +187,6 @@ void CALLBACK FixWindows(HINSTANCE hInstance,
   Windows::Application app(POWERWIN_APP_NAME, hInstance);
   app.run(PowerWin::run);
 }
-
-BOOL APIENTRY
-DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
-  if (dllinstance_ == NULL) {
-    dllinstance_ = instance;
-  }
-
-  switch (fdwReason) {
-  case DLL_PROCESS_ATTACH:
-    DisableThreadLibraryCalls(hinstDLL);
-    break;
-
-  case DLL_PROCESS_DETACH:
-    break;
-  }
-
-  return TRUE;
-}
-
-} // extern "C"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Windowpicker

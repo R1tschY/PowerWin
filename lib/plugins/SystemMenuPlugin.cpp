@@ -2,13 +2,12 @@
 
 #include <vector>
 #include <cstdio>
-//#include <boost/format.hpp>
 
 #include "../windows/debug.h"
-#include "../windows/Hook.h"
+#include "../windows/hook.h"
 #include "../c++/utils.h"
+#include "../c++/uninitized.h"
 #include "../macros.h"
-#include "../DesktopHooks.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Was noch nicht geht:
@@ -17,12 +16,12 @@
 
 static LRESULT CALLBACK systemmenu_cbt_proc(int code, WPARAM wparam, LPARAM lparam);
 
-DLL_SHARED Hook cbt_hook;
+DLL_SHARED cpp::uninitized<Hook> cbt_hook;
 
 SystemMenuPlugin::SystemMenuPlugin() :
   Plugin(L"system_menu")
 {
-  cbt_hook.init();
+  cbt_hook.construct();
 }
 
 static bool ExistsMenuItem(HMENU menu, unsigned id) {
