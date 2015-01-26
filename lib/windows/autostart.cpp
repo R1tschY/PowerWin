@@ -1,9 +1,8 @@
 #include "autostart.h"
 
-#include <windows.h>
-
 #include "debug.h"
 #include "application.h"
+#include <windows.h>
 
 namespace Windows {
 
@@ -21,7 +20,7 @@ bool setProgramToAutostart(bool value) {
 
   if (value) {
     error = RegSetValueExW(key, Application::getName().c_str(), 0, REG_SZ,
-      (LPBYTE)(Application::getPath().c_str()), (DWORD)((Application::getPath().size() + 1) * sizeof(wchar_t)));
+      (LPBYTE)(Application::getExecutablePath().toString().c_str()), (DWORD)((Application::getExecutablePath().toString().size() + 1) * sizeof(wchar_t)));
   } else {
     if (RegQueryValueExW(key, Application::getName().c_str(),0,0,0,0) != ERROR_FILE_NOT_FOUND)
       error = RegDeleteValueW(key, Application::getName().c_str());
@@ -78,7 +77,7 @@ bool isProgramInAutostart() {
     }
     result = false;
   } else {
-    result = (Application::getPath().compare(buffer) == 0);
+    result = (Application::getExecutablePath().toString().compare(buffer) == 0);
   }
 
   RegCloseKey(key);

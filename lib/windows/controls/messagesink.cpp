@@ -1,17 +1,18 @@
 #include "messagesink.h"
 
 #include <windows.h>
+#include <c++/stringliteral.h>
 
 namespace Windows {
 
 static ATOM getMessageSinkClass() {
-  static ATOM window_class = Control::registerWindowClass(
-                               lit("MessageSink"),
+  static ATOM window_class = Control::registerClass(
+                               wstring_literal("MessageSink"),
                                0,
                                0,
                                0,
                                0,
-                               cpp::string_view(),
+                               cpp::wstring_view(),
                                0);
   return window_class;
 }
@@ -24,7 +25,7 @@ MessageSink::MessageSink(MessageFunc wndproc) :
 
 void MessageSink::create()
 {
-  Control::create(HWND_MESSAGE, lit("MessageSink"), 0, 0, 0, 0);
+  Control::create(HWND_MESSAGE, wstring_literal("MessageSink"), 0, 0, 0, 0);
 }
 
 LRESULT MessageSink::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)

@@ -15,9 +15,9 @@ public:
   typedef CharT char_type;
   typedef std::char_traits<CharT> traits;
 
-  typedef Char value_type;
-  typedef const Char* iterator;
-  typedef const Char* const_iterator;
+  typedef CharT value_type;
+  typedef const CharT* iterator;
+  typedef const CharT* const_iterator;
 
 private:
   typedef basic_substring<CharT> self_type;

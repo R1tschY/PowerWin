@@ -1,10 +1,10 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#include <windows.h>
 #include <string>
 
 #include <c++/stringview.h>
+#include <windows.h>
 
 namespace Windows {
 
@@ -42,12 +42,12 @@ GetLastWindowsError() {
   return GetWindowsError(GetLastError());
 }
 
-void printLastError(cpp::wstring_view error_message);
+void printError(cpp::wstring_view error_message, DWORD error_code);
 
 //
 // Check return value
 
-#define win_check(expr) (checkReturnValue((expr), __PRETTY_FUNCTION__ " (" __FILE__ ":" __LINE__ ")"))
+// FIXME: #define win_check(expr) (checkReturnValue((expr), __PRETTY_FUNCTION__ " (" __FILE__ ":" __LINE__ ")"))
 #define win_return_if_failed(expr,value) \
   WIN_BEGIN_MACRO_BLOCK \
     if (!expr) { \
@@ -56,9 +56,17 @@ void printLastError(cpp::wstring_view error_message);
   WIN_END_MACRO_BLOCK
 
 template<typename ReturnValue>
-inline checkReturnValue(ReturnValue return_value, cpp::wstring_view fail_message) {
+inline ReturnValue checkReturnValue(ReturnValue return_value, cpp::wstring_view fail_message) {
   if (!return_value) {
-    printLastError(fail_message);
+    printError(fail_message, GetLastError());
+  }
+  return return_value;
+}
+
+template<>
+inline HRESULT checkReturnValue<HRESULT>(HRESULT return_value, cpp::wstring_view fail_message) {
+  if (return_value != S_OK) {
+    printError(fail_message, return_value);
   }
   return return_value;
 }

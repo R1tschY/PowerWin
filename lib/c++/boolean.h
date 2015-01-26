@@ -1,12 +1,12 @@
 #ifndef BOOLEAN_H
 #define BOOLEAN_H
 
-#include "stringref.h"
+#include "stringview.h"
 
 namespace cpp {
 
-cpp::wsubstring to_wstring_ref(bool value) {
-  return cpp::wsubstring(value ? L"yes" : L"no");
+cpp::wstring_view to_wstring_view(bool value) {
+  return cpp::wstring_view(value ? wstring_literal("yes") : wstring_literal("no"));
 }
 
 }

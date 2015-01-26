@@ -9,7 +9,7 @@ static double computeFrequency() {
 
   if (!QueryPerformanceFrequency (&proc_freq)) {
     WIN_ERROR(L"%s", L"QueryPerformanceFrequency failed!");
-    return nan();
+    return NAN;
   }
 
   return 1.0/((double)proc_freq.QuadPart);
@@ -42,7 +42,7 @@ void Timer::stop() {
 }
 
 double Timer::getSeconds() const {
-  return (stop_.QuadPart - start_.QuadPart) * Frequency;
+  return (stop_.QuadPart - start_.QuadPart) * getFrequency();
 }
 
 }

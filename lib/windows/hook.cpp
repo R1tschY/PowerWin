@@ -1,7 +1,8 @@
+#include "hook.h"
+
 #include "../c++/algorithm.h"
 #include "../macros.h"
-
-#include "hook.h"
+#include "dll.h"
 
 namespace Windows {
 
@@ -10,7 +11,7 @@ namespace Windows {
 
 bool Hook::create(int hook_id, DWORD thread_id, HOOKPROC func) {
   if (!hook_) {
-    hook_ = SetWindowsHookEx(hook_id, func, win_getDllInstance(), thread_id);
+    hook_ = SetWindowsHookEx(hook_id, func, Dll::getInstance(), thread_id);
     if (hook_ == nullptr)  MessageBeep(MB_ICONERROR);
     return (hook_ != nullptr);
   } else {

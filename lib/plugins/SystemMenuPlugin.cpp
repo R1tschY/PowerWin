@@ -16,7 +16,7 @@
 
 static LRESULT CALLBACK systemmenu_cbt_proc(int code, WPARAM wparam, LPARAM lparam);
 
-DLL_SHARED cpp::uninitized<Hook> cbt_hook;
+DLL_SHARED cpp::uninitized<Windows::Hook> cbt_hook;
 
 SystemMenuPlugin::SystemMenuPlugin() :
   Plugin(L"system_menu")
@@ -159,7 +159,8 @@ static BOOL CALLBACK downgrade_window(HWND hwnd, LPARAM lParam) {
 
 void SystemMenuPlugin::onActivate(const Plugin::Options& options)
 {
-  cbt_hook.create(WH_CBT, Hook::AllThreads, systemmenu_cbt_proc);
+  cbt_hook.construct();
+  cbt_hook->create(WH_CBT, Windows::Hook::AllThreads, systemmenu_cbt_proc);
 
 #ifdef MAIN_MODULE
   MessageBeep(MB_OK);
@@ -175,7 +176,7 @@ void SystemMenuPlugin::onDeactivate()
   EnumWindows(downgrade_window, 0);
 #endif
 
-  cbt_hook.destroy();
+  cbt_hook->destroy();
 }
 
 static
@@ -200,5 +201,5 @@ LRESULT CALLBACK systemmenu_cbt_proc(int code, WPARAM wParam, LPARAM lParam) {
     }
   }
 
-  return cbt_hook.callNext(code, wParam, lParam);
+  return cbt_hook->callNext(code, wParam, lParam);
 }

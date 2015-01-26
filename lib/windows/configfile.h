@@ -6,6 +6,8 @@
 #include "macros.h"
 #include <c++/stringview.h>
 
+namespace Windows {
+
 ////////////////////////////////////////////////////////////////////////////////
 //     ConfigFile
 ////////////////////////////////////////////////////////////////////////////////
@@ -31,5 +33,7 @@ public:
 private:
   std::wstring filename_;
 
-  static std::vector<std::wstring> splitStringArray(cpp::wstring_view strings);
+  static std::vector<std::wstring> splitStringArray(const wchar_t* strings);
 };
+
+} // namespace Windows

@@ -1,5 +1,6 @@
 #include "trayicon.h"
 
+#include <algorithm>
 #include "application.h"
 
 namespace Windows {
@@ -11,7 +12,7 @@ TrayIcon::TrayIcon():
 {}
 
 void
-TrayIcon::add(HWND hwnd, HICON icon, cpp::string_view tooltip) {
+TrayIcon::add(HWND hwnd, HICON icon, cpp::wstring_view tooltip) {
     trayicon_.cbSize = sizeof(NOTIFYICONDATAW);
 #if (WINVER < 0x0600)
     trayicon_.uVersion         = NOTIFYICON_VERSION;

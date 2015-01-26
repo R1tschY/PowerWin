@@ -1,7 +1,7 @@
 #include "application.h"
 
 #include <time.h>
-#include <Shlobj.h>
+#include <shlobj.h>
 
 #include "debug.h"
 #include "macros.h"
@@ -33,7 +33,7 @@ static void Application_unexpected() {
 Application* Application::instance_ = nullptr;
 
 Application::Application(cpp::wstring_view name, HINSTANCE instance) :
-  appinstance_(instance), name_(name)
+  appinstance_(instance), name_(name.to_string())
 {
   if (instance_ != nullptr) {
     is_running_ = true;
@@ -47,7 +47,7 @@ Application::Application(cpp::wstring_view name, HINSTANCE instance) :
   std::set_unexpected(Application_unexpected);
   std::set_terminate(Application_terminate);
 
-  mutex_ = CreateMutex(nullptr, false, name);
+  mutex_.reset(CreateMutex(nullptr, false, name));
   DWORD error = GetLastError();
   if (!mutex_) {
     WIN_WARNING(L"cannot create application mutex: %s",
@@ -57,14 +57,14 @@ Application::Application(cpp::wstring_view name, HINSTANCE instance) :
   is_running_ = (error == ERROR_ALREADY_EXISTS);
 }
 
-int
-Application::run(ExecuteFunc entry) const {
+int Application::run(ExecuteFunc entry) {
   if (is_running_) return 0;
+  is_running_ = true;
 
   try {
     return entry();
   } catch (const std::exception& e) {
-    WIN_ERROR(L"uncatched exception: %s", CharCodecs::toWide(e.what()));
+    WIN_ERROR(L"uncatched exception: %ls", to_wstring(e.what()).c_str());
   } catch (...) {
     WIN_ERROR(L"uncatched exception!");
   }
@@ -84,7 +84,7 @@ void Application::processMessages()
 
 bool Application::Is64BitWindows()
 {
-#ifdef CPUBITSET == 32
+#if CPUBITSET == 32
   // We can check if the operating system is 64-bit by checking whether
   // we are running under Wow64 (we are 32-bit code). We must check if this
   // function is implemented before we call it, because some older 32-bit
@@ -111,16 +111,16 @@ bool Application::Is64BitWindows()
 
 // Utils
 
-boost::filesystem::path Application::getExecutableFilename() {
+Path Application::getExecutablePath() {
   wchar_t result[MAX_PATH+1];
   GetModuleFileNameW(nullptr, result, sizeof(result));
-  return std::wstring(result);
+  return Path(result);
 }
 
-boost::filesystem::path Application::getConigPath() {
+Path Application::getConigPath() {
   wchar_t path[MAX_PATH+1];
   HRESULT hr = SHGetFolderPathW(nullptr, CSIDL_APPDATA, nullptr, 0, path);
-  return std::wstring((hr == S_OK)?path:L"");
+  return Path((hr == S_OK) ? path : nullptr);
 }
 
 } // namespace Windows

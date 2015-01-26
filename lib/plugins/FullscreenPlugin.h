@@ -12,7 +12,7 @@ public:
   virtual void onDeactivate();
 
 private:
-  Timeout timeout_;
+  Windows::Timeout timeout_;
   bool fullscreen_window_;
 
   void onTimeout();

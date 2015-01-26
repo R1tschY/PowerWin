@@ -146,3 +146,11 @@ windows/controls/onscreendisplay.h
 windows/controls/onscreendisplay.cpp
 windows/dll.h
 windows/dll.cpp
+windows/controls/graphicscontext.h
+windows/controls/graphicscontext.cpp
+windows/controls/graphicscontrol.h
+windows/controls/graphicscontrol.cpp
+windows/controls/graphics.h
+windows/controls/graphics.cpp
+windows/systeminformation.h
+windows/systeminformation.cpp

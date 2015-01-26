@@ -1,17 +1,17 @@
 #include "concurrent.h"
 
-#include <windows.h>
 #include <string>
 #include <memory>
 
 #include "debug.h"
 #include "charcodecs.h"
 #include "utilwindow.h"
+#include <windows.h>
 
 namespace Windows {
 
 static DWORD WINAPI executeInThread_cb(void* data) {
-  auto pfunc = std::unique_ptr<Callback>(static_cast<Callback*>(data));
+  auto pfunc = std::unique_ptr<Action>(static_cast<Action*>(data));
 
   try {
     (*pfunc)();
@@ -19,19 +19,19 @@ static DWORD WINAPI executeInThread_cb(void* data) {
 
   } catch (std::bad_function_call &error) {
     WIN_CRITICAL(L"executeInThread function call failed: %s",
-                 convertFromUtf8(error.what()).c_str());
+                 to_wstring(error.what()).c_str());
     return 1;
   }
 }
 
-void executeInThread(const Callback& func) {
-  Callback* pfunc = new Callback(func);
+void executeInThread(Action func) {
+  Action* pfunc = new Action(func);
 
   CreateThread(NULL, 0, executeInThread_cb, pfunc, 0, NULL); // TODO error handling
 }
 
-void executeInMainThread(const Callback& func) {
-  Callback* pfunc = new Callback(func);
+void executeInMainThread(Action func) {
+  Action* pfunc = new Action(func);
 
   PostMessageW(getCallbackWindow(), WM_CALLBACK, 0, (LPARAM)pfunc);// TODO error handling
 }

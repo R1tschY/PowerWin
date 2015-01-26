@@ -1,9 +1,11 @@
 #pragma once
 
-#include <windows.h>
 #include <functional>
 
 #include "macros.h"
+#include <windows.h>
+
+namespace Windows {
 
 ////////////////////////////////////////////////////////////////////////////////
 //     Timeout
@@ -28,4 +30,6 @@ private:
   static void CALLBACK ccallback(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
   static void CALLBACK cexecallback(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
 };
+
+} // namespace Windows
 

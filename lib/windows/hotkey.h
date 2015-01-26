@@ -1,11 +1,11 @@
 #pragma once
 
-#include <windows.h>
 #include <functional>
 #include <map>
 
 #include "macros.h"
 #include "controls/messagesink.h"
+#include <windows.h>
 
 namespace Windows {
 
@@ -14,13 +14,11 @@ struct ShortCut {
   UINT key;
 };
 
-typedef std::function<void()> HotkeyHandler;
-
 class Hotkey {
   DISALLOW_COPY_AND_ASSIGN(Hotkey);
 
 public:
-  Hotkey(unsigned fsModifiers, unsigned vk, HotkeyHandler handler);
+  Hotkey(unsigned fsModifiers, unsigned vk, HWND handler, int id);
   Hotkey(Hotkey&& other) noexcept;
   ~Hotkey();
 
@@ -32,8 +30,8 @@ public:
 private:
   const unsigned modifiers_;
   const unsigned vk_;
-  const HotkeyHandler handler_;
-  const unsigned id_;
+  const HWND handler_;
+  const int id_;
 
   bool active_;
 

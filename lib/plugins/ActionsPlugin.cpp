@@ -1,42 +1,65 @@
 #include "ActionsPlugin.h"
 
+#include <utility>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/range/algorithm/equal.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "../DesktopHooks.h"
+#include <c++/stringliteral.h>
+#include <c++/utils.h>
 #include "../windows/debug.h"
 
-ActionsPlugin::ActionsPlugin() : Plugin(lit("actions")) { }
+#include "../powerwin-private.h"
 
-static bool onActionQuit(int, int) {
-  win_destroy();
-  return true;
+ActionsPlugin::ActionsPlugin() :
+	Plugin(wstring_literal("actions")),
+	message_sink_()
+{ }
+
+static void onActionQuit(int, int) {
+  PowerWin::get()->destroy();
 }
 
-Action ActionsPlugin::actions_[] = {
+const Action ActionsPlugin::actions_[] = {
   {L"quit", onActionQuit}  
 };
+
+LRESULT ActionsPlugin::onHotkey(UINT msg, WPARAM wparam, LPARAM lparam) {
+	if (msg != WM_HOTKEY) return 0;
+	if (wparam > cpp::length(actions_)) return 0;
+
+	actions_[wparam].handler(0,0); // FIXME
+
+	return 0;
+}
 
 void ActionsPlugin::onActivate(const Options& options) {
   std::pair<unsigned,unsigned> hotkey;
 
   if (options.find(L"quit") == options.end()) {
     parseHotkey(L"Ctrl+F12", &hotkey);
-    Hotkey hk(hotkey.first, hotkey.second, onActionQuit);
+    Windows::Hotkey hk(
+    		hotkey.first, hotkey.second,
+    		message_sink_.getNativeHandle(), 0);
     hk.activate();
     hotkeys_.emplace_back(std::move(hk));
   }
 
+  int index = 0;
   for (const Action& action : actions_) {
     auto option = options.find(action.name);
     if (option != options.end() &&
         parseHotkey(option->second, &hotkey))
     {
-      Hotkey hk(hotkey.first, hotkey.second, action.handler);
+      Windows::Hotkey hk(
+    		  hotkey.first, hotkey.second,
+    		  message_sink_.getNativeHandle(),
+			  index);
       hk.activate();
       hotkeys_.emplace_back(std::move(hk));
     }
+    index++;
   }
 }
 
@@ -57,7 +80,7 @@ int get_function_key(const std::wstring& key) {
 }
 
 bool
-ActionsPlugin::parseHotkey(std::wstring hotkey, std::pair<unsigned,unsigned>* result) {
+ActionsPlugin::parseHotkey(cpp::wstring_view hotkey, std::pair<unsigned,unsigned>* result) {
   std::vector<std::wstring> splited;
   boost::split(splited, hotkey, boost::is_any_of(L" +"), boost::token_compress_on);
 

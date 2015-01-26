@@ -15,26 +15,36 @@ private:
   NOT_COPYABLE(uninitized);
 
 public:
+  constexpr uninitized() { }
+
   template<class... Args>
   void construct(Args&&... args) {
-    cpp::construct(&data, std::forward<Args>(args)...);
+    cpp::construct(getPointer(), std::forward<Args>(args)...);
   }
 
   storage<T>& operator = (const T& t) {
-    get(data) = t;
+    get() = t;
     return *this;
   }
 
-  T& operator -> () {
-    return get(data);
+  T* operator -> () {
+    return getPointer ();
   }
 
   T& operator * () {
-    return get(data);
+    return get();
   }
 
   T* operator & () {
-    return &get(data);
+    return getPointer();
+  }
+
+  T* getPointer() {
+    return &cpp::get<T>(data);
+  }
+
+  T& get() {
+    return cpp::get<T>(data);
   }
 
 private:

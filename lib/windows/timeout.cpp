@@ -62,9 +62,9 @@ void Timeout::execute(const Callback& callback, int seconds) {
   }
 }
 
-void CALLBACK Timeout::ccallback(HWND hwnd, UINT msg, UINT_PTR callback, DWORD time) {
+void CALLBACK Timeout::ccallback(HWND, UINT msg, UINT_PTR callback, DWORD) {
   if (msg == WM_TIMER) {
-    auto cb = std::unique_ptr<Callback*>(reinterpret_cast<Callback*>(callback));
+    auto cb = std::unique_ptr<Callback>(reinterpret_cast<Callback*>(callback));
 
     if (!cb) {
        print(L"timeout callback call failed: callback == NULL\n");
@@ -75,14 +75,14 @@ void CALLBACK Timeout::ccallback(HWND hwnd, UINT msg, UINT_PTR callback, DWORD t
       (*cb)();
     } catch (const std::bad_function_call& error) {
       print(L"timeout callback call failed: %s\n",
-            CharCodecs::toWide(error.what()).c_str());
+            to_wstring(error.what()).c_str());
     }
   }
 }
 
-void CALLBACK Timeout::cexecallback(HWND hwnd, UINT msg, UINT_PTR callback, DWORD time) {
+void CALLBACK Timeout::cexecallback(HWND, UINT msg, UINT_PTR callback, DWORD) {
   if (msg == WM_TIMER) {
-    auto cb = std::unique_ptr<Callback*>(reinterpret_cast<Callback*>(callback));
+    auto cb = std::unique_ptr<Callback>(reinterpret_cast<Callback*>(callback));
 
     if (!cb) {
        print(L"timeout callback call failed: callback == NULL\n");
@@ -93,7 +93,7 @@ void CALLBACK Timeout::cexecallback(HWND hwnd, UINT msg, UINT_PTR callback, DWOR
       (*cb)();
     } catch (const std::bad_function_call& error) {
       print(L"timeout callback call failed: %s\n",
-            CharCodecs::toWide(error.what()).c_str());
+            to_wstring(error.what()).c_str());
     }
 
     KillTimer(getCallbackWindow(), callback);

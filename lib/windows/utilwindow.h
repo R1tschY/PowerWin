@@ -1,8 +1,8 @@
 #ifndef UTILWINDOW_H
 #define UTILWINDOW_H
 
-#include <windows.h>
 #include <functional>
+#include <windows.h>
 
 namespace Windows {
 

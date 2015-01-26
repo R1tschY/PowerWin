@@ -17,7 +17,7 @@ static LRESULT UtilWndProc(UINT msg, WPARAM wparam, LPARAM lparam) {
         (*pfunc)();
       } catch (std::bad_function_call &error) {
         WIN_CRITICAL(L"callback failed: %s",
-                     CharCodecs::toWide(error.what()).c_str());
+                     to_wstring(error.what()).c_str());
       }
     }
   }

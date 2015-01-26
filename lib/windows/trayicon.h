@@ -1,11 +1,10 @@
 #ifndef TRAYICON_H
 #define TRAYICON_H
 
-#include <windows.h>
-#include <shellapi.h>
-
 #include <c++/stringview.h>
 #include "macros.h"
+#include <windows.h>
+#include <shellapi.h>
 
 namespace Windows {
 

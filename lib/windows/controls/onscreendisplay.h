@@ -1,36 +1,25 @@
 #ifndef ONSCREENDISPLAY_H
 #define ONSCREENDISPLAY_H
 
-#include "../control.h"
+#include "graphicscontrol.h"
+
+#include <c++/stringliteral.h>
 
 namespace Windows {
 
-class OnScreenDisplay : Control
+class OnScreenDisplay : public GraphicsControl
 {
 public:
-  enum AnimateMode
-  {
-      Blend = AW_BLEND,
-      SlideRightToLeft = AW_HOR_NEGATIVE | AW_SLIDE,
-      SlideLeftToRight = AW_HOR_POSITIVE | AW_SLIDE,
-      SlideTopToBottom = AW_VER_POSITIVE | AW_SLIDE,
-      SlideBottomToTop = AW_VER_NEGATIVE | AW_SLIDE,
-      RollRightToLeft = AW_HOR_NEGATIVE,
-      RollLeftToRight = AW_HOR_POSITIVE,
-      RollTopToBottom = AW_VER_NEGATIVE,
-      RollBottmToTop = AW_VER_POSITIVE,
-      ExpandCollapse = AW_CENTER
-  }
-
   OnScreenDisplay();
 
+  void onPaint(GraphicsContext *context) override;
+
   void create(int x, int y, int width, int height) {
-    create(nullptr, lit(""), x, y, width, height);
+    Control::create(HWND_TOPMOST, wstring_literal(""), x, y, width, height);
+    setPosition(x, y, width, height, SWP_SHOWWINDOW, HWND_TOPMOST);
   }
 
-  void show() {
-    show(SW_SHOWNOACTIVATE);
-  }
+  void onCreate();
 };
 
 } // namespace Windows

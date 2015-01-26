@@ -1,8 +1,6 @@
 #ifndef WINDOWS_H
 #define WINDOWS_H
 
-#include <windows.h>
-
 namespace Windows {
 
 enum WindowsVersion {

@@ -5,6 +5,10 @@
 
 namespace Windows {
 
+extern "C" {
+BOOL APIENTRY DllMain(HINSTANCE, DWORD, LPVOID);
+}
+
 class Dll {
   Dll();
 public:

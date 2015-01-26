@@ -13,8 +13,6 @@ Dll& Dll::get()
   return instance;
 }
 
-} // namespace Windows
-
 extern "C" BOOL APIENTRY
 DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID) {
   Dll& self = Dll::get();
@@ -29,3 +27,5 @@ DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID) {
 
   return true;
 }
+
+} // namespace Windows

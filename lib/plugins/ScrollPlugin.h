@@ -13,7 +13,7 @@ public:
   virtual void onDeactivate();
 
 private:
-  MouseWheelHook hook_;
+  Windows::MouseWheelHook hook_;
   bool inverse_;
 
   bool handle(POINT pt, int steps);

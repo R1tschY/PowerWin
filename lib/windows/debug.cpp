@@ -7,15 +7,14 @@
 #include <string>
 
 #include "../c++/utils.h"
+#include "memory.h"
 
 namespace Windows {
 
 static LocalPtr<wchar_t>
 GetErrorString(DWORD code) {
   wchar_t* buffer;
-  DWORD bytes;
-
-  bytes = FormatMessageW(
+  FormatMessageW(
       FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
       nullptr,
       code,
@@ -23,12 +22,7 @@ GetErrorString(DWORD code) {
       (wchar_t*)&buffer,
       0,
       nullptr);
-  if (bytes == 0) {
-    LocalFree(buffer);
-    buffer = nullptr;
-  }
-
-  return buffer;
+  return LocalPtr<wchar_t>(buffer);
 }
 
 std::wstring
@@ -36,12 +30,11 @@ GetWindowsError(DWORD code) {
   auto error_string = GetErrorString(code);
   if (!error_string) {
     std::wstringstream strstream;
-    strstream << code;
+    strstream << "Error code: " << code;
     return strstream.str();
   }
 
-  std::wstring result(error_string.get());
-  return result;
+  return std::wstring(error_string.get());
 }
 
 void printMessage(LogLevel level, const wchar_t* format, ...) {
@@ -77,15 +70,14 @@ void printMessage(LogLevel level, const wchar_t* format, ...) {
   }
 }
 
-void printLastError(cpp::wstring_view error_message) {
-  auto error_code = GetLastError();
+void printError(cpp::wstring_view error_message, DWORD error_code) {
   auto error_string = GetErrorString(error_code);
   if (error_string) {
     WIN_CRITICAL(L"Error while call of %s: %s", error_message.c_str(), error_string.get());
   }
   else
   {
-    WIN_CRITICAL(L"Error while call of %s: error code %d.", error_message.c_str(), code);
+    WIN_CRITICAL(L"Error while call of %s: error code %d.", error_message.c_str(), error_code);
   }
 }
 

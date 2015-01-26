@@ -4,6 +4,7 @@
 #include "../control.h"
 
 #include <functional>
+#include <windows.h>
 
 namespace Windows {
 
@@ -17,6 +18,8 @@ public:
   void create();
 
   LRESULT onMessage(UINT msg, WPARAM wparam, LPARAM lparam) override;
+
+  using Control::getNativeHandle;
 
 private:
   MessageFunc wndproc_;

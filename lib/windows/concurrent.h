@@ -1,12 +1,14 @@
 #ifndef CONCURRENT_H
 #define CONCURRENT_H
 
-#include "types.h"
+#include <functional>
 
 namespace Windows {
 
-void executeInThread(const Callback& func);
-void executeInMainThread(const Callback& func);
+typedef std::function<void()> Action;
+
+void executeInThread(Action func);
+void executeInMainThread(Action func);
 
 } // namespace Windows
 

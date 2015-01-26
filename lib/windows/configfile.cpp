@@ -1,14 +1,18 @@
 #include "configfile.h"
 
-#include <windows.h>
 #include <boost/lexical_cast.hpp>
+
+#include <c++/stringliteral.h>
+#include <windows.h>
+
+namespace Windows {
 
 ////////////////////////////////////////////////////////////////////////////////
 //     ConfigFile
 ////////////////////////////////////////////////////////////////////////////////
 bool ConfigFile::existsKey(cpp::wstring_view section, cpp::wstring_view key) const {
-  cpp::wstring_view test = lit("?#ßüäö§$%&!");
-  return getString(section, key, test) == test;
+  cpp::wstring_view test = wstring_literal("?#ßüäö§$%&!");
+  return getString(section, key, test).compare(test.c_str()); // TODO: operator ==
 }
 
 std::wstring ConfigFile::getString(cpp::wstring_view section,
@@ -73,7 +77,7 @@ std::vector<std::wstring> ConfigFile::getKeys(cpp::wstring_view section) const {
   return splitStringArray(buffer);
 }
 
-std::vector<std::wstring> ConfigFile::splitStringArray(cpp::wstring_view p) {
+std::vector<std::wstring> ConfigFile::splitStringArray(const wchar_t* p) {
   std::vector<std::wstring> result;
   const wchar_t* section;
 
@@ -93,6 +97,8 @@ ConfigFile::ConfigFile()
 }
 
 void ConfigFile::loadFromFile(cpp::wstring_view filename) {
-  filename.copy_to(filename_);
+  filename_ = filename.c_str();
 }
+
+} // namespace Windows
 

@@ -3,6 +3,7 @@
 
 #include <c++/stringview.h>
 #include "memory.h"
+#include <windows.h>
 
 namespace Windows {
 
@@ -17,11 +18,16 @@ public:
     process_(pi.hProcess), thread_(pi.hThread)
   { }
 
-  constexpr bool okay() const { return process_ != nullptr; }
-  constexpr explicit operator bool() const { return okay(); }
+  bool okay() const { return bool(process_); }
+  explicit operator bool() const { return okay(); }
 
-  static Process startCmdln(cpp::wstring_view cmdln);
-  static Process start(cpp::wstring_view exe_path, std::wstring_view args);
+  static Process runCmdln(std::wstring cmdln);
+
+  static Process runCmdln(cpp::wstring_view cmdln) {
+    return runCmdln(cmdln.to_string());
+  }
+
+  static Process run(cpp::wstring_view exe_path, cpp::wstring_view args);
 
 private:
   Handle process_;

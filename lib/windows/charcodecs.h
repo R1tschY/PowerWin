@@ -1,19 +1,17 @@
 #ifndef CHARCODECS_H
 #define CHARCODECS_H
 
+#include <string>
+
 #include <c++/stringview.h>
 
 namespace Windows {
 
-namespace CharCodecs {
+inline std::string to_string(const std::string& src) { return src; }
+std::string to_string(cpp::wstring_view src);
 
-std::string toUtf8(cpp::string_view src) { return src; }
-std::string toUtf8(cpp::wstring_view src);
-
-std::wstring toWide(cpp::string_view src);
-std::wstring toWide(cpp::wstring_view src) { return src; }
-
-} // namespace CharCodecs
+inline std::wstring to_wstring(const std::wstring& src) { return src; };
+std::wstring to_wstring(cpp::string_view src);
 
 } // namespace Windows
 

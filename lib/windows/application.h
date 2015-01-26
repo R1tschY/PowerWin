@@ -1,16 +1,16 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include <windows.h>
 #include <functional>
 #include <string>
 #include <cassert>
-#include <boost/filesystem.hpp>
 
-#include "windows.h"
 #include "macros.h"
 #include "memory.h"
 #include <c++/stringview.h>
+#include <windows/path.h>
+#include <windows.h>
+#include "version.h"
 
 namespace Windows {
 
@@ -25,7 +25,6 @@ public:
   Application(cpp::wstring_view name, HINSTANCE instance);
 
   // run
-  static int run(ExecuteFunc entry) { return self().run(entry); }
   int run(ExecuteFunc entry);
 
   // application properties
@@ -33,8 +32,8 @@ public:
   static cpp::wstring_view getName() { return self().name_; }
 
   // paths
-  static boost::filesystem::path getExecutablePath();
-  static boost::filesystem::path getConigPath();
+  static Path getExecutablePath();
+  static Path getConigPath();
 
   // system
   //static WindowsVersion getWindowsVersion() { return winversion; }
@@ -46,7 +45,7 @@ public:
 
 private:
   Handle mutex_;
-  bool is_running_;
+  bool is_running_; // TODO: atomic?
 
   const HINSTANCE appinstance_;
   const std::wstring name_;

@@ -1,10 +1,10 @@
 #pragma once
 
-#include <windows.h>
 #include <functional>
 #include <vector>
 #include <cassert>
 #include <cstdio>
+#include <windows.h>
 
 namespace Windows {
 
@@ -22,6 +22,7 @@ public:
   HHOOK getHandle() const { return hook_; }
 
   Hook() : hook_(nullptr) { }
+  ~Hook() { destroy(); }
 
   LRESULT callNext(int code, WPARAM wparam, LPARAM lparam) const {
     return CallNextHookEx(hook_, code, wparam, lparam);

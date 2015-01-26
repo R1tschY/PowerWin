@@ -1,6 +1,6 @@
 #include <windows.h>
 
-#include "DesktopHooks.h"
+#include "powerwin.h"
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,

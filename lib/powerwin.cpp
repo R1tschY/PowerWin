@@ -7,62 +7,34 @@
 #include "c++/algorithm.h"
 #include "c++/arrayref.h"
 #include "c++/boolean.h"
-#include "powerwin.h"
-#include "powerwin-private.h"
+#include "c++/stringliteral.h"
 #include "windows/configfile.h"
 #include "windows/utilwindow.h"
 #include "windows/path.h"
+#include "windows/application.h"
+#include "windows/trayicon.h"
+#include "windows/controls.h"
+#include "windows/debug.h"
+#include "windows/rundll.h"
+
+#include "powerwin.h"
+#include "powerwin-private.h"
+
 #include "plugins/ActionsPlugin.h"
 #include "plugins/ScrollPlugin.h"
 #include "plugins/FullscreenPlugin.h"
 #include "plugins/SystemMenuPlugin.h"
-#include "windows/debug.h"
 #include "macros.h"
-#include "windows/application.h"
-#include "windows/trayicon.h"
-#include "windows/controls.h"
 
 #if CPUBITSET == 32
-# define POWERWIN_APP_NAME L"PowerWin32"
-# define POWERWIN_64BIT_NAME L"PowerWin64"
+# define POWERWIN_APP_NAME "PowerWin32"
+# define POWERWIN_64BIT_NAME "PowerWin64"
+# define POWERWIN_APP_NAME_W L"PowerWin32"
+# define POWERWIN_64BIT_NAME_W L"PowerWin64"
 #elif CPUBITSET == 64
-# define POWERWIN_APP_NAME L"PowerWin64"
+# define POWERWIN_APP_NAME "PowerWin64"
+# define POWERWIN_APP_NAME_W L"PowerWin64"
 #endif
-
-namespace {
-
-HINSTANCE dllinstance_ = nullptr;
-
-class PowerWin : Windows::Window {
-  PowerWin();
-
-public:
-  static int run();
-
-  static PowerWin* get() {
-    return instance_;
-  }
-
-  HWND getWindow() {
-    return getNativeHandle();
-  }
-
-  LRESULT onMessage(UINT msg, WPARAM wparam, LPARAM lparam) override;
-  void onCreate() override;
-  void onDestroy() override;
-
-private:
-  std::vector<std::unique_ptr<Plugin>> plugins_;
-
-  Windows::TrayIcon tray_icon_;
-
-
-  static PowerWin* instance_;
-
-  static ATOM RegisterWinClass(HINSTANCE hInstance);
-  void start();
-  void onDestroy();
-};
 
 PowerWin* PowerWin::instance_ = nullptr;
 
@@ -80,6 +52,8 @@ PowerWin::PowerWin() :
 #endif
 }
 
+PowerWin::~PowerWin() {  }
+
 int PowerWin::run() {
   //  init Comctl32.dll
   /*const INITCOMMONCONTROLSEX icce = {
@@ -92,13 +66,13 @@ int PowerWin::run() {
   PowerWin powerwin;
   instance_ = &powerwin;
 
-  powerwin.create(nullptr, lit(POWERWIN_APP_NAME));
+  powerwin.create(nullptr, wstring_literal(POWERWIN_APP_NAME));
 
-  print(L"%ls hwnd: %d\n", POWERWIN_APP_NAME, powerwin.getNativeHandle());
+  print(L"%ls hwnd: %d\n", POWERWIN_APP_NAME_W, powerwin.getNativeHandle());
 
-  processMessages();
+  Windows::Application::processMessages();
 
-  print(L"%ls: The end\n", POWERWIN_APP_NAME);
+  print(L"%ls: The end\n", POWERWIN_APP_NAME_W);
 
   return 0;
 }
@@ -106,8 +80,9 @@ int PowerWin::run() {
 void PowerWin::onCreate() {
   print(L"PowerWin::start\n");
 
-  ConfigFile config;
-  config.loadFromFile(Windows::Application::getExecutablePath() + L"\\config.ini");
+  Windows::ConfigFile config;
+  config.loadFromFile(Windows::Application::getExecutablePath().toString()
+		  + L"\\config.ini");
 
   for (auto&& plugin : plugins_) {
     Plugin::Options opts;
@@ -129,12 +104,12 @@ void PowerWin::onCreate() {
                   L"C:\\Windows\\system32\\shell32.dll",
                   -26));*/
 #ifdef MAIN_MODULE
-  tray_icon_.add(window_, LoadIcon(NULL, IDI_APPLICATION));
+  tray_icon_.add(getWindow(), LoadIcon(NULL, IDI_APPLICATION), wstring_literal(POWERWIN_APP_NAME));
 
   // start 64Bit-DLL
   if (Windows::Application::Is64BitWindows()) {
     print(L"Start 64-bit process\n");
-    Windows::RunDll::execute64BitDll(Windows::Application::getExecutablePath() + L"\\libpowerwin64.dll", L"FixWindows", L"");
+    Windows::RunDll::execute64BitDll(Windows::Application::getExecutablePath().toString() + L"\\libpowerwin64.dll", L"FixWindows", L"");
     // TODO: error logging
   }
 #endif
@@ -145,7 +120,7 @@ void PowerWin::onDestroy() {
   // exit 64Bit-DLL
   if (Windows::Application::Is64BitWindows()) {
     SetLastError(0);
-    HWND window_64bit = FindWindowW(POWERWIN_64BIT_NAME, nullptr);
+    HWND window_64bit = FindWindowW(POWERWIN_64BIT_NAME_W, nullptr);
     if (window_64bit == nullptr) {
       print(L"Cannot find window to 64Bit-Process: %ls\n", Windows::GetLastWindowsError().c_str());
     } else {
@@ -176,15 +151,13 @@ void PowerWin::onDestroy() {
   PostQuitMessage(0);
 }
 
-} // namespace
-
 extern "C"
 void CALLBACK FixWindows(HINSTANCE hInstance,
                          HINSTANCE hPrevInstance,
                          LPSTR lpCmdLine,
                          int nCmdShow)
 {
-  Windows::Application app(POWERWIN_APP_NAME, hInstance);
+  Windows::Application app(wstring_literal(POWERWIN_APP_NAME), hInstance);
   app.run(PowerWin::run);
 }
 

@@ -13,14 +13,14 @@ class Plugin {
 public:
   typedef std::map<std::wstring, std::wstring> Options;
 
-  Plugin(cpp::string_view name);
+  Plugin(cpp::wstring_view name);
   virtual ~Plugin();
 
   void activate();
   void deactivate();
 
   bool isActive() const { return active_; }
-  cpp::string_view getName() const { return name_; }
+  cpp::wstring_view getName() const { return name_; }
 
   void setOptions(Options options) { options_ = std::move(options); }
   bool getBooleanOption(cpp::wstring_view key, bool default_);

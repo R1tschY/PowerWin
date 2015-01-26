@@ -2,9 +2,7 @@
 
 namespace Windows {
 
-
-
-Process Process::startCmdln(cpp::wstring_view cmdln) {
+Process Process::runCmdln(std::wstring cmdln) {
   STARTUPINFO si = { };
   si.cb = sizeof(si);
   si.dwFlags = STARTF_USESTDHANDLES;
@@ -14,7 +12,7 @@ Process Process::startCmdln(cpp::wstring_view cmdln) {
 
   PROCESS_INFORMATION pi = { };
   BOOL success = CreateProcessW(nullptr,
-                                cmdln.c_str(),
+                                const_cast<wchar_t*>(cmdln.c_str()),
                                 nullptr,
                                 nullptr,
                                 false,
@@ -32,7 +30,7 @@ Process Process::startCmdln(cpp::wstring_view cmdln) {
   }
 }
 
-Process Process::start(cpp::wstring_view exe_path, std::wstring_view args) {
+Process Process::run(cpp::wstring_view exe_path, cpp::wstring_view args) {
   std::wstring cmdln;
   cmdln += '\"';
   cmdln += exe_path;
@@ -40,7 +38,7 @@ Process Process::start(cpp::wstring_view exe_path, std::wstring_view args) {
   cmdln += ' ';
   cmdln += args;
 
-  return startCmdln(cmdln);
+  return runCmdln(std::move(cmdln));
 }
 
 } // namespace Windows

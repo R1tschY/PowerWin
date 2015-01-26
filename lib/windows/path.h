@@ -1,11 +1,11 @@
 #ifndef PATH_H
 #define PATH_H
 
-#include <windows.h>
 #include <string>
 
 #include <c++/stringview.h>
 #include "macros.h"
+#include <windows.h>
 
 namespace Windows {
 
@@ -13,17 +13,18 @@ class Path {
 public:
   // ctors
   explicit Path(cpp::wstring_view path) :
-    path_(path)
+    path_(path.to_string())
   { }
 
-  explicit Path(const Path& path) = default;
+  Path(const Path& path) = default;
   Path& operator=(const Path& path) = default;
-  explicit Path(const Path&& path) = default;
+  Path(Path&& path) = default;
   Path& operator=(Path&& path) = default;
 
   // properties
   cpp::string_view getBasename();
   cpp::string_view getFolder();
+  std::wstring toString() const { return path_; }
 
   // filesystem
   bool exists() const { return exists(path_); }

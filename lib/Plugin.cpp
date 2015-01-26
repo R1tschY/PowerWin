@@ -6,7 +6,7 @@
 #include "windows/debug.h"
 
 Plugin::Plugin(cpp::wstring_view name) :
-  active_(false), options_(), name_(name)
+  active_(false), options_(), name_(name.to_string())
 {
 }
 

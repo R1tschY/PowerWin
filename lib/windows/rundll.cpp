@@ -1,10 +1,13 @@
 #include "rundll.h"
 
+#include "debug.h"
+#include "path.h"
+
 namespace Windows {
 
-Process RunDll::execute64BitDll(cpp::wsubstring dll_name, cpp::wsubstring entry, cpp::wsubstring cmdln_args)
+Process RunDll::execute64BitDll(cpp::wstring_view dll_name, cpp::wstring_view entry, cpp::wstring_view cmdln_args)
 {
-  cpp::wsubstring rundll32_exe = lit("C:\\Windows\\Sysnative\\rundll32.exe");
+  cpp::wstring_view rundll32_exe = wstring_literal("C:\\Windows\\Sysnative\\rundll32.exe");
 
   std::wstring cmdln;
   cmdln += rundll32_exe;
@@ -17,12 +20,12 @@ Process RunDll::execute64BitDll(cpp::wsubstring dll_name, cpp::wsubstring entry,
 
   print(L"%ls\n", cmdln.c_str());
 
-  if (!Windows::PathExists(dll_name)) {
+  if (!Path::exists(dll_name)) {
     print(L"RunDll64Bit: '%ls' does not exist.\n", dll_name.begin());
-    return false;
+    return Process();
   }
 
-  return RunCmdln(std::move(cmdln));
+  return Process::runCmdln(std::move(cmdln));
 }
 
 } // namespace Windows

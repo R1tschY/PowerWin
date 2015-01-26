@@ -1,2 +1,4 @@
 Makefile
 main.c
+powerwin.manifest
+powerwin.rc

@@ -1,8 +1,10 @@
 #ifndef DATE_H
 #define DATE_H
 
-#include <windows.h>
 #include <string>
+
+#include <c++/stringview.h>
+#include <windows.h>
 
 namespace Windows {
 

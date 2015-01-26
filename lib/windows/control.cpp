@@ -10,12 +10,12 @@ namespace Windows {
 // Window class
 
 ATOM Control::registerClass(
-    cpp::string_view class_name,
+    cpp::wstring_view class_name,
     UINT style,
     HICON icon,
     HCURSOR cursor,
     HBRUSH background,
-    cpp::string_view menu,
+    cpp::wstring_view menu,
     HICON small_icon)
 {
   WNDCLASSEX wcex = { };
@@ -30,26 +30,27 @@ ATOM Control::registerClass(
   wcex.hIconSm		   = small_icon;
   wcex.hCursor		   = cursor;
   wcex.hbrBackground = background;
-  wcex.lpszClassName = class_name;
+  wcex.lpszClassName = class_name.c_str();
   wcex.lpszMenuName	 = menu.c_str();
 
-  return win_check(RegisterClassEx(&wcex));
+  //return win_check(RegisterClassEx(&wcex));
+  return RegisterClassEx(&wcex);
 }
 
 ATOM Control::getWindowClass() {
-  static ATOM window_class = registerWindowClass(
+  static ATOM window_class = registerClass(
                                getWindowClassName().c_str(),
-                               0,
+                               CS_HREDRAW | CS_VREDRAW,
                                0,
                                LoadCursor(nullptr, IDC_ARROW),
                                (HBRUSH)(COLOR_WINDOW+1),
-                               cpp::string_view(),
+                               cpp::wstring_view(),
                                0);
   return window_class;
 }
 
 const std::wstring& Control::getWindowClassName() {
-  static const std::wstring window_class_name = Application::getName() + L" Window";
+  static const std::wstring window_class_name = Application::getName().to_string() + L" Window";
   return window_class_name;
 }
 
@@ -60,7 +61,7 @@ Control::Control(Control&& other) :
   handle_(std::move(other.handle_))
 {
   if (handle_) {
-    SetWindowLongPtr(handle_, GWLP_USERDATA, this);
+    SetWindowLongPtr(handle_.get(), GWLP_USERDATA, (LONG)this);
   }
 }
 
@@ -70,7 +71,8 @@ Control::~Control()
 Control& Control::operator=(Control&& other)
 {
   handle_ = std::move(other.handle_);
-  SetWindowLongPtr(handle_, GWLP_USERDATA, this);
+  SetWindowLongPtr(handle_.get(), GWLP_USERDATA, (LONG)this);
+  return *this;
 }
 
 // base functions
@@ -80,7 +82,7 @@ void Control::create(
     cpp::wstring_view title,
     int x, int y, int width, int height)
 {
-  handle_ =
+  handle_.reset(
       CreateWindowExW(
         // Optional window styles
         exstyle_,
@@ -107,7 +109,7 @@ void Control::create(
         Application::getInstance(),
 
         // Additional application data
-        this);
+        this));
 
   // TODO: error checking
 }
@@ -116,7 +118,7 @@ void Control::show(int show_command)
 {
   if (!handle_) return;
 
-  ShowWindow(handle_, show_command);
+  ShowWindow(handle_.get(), show_command);
 }
 
 void Control::destroy() {
@@ -137,7 +139,7 @@ LRESULT Control::onMessage(UINT msg, WPARAM wparam, LPARAM lparam) {
     return 0;
 
   default:
-    return DefWindowProc(handle_.get(), uMsg, wParam, lParam);
+    return DefWindowProc(handle_.get(), msg, wparam, lparam);
   }
 }
 
@@ -148,12 +150,12 @@ void Control::onDestroy()
 { }
 
 LRESULT CALLBACK Control::MessageEntry(HWND handle, UINT msg, WPARAM wparam, LPARAM lparam) {
-  auto window = static_cast<Control*>(GetWindowLongPtr(handle, GWLP_USERDATA));
+  auto window = reinterpret_cast<Control*>(GetWindowLongPtr(handle, GWLP_USERDATA));
   if (!window) {
     if (msg == WM_NCCREATE) {
-      auto create_struct = reinterpret_cast<CREATESTRUCT*>(lParam);
+      auto create_struct = reinterpret_cast<CREATESTRUCT*>(lparam);
       window = static_cast<Control*>(create_struct->lpCreateParams);
-      SetWindowLongPtr(handle, GWLP_USERDATA, window);
+      SetWindowLongPtr(handle, GWLP_USERDATA, reinterpret_cast<LONG>(window));
     }
 
     if (!window)

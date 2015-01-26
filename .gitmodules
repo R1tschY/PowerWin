@@ -1,0 +1,3 @@
+[submodule "libs/luabridge"]
+	path = libs/luabridge
+	url = https://github.com/vinniefalco/LuaBridge.git

@@ -7,10 +7,12 @@ namespace Windows {
 
 class Window : public Control {
 public:
-  Window();
+  Window() :
+    Control(WS_OVERLAPPEDWINDOW, WS_EX_COMPOSITED | WS_EX_APPWINDOW)
+  { }
 
   void create(HWND parent, cpp::wstring_view title) {
-    create(parent, title, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT);
+    Control::create(parent, title, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT);
   }
 };
 
