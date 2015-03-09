@@ -44,4 +44,5 @@
 		<project id="PowerWin App.null.494845808" name="PowerWin App"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="refreshScope"/>
 </cproject>

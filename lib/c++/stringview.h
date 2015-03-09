@@ -2,6 +2,8 @@
 #define CPP_ZSTRING_REF_H
 
 #include <string>
+#include <cassert>
+
 #include "substring.h"
 #include "stringliteral.h"
 

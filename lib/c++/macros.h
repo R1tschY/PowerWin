@@ -22,4 +22,11 @@
 
 #define REQUIRES2(...) typename std::enable_if<(__VA_ARGS__), bool>::type = false
 
+#define _STRINGIFY(x) #x
+#define STRINGIFY(x) _STRINGIFY(x)
+
+#define _TO_WIDESTRING(x) L ## x
+#define TO_WIDESTRING(x) _TO_WIDESTRING(x)
+#define WSTRINGIFY(x) TO_WIDESTRING(_STRINGIFY(x))
+
 #endif // CPP_MACROS_H

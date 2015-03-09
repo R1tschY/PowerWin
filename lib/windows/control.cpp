@@ -58,7 +58,8 @@ const std::wstring& Control::getWindowClassName() {
 // ctors/dtor
 
 Control::Control(Control&& other) :
-  handle_(std::move(other.handle_))
+  handle_(std::move(other.handle_)), parent_(other.parent_), class_(other.class_),
+  style_(other.style_), exstyle_(other.exstyle_)
 {
   if (handle_) {
     SetWindowLongPtr(handle_.get(), GWLP_USERDATA, (LONG)this);
@@ -71,7 +72,14 @@ Control::~Control()
 Control& Control::operator=(Control&& other)
 {
   handle_ = std::move(other.handle_);
-  SetWindowLongPtr(handle_.get(), GWLP_USERDATA, (LONG)this);
+  parent_ = other.parent_;
+  class_ = other.class_;
+  style_ = other.style_;
+  exstyle_ = other.exstyle_;
+
+  if (handle_) {
+    SetWindowLongPtr(handle_.get(), GWLP_USERDATA, (LONG)this);
+  }
   return *this;
 }
 
@@ -82,6 +90,7 @@ void Control::create(
     cpp::wstring_view title,
     int x, int y, int width, int height)
 {
+  assert(!handle_);
   handle_.reset(
       CreateWindowExW(
         // Optional window styles
@@ -97,7 +106,8 @@ void Control::create(
         style_,
 
         // Size and position
-        x, y, width, height,
+        x, y,
+        width, height,
 
         // Parent window
         parent,
@@ -114,15 +124,15 @@ void Control::create(
   // TODO: error checking
 }
 
-void Control::show(int show_command)
-{
-  if (!handle_) return;
-
-  ShowWindow(handle_.get(), show_command);
+void Control::destroy() {
+  handle_.reset();
 }
 
-void Control::destroy() {
-  handle_ = nullptr;
+void Control::setTopmost() {
+  exstyle_ |= WS_EX_TOPMOST;
+  if (handle_) {
+    SetWindowPos(getNativeHandle(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+  }
 }
 
 //

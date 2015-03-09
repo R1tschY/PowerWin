@@ -2,6 +2,7 @@
 #define STRINGLITERAL_H
 
 #include <cstddef>
+#include <string>
 
 namespace cpp {
 
@@ -32,12 +33,12 @@ private:
 };
 
 #define _string_literal_II(s) s
-#define _string_literal_I(s) _wstring_literal_II(s)
+#define _string_literal_I(s) _string_literal_II(s)
 #define string_literal(s) (cpp::basic_string_literal<char>(_string_literal_I(s), sizeof(_string_literal_I(s))-1))
 
 #define _wstring_literal_II(s) L##s
 #define _wstring_literal_I(s) _wstring_literal_II(s)
-#define wstring_literal(s) (cpp::basic_string_literal<wchar_t>(_wstring_literal_I(s), sizeof(_wstring_literal_I(s))/2-1))
+#define wstring_literal(s) (cpp::basic_string_literal<wchar_t>(_wstring_literal_I(s), sizeof(_wstring_literal_I(s))/sizeof(wchar_t)-1))
 
 } // namespace cpp
 

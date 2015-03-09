@@ -30,7 +30,7 @@ LRESULT GraphicsControl::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
     double_buffered_ = false;
 #endif
 
-    dpi_scale_ = getGraphicsContext().getDPIScale();
+    //FIXME: dpi_scale_ = getGraphicsContext().getDPIScale();
     break;
   }
 
@@ -57,7 +57,7 @@ LRESULT GraphicsControl::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
   return base::onMessage(msg, wparam, lparam);
 }
 
-void GraphicsControl::onPaint(GraphicsContext*) { }
+void GraphicsControl::onPaint(Gdiplus::Graphics&) { }
 
 void GraphicsControl::doPaint()
 {
@@ -81,14 +81,14 @@ void GraphicsControl::doPaint()
   }
 #endif
 
-  GraphicsContext context(hdc);
-  onPaint(&context);
+  Gdiplus::Graphics graphics(hdc);
+  onPaint(graphics);
 }
 
 void GraphicsControl::doPrintClient(HDC hdc)
 {
-  GraphicsContext context(hdc);
-  onPaint(&context);
+  Gdiplus::Graphics graphics(hdc);
+  onPaint(graphics);
 }
 
 } // namespace Windows

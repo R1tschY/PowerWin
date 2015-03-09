@@ -3,10 +3,10 @@ SUFFIX = .dll
 
 # compile flags
 WARNINGS = -Wall -Wextra -Wuninitialized -Wno-unused-local-typedefs -Wno-missing-field-initializers
-FEATURES = -shared -std=gnu++0x
+FEATURES = -std=gnu++0x
 MACROS   = -DUNICODE -DBUILD_DLL
 INCLUDES = -I. -I..
-LIBS     = -static-libgcc -static-libstdc++ -lgdi32
+LIBS     = -shared -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lwinpthread -Wl,-Bdynamic -lgdiplus
 
 # plattforms
 ifeq ($(OS),Windows_NT)
@@ -29,15 +29,15 @@ RES     = $(CPREFIX)windres
 MKDIR   = mkdir
 
 # Release:
-#FEATURES += -O2 -s -flto -fvisibility=hidden -fvisibility-inlines-hidden -finline-functions
+#FEATURES += -O2 -s -DNDEBUG -flto -fvisibility=hidden -fvisibility-inlines-hidden -finline-functions
 
 # Debug
-FEATURES += -g -DNDEBUG
+FEATURES += -g -Og
 
 # compile for Windows XP
 MACROS  += -DNTDDI_VERSION=0x05010300 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 \
           -D_WIN32_IE=0x0700
-MACROS  += -DWIN32_LEAN_AND_MEAN
+#MACROS  += -DWIN32_LEAN_AND_MEAN
 
 BINARY32 = $(BUILD_PATH)/$(NAME)32$(SUFFIX)
 OBJECTS32 = $(patsubst %.cpp, $(BUILD_PATH)/%.o32, $(wildcard *.cpp))

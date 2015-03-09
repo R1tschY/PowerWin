@@ -1,6 +1,9 @@
 #ifndef GRAPHICSCONTROL_H
 #define GRAPHICSCONTROL_H
 
+#include <windows.h>
+#include <gdiplus.h>
+
 #include "../control.h"
 
 namespace Windows {
@@ -25,10 +28,14 @@ public:
     Control(window_class, style, exstyle)
   { }
   
+  HDC getGraphicsContext() const {
+    return GetDC(getNativeHandle());
+  }
+
   LRESULT onMessage(UINT msg, WPARAM wparam, LPARAM lparam) override;
 
   // virtual
-  virtual void onPaint(GraphicsContext* context);
+  virtual void onPaint(Gdiplus::Graphics& context);
 
   // properties
   bool isDoubleBuffered() const { return double_buffered_; }

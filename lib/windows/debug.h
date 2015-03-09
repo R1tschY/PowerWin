@@ -4,6 +4,7 @@
 #include <string>
 
 #include <c++/stringview.h>
+#include <c++/macros.h>
 #include <windows.h>
 
 namespace Windows {
@@ -47,7 +48,8 @@ void printError(cpp::wstring_view error_message, DWORD error_code);
 //
 // Check return value
 
-// FIXME: #define win_check(expr) (checkReturnValue((expr), __PRETTY_FUNCTION__ " (" __FILE__ ":" __LINE__ ")"))
+#undef __PRETTY_FUNCTION__
+#define win_throw_on_fail(expr) (checkReturnValue((expr), L" (" TO_WIDESTRING(__FILE__) L":" WSTRINGIFY(__LINE__) L")"))
 #define win_return_if_failed(expr,value) \
   WIN_BEGIN_MACRO_BLOCK \
     if (!expr) { \
@@ -63,8 +65,7 @@ inline ReturnValue checkReturnValue(ReturnValue return_value, cpp::wstring_view 
   return return_value;
 }
 
-template<>
-inline HRESULT checkReturnValue<HRESULT>(HRESULT return_value, cpp::wstring_view fail_message) {
+inline HRESULT checkReturnValue(HRESULT return_value, cpp::wstring_view fail_message) {
   if (return_value != S_OK) {
     printError(fail_message, return_value);
   }

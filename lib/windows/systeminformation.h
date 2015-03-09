@@ -3,6 +3,9 @@
 
 #include <windows.h>
 
+#include "geometry.h"
+#include <c++/utils.h>
+
 namespace Windows {
 
 class Monitor {
@@ -21,8 +24,8 @@ public:
 
     // properties
     DWORD getSize() const { return info_.cbSize; }
-    const RECT& getMonitorRect() const { return info_.rcMonitor; }
-    const RECT& getWorkRect() const { return info_.rcWork; }
+    const Rectangle& getMonitorRect() const { return cpp::wrap<Rectangle>(info_.rcMonitor); }
+    const Rectangle& getWorkRect() const { return cpp::wrap<Rectangle>(info_.rcWork); }
     bool isPrimary() const { return info_.dwFlags == MONITORINFOF_PRIMARY; }
 
   private:
@@ -35,8 +38,7 @@ public:
   { }
 
   static Monitor getPrimary() {
-    POINT const origin = {};
-    return Monitor(MonitorFromPoint(origin, MONITOR_DEFAULTTOPRIMARY));
+    return Monitor(MonitorFromPoint(POINT{0,0}, MONITOR_DEFAULTTOPRIMARY));
   }
 
   // properties

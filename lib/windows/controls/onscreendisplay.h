@@ -12,14 +12,7 @@ class OnScreenDisplay : public GraphicsControl
 public:
   OnScreenDisplay();
 
-  void onPaint(GraphicsContext *context) override;
-
-  void create(int x, int y, int width, int height) {
-    Control::create(HWND_TOPMOST, wstring_literal(""), x, y, width, height);
-    setPosition(x, y, width, height, SWP_SHOWWINDOW, HWND_TOPMOST);
-  }
-
-  void onCreate();
+  void onPaint(Gdiplus::Graphics& context) override;
 };
 
 } // namespace Windows

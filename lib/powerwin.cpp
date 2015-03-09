@@ -24,6 +24,7 @@
 #include "plugins/ScrollPlugin.h"
 #include "plugins/FullscreenPlugin.h"
 #include "plugins/SystemMenuPlugin.h"
+#include "plugins/SplashScreenPlugin.h"
 #include "macros.h"
 
 #if CPUBITSET == 32
@@ -39,6 +40,7 @@
 PowerWin* PowerWin::instance_ = nullptr;
 
 PowerWin::PowerWin() :
+  Window(Window::Type::Normal),
   plugins_(),
   tray_icon_()
 {
@@ -47,6 +49,7 @@ PowerWin::PowerWin() :
   plugins_.push_back(std::unique_ptr<Plugin>(new ScrollPlugin()));
   //plugins_.push_back(std::unique_ptr<Plugin>(new FullscreenPlugin()));
   plugins_.push_back(std::unique_ptr<Plugin>(new SystemMenuPlugin()));
+  plugins_.push_back(std::unique_ptr<Plugin>(new SplashScreenPlugin()));
 #else
   plugins_.push_back(std::unique_ptr<Plugin>(new SystemMenuPlugin()));
 #endif
