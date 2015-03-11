@@ -8,7 +8,7 @@
 
 namespace Windows {
 
-static LRESULT UtilWndProc(UINT msg, WPARAM wparam, LPARAM lparam) {
+static LRESULT UtilWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
   switch (msg) {
   case WM_CALLBACK:
     if (lparam) {
@@ -21,11 +21,18 @@ static LRESULT UtilWndProc(UINT msg, WPARAM wparam, LPARAM lparam) {
       }
     }
   }
-  return 0;
+  return DefWindowProc(hwnd, msg, wparam, lparam);
+}
+
+static MessageSink createCallbackWindow() {
+  MessageSink message_sink(UtilWndProc);
+  message_sink.create();
+  return message_sink;
 }
 
 HWND getCallbackWindow() {
-  static MessageSink window(UtilWndProc);
+  static MessageSink window = createCallbackWindow();
+  assert(window.getNativeHandle());
   return window.getNativeHandle();
 }
 

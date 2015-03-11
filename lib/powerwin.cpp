@@ -16,6 +16,7 @@
 #include "windows/controls.h"
 #include "windows/debug.h"
 #include "windows/rundll.h"
+#include "windows/controls/gdipluscontext.h"
 
 #include "powerwin.h"
 #include "powerwin-private.h"
@@ -66,6 +67,9 @@ int PowerWin::run() {
   if (!InitCommonControlsEx(&icce)) {
     ERROR(L"%s\n", L"Kann 'common controls' nicht initailsieren!");
   }*/
+
+  Windows::GdiplusContext gdi;
+
   PowerWin powerwin;
   instance_ = &powerwin;
 
@@ -100,19 +104,19 @@ void PowerWin::onCreate() {
     }
   }
 
-
-  /*tray_icon.add(WinExtra::getMainWindow(),
+#ifdef MAIN_MODULE
+//  tray_icon_.add(getWindow(), LoadIcon(NULL, IDI_APPLICATION), wstring_literal(POWERWIN_APP_NAME));
+  tray_icon_.add(getNativeHandle(),
                 ExtractIcon(
                   Windows::Application::getInstance(),
                   L"C:\\Windows\\system32\\shell32.dll",
-                  -26));*/
-#ifdef MAIN_MODULE
-  tray_icon_.add(getWindow(), LoadIcon(NULL, IDI_APPLICATION), wstring_literal(POWERWIN_APP_NAME));
+                  -26),
+                 wstring_literal(POWERWIN_APP_NAME));
 
   // start 64Bit-DLL
   if (Windows::Application::Is64BitWindows()) {
-    print(L"Start 64-bit process\n");
-    Windows::RunDll::execute64BitDll(Windows::Application::getExecutablePath().toString() + L"\\libpowerwin64.dll", L"FixWindows", L"");
+    //print(L"Start 64-bit process\n");
+    //Windows::RunDll::execute64BitDll(Windows::Application::getExecutablePath().getFolder() + L"\\libpowerwin64.dll", L"FixWindows", L"");
     // TODO: error logging
   }
 #endif
@@ -142,7 +146,7 @@ void PowerWin::onDestroy() {
       plugin->deactivate();
     }
   } catch (...) {
-    MessageBox(NULL, L"Ups", L"!!!", MB_ICONERROR | MB_OK);
+    MessageBoxW(NULL, L"Ups", L"!!!", MB_ICONERROR | MB_OK);
   }
 
 #ifdef MAIN_MODULE

@@ -8,6 +8,7 @@
 #include "../c++/stringview.h"
 #include "macros.h"
 #include "geometry.h"
+#include "debug.h"
 
 namespace Windows {
 
@@ -81,7 +82,7 @@ public:
   Rectangle getClientRect() const {
     RECT rc;
     assert(handle_);
-    GetClientRect(handle_.get(), &rc);
+    win_print_on_fail(GetClientRect(handle_.get(), &rc));
     return rc;
   }
 
@@ -102,7 +103,7 @@ public:
 
   void destroy();
 
-  void show(int show_command = SW_SHOW) { ShowWindow(getNativeHandle(), show_command); }
+  void show(int show_command = SW_SHOW);
   void showAnimated(AnimateMode mode, unsigned time) { AnimateWindow(getNativeHandle(), time, (int)mode); }
 
   void hide() { show(SW_HIDE); }
@@ -110,22 +111,13 @@ public:
 
   // properties
 
-  void setParent(HWND value) { SetParent(getNativeHandle(), value); }
-  void setParent(Control value) { SetParent(getNativeHandle(), value.getNativeHandle()); }
+  void setParent(HWND value) { win_print_on_fail(SetParent(getNativeHandle(), value)); }
+  void setParent(Control value) { win_print_on_fail(SetParent(getNativeHandle(), value.getNativeHandle())); }
   HWND getParent() const { return GetParent(getNativeHandle()); }
 
   void setTopmost();
 
-  void setPosition(const Rectangle& rect)
-  {
-    assert(handle_);
-    SetWindowPos(
-        getNativeHandle(),
-        nullptr,
-        rect.getX(), rect.getY(),
-        rect.getWidth(), rect.getHeight(),
-        SWP_NOACTIVATE | SWP_NOZORDER);
-  }
+  void setPosition(const Rectangle& rect);
 
   // hooks
 

@@ -52,7 +52,7 @@ private:
 
   static Application* instance_;
 
-  static Application& self() { assert(instance_ == nullptr); return *instance_; }
+  static Application& self() { assert(instance_ != nullptr); return *instance_; }
 };
 
 } // namespace Windows

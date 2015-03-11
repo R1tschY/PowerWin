@@ -39,10 +39,6 @@ public:
 
   // properties
   bool isDoubleBuffered() const { return double_buffered_; }
-
-  // dpi support
-  double getDPIScale() const { return dpi_scale_; }
-  int DPIscale(int a) const { return a * dpi_scale_; }
   
 private:
   using base = Control;
@@ -51,7 +47,6 @@ private:
   void doPrintClient(HDC hdc);
 
   bool double_buffered_ = false;
-  double dpi_scale_ = 1.;
 };
 
 } // namespace Windows

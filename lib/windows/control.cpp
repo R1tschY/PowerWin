@@ -33,8 +33,7 @@ ATOM Control::registerClass(
   wcex.lpszClassName = class_name.c_str();
   wcex.lpszMenuName	 = menu.c_str();
 
-  //return win_check(RegisterClassEx(&wcex));
-  return RegisterClassEx(&wcex);
+  return win_throw_on_fail(RegisterClassEx(&wcex));
 }
 
 ATOM Control::getWindowClass() {
@@ -62,7 +61,7 @@ Control::Control(Control&& other) :
   style_(other.style_), exstyle_(other.exstyle_)
 {
   if (handle_) {
-    SetWindowLongPtr(handle_.get(), GWLP_USERDATA, (LONG)this);
+    SetWindowLongPtr(handle_.get(), GWLP_USERDATA, (LONG_PTR)this);
   }
 }
 
@@ -78,7 +77,7 @@ Control& Control::operator=(Control&& other)
   exstyle_ = other.exstyle_;
 
   if (handle_) {
-    SetWindowLongPtr(handle_.get(), GWLP_USERDATA, (LONG)this);
+    SetWindowLongPtr(handle_.get(), GWLP_USERDATA, (LONG_PTR)this);
   }
   return *this;
 }
@@ -91,8 +90,7 @@ void Control::create(
     int x, int y, int width, int height)
 {
   assert(!handle_);
-  handle_.reset(
-      CreateWindowExW(
+  win_throw_on_fail(CreateWindowExW(
         // Optional window styles
         exstyle_,
 
@@ -128,11 +126,26 @@ void Control::destroy() {
   handle_.reset();
 }
 
+void Control::show(int show_command) {
+  win_print_on_fail(ShowWindow(getNativeHandle(), show_command));
+}
+
 void Control::setTopmost() {
   exstyle_ |= WS_EX_TOPMOST;
   if (handle_) {
-    SetWindowPos(getNativeHandle(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    win_print_on_fail(SetWindowPos(getNativeHandle(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE));
   }
+}
+
+void Control::setPosition(const Rectangle& rect)
+{
+  assert(handle_);
+  win_print_on_fail(SetWindowPos(
+                      getNativeHandle(),
+                      nullptr,
+                      rect.getX(), rect.getY(),
+                      rect.getWidth(), rect.getHeight(),
+                      SWP_NOACTIVATE | SWP_NOZORDER));
 }
 
 //
@@ -140,6 +153,9 @@ void Control::setTopmost() {
 
 LRESULT Control::onMessage(UINT msg, WPARAM wparam, LPARAM lparam) {
   switch (msg) {
+  case WM_NCCREATE:
+    return TRUE;
+
   case WM_CREATE:
     onCreate();
     return 0;
@@ -165,12 +181,14 @@ LRESULT CALLBACK Control::MessageEntry(HWND handle, UINT msg, WPARAM wparam, LPA
     if (msg == WM_NCCREATE) {
       auto create_struct = reinterpret_cast<CREATESTRUCT*>(lparam);
       window = static_cast<Control*>(create_struct->lpCreateParams);
-      SetWindowLongPtr(handle, GWLP_USERDATA, reinterpret_cast<LONG>(window));
+      assert(window);
+
+      SetWindowLongPtr(handle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(window));
+      window->handle_.reset(handle);
     }
 
     if (!window)
     {
-      // TODO: error message
       return DefWindowProc(handle, msg, wparam, lparam);
     }
   }

@@ -22,13 +22,6 @@ void ScrollPlugin::onDeactivate() {
   hook_.deactivate();
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// X11-Wheel (Scrollt auch in deaktivierten Fenstern)
-//
-// Funktioniert nicht in:
-//  * Visual Studio 2010
-//
-
 __attribute__((hot))
 bool ScrollPlugin::handle(POINT pt, int steps) {
   // get window under cursor

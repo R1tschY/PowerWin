@@ -11,16 +11,10 @@ namespace Windows {
 Timeout::Timeout(const Callback& callback, int seconds):
   callback_(callback), enabled_(false)
 {
+  if (seconds == -1) return;
 
-  if (seconds == -1) return ;
-
-  UINT_PTR id;
-  id = SetTimer(getCallbackWindow(), (UINT_PTR)&callback_, seconds * 1000, ccallback);
-  if (id != (UINT_PTR)&callback_) {
-    print(L"SetTimer failed: %s\n", GetLastWindowsError().c_str());
-  } else {
-    enabled_ = true;
-  }
+  win_throw_on_fail(SetTimer(getCallbackWindow(), (UINT_PTR)&callback_, seconds * 1000, ccallback));
+  enabled_ = true;
 }
 
 Timeout::~Timeout() {
@@ -30,21 +24,17 @@ Timeout::~Timeout() {
 }
 
 void Timeout::setInterval(int seconds) {
-  if (seconds < 0) {
+  if (seconds <= 0) {
     if (enabled_) {
       KillTimer(getCallbackWindow(), (UINT_PTR)&callback_);
       enabled_ = false;
     }
-    return ;
+    return;
   }
 
-  UINT_PTR id;
-  id = SetTimer(getCallbackWindow(), (UINT_PTR)&callback_, seconds * 1000, ccallback);
-  if (id != (UINT_PTR)&callback_) {
-    print(L"SetTimer failed: %s\n", Windows::GetLastWindowsError().c_str());
-  } else {
-    enabled_ = true;
-  }
+  win_throw_on_fail(
+        SetTimer(getCallbackWindow(), (UINT_PTR)&callback_, seconds * 1000, ccallback));
+  enabled_ = true;
 }
 
 void Timeout::setCallback(const Callback& callback) {
@@ -52,14 +42,8 @@ void Timeout::setCallback(const Callback& callback) {
 }
 
 void Timeout::execute(const Callback& callback, int seconds) {
-  UINT_PTR id;
   UINT_PTR cb = reinterpret_cast<UINT_PTR>(new Callback(callback));
-
-  id = SetTimer(getCallbackWindow(), cb, seconds * 1000, cexecallback);
-  if (id != cb) {
-    print(L"SetTimer failed: %s\n", GetLastWindowsError().c_str());
-    delete reinterpret_cast<Callback*>(cb);
-  }
+  win_throw_on_fail(SetTimer(getCallbackWindow(), cb, seconds * 1000, cexecallback));
 }
 
 void CALLBACK Timeout::ccallback(HWND, UINT msg, UINT_PTR callback, DWORD) {
@@ -68,7 +52,7 @@ void CALLBACK Timeout::ccallback(HWND, UINT msg, UINT_PTR callback, DWORD) {
 
     if (!cb) {
        print(L"timeout callback call failed: callback == NULL\n");
-       return ;
+       return;
     }
 
     try {
@@ -86,7 +70,7 @@ void CALLBACK Timeout::cexecallback(HWND, UINT msg, UINT_PTR callback, DWORD) {
 
     if (!cb) {
        print(L"timeout callback call failed: callback == NULL\n");
-       return ;
+       return;
     }
 
     try {

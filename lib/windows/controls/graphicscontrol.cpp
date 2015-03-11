@@ -1,9 +1,9 @@
 #include "graphicscontrol.h"
 
 #include <uxtheme.h>
-#include <boost/scope_exit.hpp>
 #include "../debug.h"
 #include "../memory.h"
+#include "gdipluscontext.h"
 
 namespace Windows {
 
@@ -29,10 +29,12 @@ LRESULT GraphicsControl::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 #else
     double_buffered_ = false;
 #endif
-
-    //FIXME: dpi_scale_ = getGraphicsContext().getDPIScale();
     break;
   }
+
+  case WM_ACTIVATE:
+    InvalidateRect(getNativeHandle(), nullptr, true);
+    return DefWindowProc(getNativeHandle(), msg, wparam, lparam);
 
   case WM_ERASEBKGND:
     // Don't do any erasing here.  It's done in WM_PAINT to avoid flicker.
@@ -63,9 +65,6 @@ void GraphicsControl::doPaint()
 {
   PAINTSTRUCT ps;
   HDC hdc = BeginPaint(getNativeHandle(), &ps);
-  BOOST_SCOPE_EXIT_ALL(&) {
-    EndPaint(getNativeHandle(), &ps);
-  };
 
 #if WINVER >= 0x06000
   PaintBuffer paint_buffer;
@@ -83,6 +82,8 @@ void GraphicsControl::doPaint()
 
   Gdiplus::Graphics graphics(hdc);
   onPaint(graphics);
+
+  EndPaint(getNativeHandle(), &ps);
 }
 
 void GraphicsControl::doPrintClient(HDC hdc)

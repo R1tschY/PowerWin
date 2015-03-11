@@ -14,10 +14,10 @@
 
 ActionsPlugin::ActionsPlugin() :
 	Plugin(wstring_literal("actions")),
-	message_sink_()
+  message_sink_(&ActionsPlugin::onHotkey)
 { }
 
-static void onActionQuit(int, int) {
+static void onActionQuit() {
   PowerWin::get()->destroy();
 }
 
@@ -25,18 +25,24 @@ const Action ActionsPlugin::actions_[] = {
   {L"quit", onActionQuit}  
 };
 
-LRESULT ActionsPlugin::onHotkey(UINT msg, WPARAM wparam, LPARAM lparam) {
-	if (msg != WM_HOTKEY) return 0;
-	if (wparam > cpp::length(actions_)) return 0;
+LRESULT ActionsPlugin::onHotkey(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+  if (msg != WM_HOTKEY)
+    return DefWindowProcW(hwnd, msg, wparam, lparam);
 
-	actions_[wparam].handler(0,0); // FIXME
+  if (wparam >= cpp::length(actions_)) {
+    return 0;
+  }
+
+  actions_[wparam].handler();
 
 	return 0;
 }
 
-void ActionsPlugin::onActivate(const Options& options) {
-  std::pair<unsigned,unsigned> hotkey;
+void ActionsPlugin::onActivate(const Options& options)
+{
+  message_sink_.create();
 
+  std::pair<unsigned,unsigned> hotkey;
   if (options.find(L"quit") == options.end()) {
     parseHotkey(L"Ctrl+F12", &hotkey);
     Windows::Hotkey hk(
@@ -66,6 +72,8 @@ void ActionsPlugin::onActivate(const Options& options) {
 void ActionsPlugin::onDeactivate() {
   for (auto& hotkey : hotkeys_)
     hotkey.deactivate();
+
+  message_sink_.destroy();
 }
 
 int get_function_key(const std::wstring& key) {
@@ -76,7 +84,7 @@ int get_function_key(const std::wstring& key) {
     return 0;
   }
 
-  return (fkey > 0 && fkey < 25) ? fkey - 1 + VK_F1 : 0;
+  return (fkey > 0 && fkey < 25) ? (fkey - 1 + VK_F1) : 0;
 }
 
 bool

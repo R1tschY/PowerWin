@@ -22,8 +22,8 @@ public:
   Path& operator=(Path&& path) = default;
 
   // properties
-  cpp::string_view getBasename();
-  cpp::string_view getFolder();
+  std::wstring getBasename() const;
+  std::wstring getFolder() const;
   std::wstring toString() const { return path_; }
 
   // filesystem

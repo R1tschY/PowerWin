@@ -166,6 +166,10 @@ public:
     return Gdiplus::Rect(getX(), getY(), getWidth(), getHeight());
   }
 
+  Gdiplus::RectF getRectF() const noexcept {
+    return Gdiplus::RectF(getX(), getY(), getWidth(), getHeight());
+  }
+
 private:
   RECT internal_;
 };

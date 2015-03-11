@@ -13,6 +13,7 @@ public:
   OnScreenDisplay();
 
   void onPaint(Gdiplus::Graphics& context) override;
+  void onCreate() override;
 };
 
 } // namespace Windows

@@ -31,7 +31,7 @@ void MessageSink::create()
 LRESULT MessageSink::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 {
   if (wndproc_) {
-    return wndproc_(msg, wparam, lparam);
+    return wndproc_(getNativeHandle(), msg, wparam, lparam);
   }
 
   return Control::onMessage(msg, wparam, lparam);

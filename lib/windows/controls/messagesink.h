@@ -11,15 +11,16 @@ namespace Windows {
 class MessageSink : protected Control
 {
 public:
-  typedef std::function<LRESULT(UINT, WPARAM, LPARAM)> MessageFunc;
+  typedef std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> MessageFunc;
 
-  explicit MessageSink(MessageFunc wndproc = nullptr);
+  explicit MessageSink(MessageFunc wndproc);
 
   void create();
 
   LRESULT onMessage(UINT msg, WPARAM wparam, LPARAM lparam) override;
 
   using Control::getNativeHandle;
+  using Control::destroy;
 
 private:
   MessageFunc wndproc_;

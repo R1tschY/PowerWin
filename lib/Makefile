@@ -12,14 +12,14 @@ LIBS     = -shared -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lwinp
 ifeq ($(OS),Windows_NT)
     CPREFIX     =  
     RMDIR       = rmdir /S /Q 
-    SEP         = \
+    SEP         = \\
     BUILD_PATH  = ..\build
     INCLUDES   += -I C:/include/boost_1_55_0
 else
-	CPREFIX     = i686-w64-mingw32-
+    CPREFIX     = i686-w64-mingw32-
     SEP         = /
-	RMDIR       = rm -rf 
-	BUILD_PATH  = ../build
+    RMDIR       = rm -rf 
+    BUILD_PATH  = ../build
 endif
 
 # programs

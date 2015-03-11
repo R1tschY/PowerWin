@@ -11,7 +11,7 @@
 
 struct Action {
   cpp::wstring_view name;
-  void (*handler)(int, int);
+  void (*handler)();
 };
 
 class ActionsPlugin : public Plugin {
@@ -28,7 +28,7 @@ private:
 
   static const Action actions_[];
 
-  static LRESULT onHotkey(UINT msg, WPARAM wparam, LPARAM lparam);
+  static LRESULT onHotkey(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
   static bool parseHotkey(cpp::wstring_view hotkey, std::pair<unsigned,unsigned>* result);
 };
 

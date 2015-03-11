@@ -21,9 +21,8 @@ Hotkey::~Hotkey() {
 
 bool Hotkey::activate() {
   if (!active_) {
-    bool success = RegisterHotKey(handler_, id_, modifiers_, vk_);
+    bool success = win_print_on_fail(RegisterHotKey(handler_, id_, modifiers_, vk_));
     if (!success) {
-      //CRITICAL(L"RegisterHotKey failed: %s", GetLastWindowsError().c_str());
       return false;
     }
     active_ = true;
@@ -32,7 +31,7 @@ bool Hotkey::activate() {
 }
 
 bool Hotkey::deactivate() {
-  if (active_ && UnregisterHotKey(handler_, id_)) {
+  if (active_ && win_print_on_fail(UnregisterHotKey(handler_, id_))) {
     active_ = false;
   }
   return true;

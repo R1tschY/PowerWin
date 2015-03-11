@@ -23,7 +23,7 @@ FullscreenPlugin::FullscreenPlugin() :
 void FullscreenPlugin::onActivate(const Options& options) {
   fullscreen_window_ = false;
   onTimeout();
-  timeout_.setInterval(1);
+  timeout_.setInterval(10);
 }
 
 void FullscreenPlugin::onDeactivate() {
@@ -70,7 +70,7 @@ bool existsFullscreenWindow() {
 void FullscreenPlugin::onTimeout() {
   bool state = existsFullscreenWindow();
 
-  //  Wenn Fullscreenfenster vorhanden im Pollingmodus arbeiten (sollte zuverlässig auf allen Systemen funktionieren)
+  // Wenn Fullscreenfenster vorhanden im Pollingmodus arbeiten (sollte zuverlässig auf allen Systemen funktionieren)
   if (state) {
     SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
   }

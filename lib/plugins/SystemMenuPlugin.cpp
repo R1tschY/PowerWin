@@ -40,21 +40,11 @@ static void SetWindowAlwaysOnTop(HWND hwnd, bool new_state) {
   auto exstyle = GetWindowLong(hwnd, GWL_EXSTYLE);
 
   if (new_state) {
-    #ifdef _WIN64
-      SetWindowLongPtr(hwnd, GWL_EXSTYLE, exstyle | WS_EX_TOPMOST);
-    #else
-      SetWindowLong(hwnd, GWL_EXSTYLE, exstyle | WS_EX_TOPMOST);
-    #endif
-
+    SetWindowLongPtr(hwnd, GWL_EXSTYLE, exstyle | WS_EX_TOPMOST);
     SetWindowPos(hwnd, HWND_TOPMOST, 0,0,0,0,
                  SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
   } else {
-    #ifdef _WIN64
-      SetWindowLongPtr(hwnd, GWL_EXSTYLE, exstyle & (~WS_EX_TOPMOST));
-    #else
-      SetWindowLong(hwnd, GWL_EXSTYLE, exstyle & (~WS_EX_TOPMOST));
-    #endif
-
+    SetWindowLongPtr(hwnd, GWL_EXSTYLE, exstyle & (~WS_EX_TOPMOST));
     SetWindowPos(hwnd, HWND_NOTOPMOST, 0,0,0,0,
                  SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
   }
@@ -131,7 +121,7 @@ static BOOL CALLBACK upgrade_window(HWND hwnd, LPARAM lParam) {
       // Immer im Vordergrund
       InsertMenu(menu, SC_CLOSE,
                  IsWindowAlwaysOnTop(hwnd) ? MF_CHECKED : MF_UNCHECKED,
-                 SystemMenuPlugin::MenuId_AlwaysOnTop, // SC_CLOSE,
+                 SystemMenuPlugin::MenuId_AlwaysOnTop,
                  L"Immer im Vordergrund");
 
       // Seperator

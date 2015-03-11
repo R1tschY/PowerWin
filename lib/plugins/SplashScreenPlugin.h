@@ -10,16 +10,20 @@
 
 #include "../Plugin.h"
 #include "../windows/controls/onscreendisplay.h"
+#include "../windows/timeout.h"
 
 class SplashScreenPlugin: public Plugin {
 public:
 	SplashScreenPlugin();
 
-  virtual void onActivate(const Options& options);
-  virtual void onDeactivate();
+  void onActivate(const Options& options) override;
+  void onDeactivate() override;
 	
 private:
 	Windows::OnScreenDisplay window_;
+  Windows::Timeout timeout_;
+
+  void onTimeout();
 };
 
 #endif /* PLUGINS_SPLASHSCREENPLUGIN_H_ */

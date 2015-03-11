@@ -27,6 +27,9 @@ public:
 
   bool isActive() const { return active_; }
 
+  unsigned getModifiers() const { return modifiers_; }
+  unsigned getVirtualKey() const { return vk_; }
+
 private:
   const unsigned modifiers_;
   const unsigned vk_;

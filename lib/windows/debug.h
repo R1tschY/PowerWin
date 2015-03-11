@@ -45,11 +45,13 @@ GetLastWindowsError() {
 
 void printError(cpp::wstring_view error_message, DWORD error_code);
 
+void printWindowsFail(const char* func, const char* error_message, DWORD error_code);
+void throwWindowsFail(const char* func, const char* error_message, DWORD error_code);
+
 //
 // Check return value
-
-#undef __PRETTY_FUNCTION__
-#define win_throw_on_fail(expr) (checkReturnValue((expr), L" (" TO_WIDESTRING(__FILE__) L":" WSTRINGIFY(__LINE__) L")"))
+#define win_throw_on_fail(expr) (checkReturnValue((expr), __PRETTY_FUNCTION__, "[" __FILE__ ":" STRINGIFY(__LINE__) "]", throwWindowsFail))
+#define win_print_on_fail(expr) (checkReturnValue((expr), __PRETTY_FUNCTION__, "[" __FILE__ ":" STRINGIFY(__LINE__) "]", printWindowsFail))
 #define win_return_if_failed(expr,value) \
   WIN_BEGIN_MACRO_BLOCK \
     if (!expr) { \
@@ -57,22 +59,21 @@ void printError(cpp::wstring_view error_message, DWORD error_code);
     } \
   WIN_END_MACRO_BLOCK
 
-template<typename ReturnValue>
-inline ReturnValue checkReturnValue(ReturnValue return_value, cpp::wstring_view fail_message) {
+template<typename ReturnValue, typename FailureFunc>
+inline ReturnValue checkReturnValue(ReturnValue return_value, const char* func, const char* fail_message, FailureFunc failfunc) {
   if (!return_value) {
-    printError(fail_message, GetLastError());
+    failfunc(func, fail_message, GetLastError());
   }
   return return_value;
 }
 
-inline HRESULT checkReturnValue(HRESULT return_value, cpp::wstring_view fail_message) {
+template<typename FailureFunc>
+inline HRESULT checkReturnValue(HRESULT return_value, const char* func, const char* fail_message, FailureFunc failfunc) {
   if (return_value != S_OK) {
-    printError(fail_message, return_value);
+    failfunc(func, fail_message, return_value);
   }
   return return_value;
 }
-
-
 
 } // namespace Windows
 
