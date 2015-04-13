@@ -1,5 +1,6 @@
 #include "debug.h"
 
+#include <stdargs.h>
 #include <cerrno>  // für errno
 #include <cstdio>  // für printf
 #include <sstream>
@@ -8,11 +9,12 @@
 
 #include "../c++/utils.h"
 #include "memory.h"
+#include "exception.h"
 
 namespace Windows {
 
 static LocalPtr<wchar_t>
-GetErrorString(DWORD code) {
+GetErrorString(DWORD code) noexcept {
   wchar_t* buffer;
   FormatMessageW(
       FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
@@ -22,6 +24,16 @@ GetErrorString(DWORD code) {
       (wchar_t*)&buffer,
       0,
       nullptr);
+
+  if (buffer != nullptr) {
+    int len = std::char_traits<wchar_t>::length(buffer);
+    if (len > 1 && buffer[len - 1] == '\n') {
+       buffer[len-1] = 0;
+       if (buffer[len - 2] == '\r')
+         buffer[len-2] = 0;
+    }
+  }
+
   return LocalPtr<wchar_t>(buffer);
 }
 
@@ -102,7 +114,7 @@ void throwWindowsFail(const char* func, const char* error_message, DWORD error_c
     WIN_CRITICAL(L"Error while call of %s %s: error code %d.", func, error_message, error_code);
   }
 
-  throw std::runtime_error("");
+  throw Exception(error_code);
 }
 
 } // namespace Windows

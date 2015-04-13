@@ -2,6 +2,7 @@
 
 #include "application.h"
 #include "debug.h"
+#include "exception.h"
 
 
 namespace Windows {

@@ -16,6 +16,14 @@ public:
     path_(path.to_string())
   { }
 
+  explicit Path(const wchar_t* begin, const wchar_t* end) :
+    path_(begin, end)
+  { }
+
+  explicit Path() :
+    path_()
+  { }
+
   Path(const Path& path) = default;
   Path& operator=(const Path& path) = default;
   Path(Path&& path) = default;

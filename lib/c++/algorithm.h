@@ -1,6 +1,7 @@
 #ifndef ALGORITHM_H
 #define ALGORITHM_H
 
+#include <memory>
 #include <algorithm>
 #include <cstring>
 

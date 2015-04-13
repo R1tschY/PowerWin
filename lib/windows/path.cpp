@@ -1,5 +1,7 @@
 #include "path.h"
 
+#include <cassert>
+
 namespace Windows {
 
 std::wstring Windows::Path::getBasename() const
