@@ -5,6 +5,7 @@
 #include <memory>
 #include <utility>
 #include <iterator>
+#include <new>
 
 #include "macros.h"
 

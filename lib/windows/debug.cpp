@@ -1,6 +1,6 @@
 #include "debug.h"
 
-#include <stdargs.h>
+#include <stdarg.h>
 #include <cerrno>  // für errno
 #include <cstdio>  // für printf
 #include <sstream>
