@@ -10,7 +10,7 @@ using storage = typename std::aligned_storage<sizeof(T), std::alignment_of<T>::v
 
 template<typename T>
 T& get(storage<T>& s) {
-  return *reinterpret_cast<T*>(&s));
+  return *reinterpret_cast<T*>(&s);
 }
 
 } // namespace cpp

@@ -53,12 +53,12 @@ public:
   typedef const Char* const_iterator;
 
 private:
-  typedef basic_static_string<Char> self_type;
+  typedef basic_static_string self_type;
 
 public:
-  constexpr basic_static_string(const Char (&in)[N])
+  basic_static_string(const Char (&in)[N])
   {
-    for (size_t i = 0; i < n; i++)
+    for (size_t i = 0; i < N; i++)
       data_[i] = in[i];
   }
 
@@ -66,11 +66,11 @@ public:
   constexpr const Char* c_str() const { return &data_; }
 
 private:
-  const Char const data_[N + 1];
+  const Char data_[N + 1];
 };
 
 template<typename Char, std::size_t N, std::size_t M>
-constexpr basic_static_string<Char, N+M> operator+(basic_static_string<Char, N> a, basic_static_string<Char, M> b)
+basic_static_string<Char, N+M> operator+(basic_static_string<Char, N> a, basic_static_string<Char, M> b)
 {
     basic_static_string<Char, N+M> out;
 
@@ -84,9 +84,9 @@ constexpr basic_static_string<Char, N+M> operator+(basic_static_string<Char, N> 
 }
 
 template<typename Char, std::size_t N>
-constexpr basic_static_string<Char, N> make_static _S(const Char (&s)[N])
+constexpr basic_static_string<Char, N> make_static_string(const Char (&s)[N])
 {
-    return basic_static_string<Char, N>(s,n);
+    return basic_static_string<Char, N>(s, N);
 }
 
 } // namespace cpp

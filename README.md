@@ -25,7 +25,31 @@ Future features
 Known Issues
 ------------
 
-* no scrolling in inactive windows
+  * no scrolling in inactive windows
   * in Visual Studio 2010
   * when a topmost is the active window
+  
+Compile with Mingw
+------------------
 
+~~~
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=<BOOST_DIR> ..
+make -j4
+~~~
+Replace `<BOOST_DIR>` with the directory you installed boost, e.x. `C:\boost_1_55_0`.
+
+Cross compile in Linux
+----------------------
+
+~~~
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=<BOOST_DIR> -DCMAKE_TOOLCHAIN_FILE=../Toolchain-cross-mingw.cmake -DCOMPILER_PREFIX=<COMPILER_PREFIX> ..
+make -j4
+~~~
+
+Replace `<COMPILER_PREFIX>` with the prefix of your mingw cross compiler. In
+Ubuntu use `x86_64-w64-mingw32`. Also replace `<BOOST_DIR>` with the directory
+you installed boost, e.x. `~/boost_1_55_0`.

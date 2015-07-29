@@ -16,7 +16,7 @@
 
 static LRESULT CALLBACK systemmenu_cbt_proc(int code, WPARAM wparam, LPARAM lparam);
 
-DLL_SHARED cpp::uninitized<Windows::Hook> cbt_hook;
+DLL_SHARED cpp::uninitialized<Windows::Hook> cbt_hook;
 
 SystemMenuPlugin::SystemMenuPlugin() :
   Plugin(L"system_menu")

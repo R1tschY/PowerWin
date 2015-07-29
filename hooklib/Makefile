@@ -16,7 +16,7 @@ ifeq ($(OS),Windows_NT)
     BUILD_PATH  = ..\build
     INCLUDES   += -I C:/include/boost_1_55_0
 else
-    CPREFIX     = i686-w64-mingw32-
+    CPREFIX     = x86_64-w64-mingw32-
     SEP         = /
     RMDIR       = rm -rf 
     BUILD_PATH  = ../build
@@ -61,17 +61,17 @@ $(BUILD_PATH):
 
 $(BUILD_PATH)/%.o32: %.cpp
 	@$(MKDIR) -p `dirname $@`
-	$(CXX) -m32 -DMAIN_MODULE $(FEATURES) $(WARNINGS) $(MACROS) $(INCLUDES) -MMD -MP -MT $@ -MF $@.d -o $@ -c $<
+	i686-w64-mingw32-g++ -DMAIN_MODULE $(FEATURES) $(WARNINGS) $(MACROS) $(INCLUDES) -MMD -MP -MT $@ -MF $@.d -o $@ -c $<
 
 $(BUILD_PATH)/%.o64: %.cpp
 	@$(MKDIR) -p `dirname $@`
-	$(CXX) $(FEATURES) $(WARNINGS) $(MACROS) $(INCLUDES) -MMD -MP -MT $@ -MF $@.d -o $@ -c $<
+	x86_64-w64-mingw32-g++ $(FEATURES) $(WARNINGS) $(MACROS) $(INCLUDES) -MMD -MP -MT $@ -MF $@.d -o $@ -c $<
 
 $(BINARY32): $(BUILD_PATH) $(OBJECTS32)
-	$(CXX) -m32 $(FEATURES) $(WARNINGS) -o $(BINARY32) $(OBJECTS32) $(LIBS)
+	i686-w64-mingw32-g++ $(FEATURES) $(WARNINGS) -o $(BINARY32) $(OBJECTS32) $(LIBS)
 
 $(BINARY64): $(BUILD_PATH) $(OBJECTS64)
-	$(CXX) $(FEATURES) $(WARNINGS) -o $(BINARY64) $(OBJECTS64) $(LIBS)
+	x86_64-w64-mingw32-g++ $(FEATURES) $(WARNINGS) -o $(BINARY64) $(OBJECTS64) $(LIBS)
 
 clean:
 	$(RMDIR) $(BUILD_PATH)

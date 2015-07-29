@@ -12,18 +12,10 @@ namespace cpp {
 template<typename T>
 class uninitialized {
 private:
-  NOT_COPYABLE(uninitized);
+  NOT_COPYABLE(uninitialized);
 
 public:
   constexpr uninitialized() { }
-
-  explicit uninitialized(const uninitialized& other) {
-    construct(other);
-  }
-
-  explicit uninitialized(uninitialized&& other) {
-    construct(std::move(other));
-  }
 
   template<class... Args>
   explicit uninitialized(Args&&... args) { 
