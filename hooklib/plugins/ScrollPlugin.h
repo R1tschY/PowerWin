@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Plugin.h"
+#include "../plugin.h"
 #include "../windows/hook.h"
 
 constexpr int SHIFTED = 0x8000;

@@ -4,8 +4,8 @@
 
 #include <windows/controls/window.h>
 #include <windows/trayicon.h>
-#include "Plugin.h"
 #include <windows.h>
+#include "plugin.h"
 
 class PowerWin : public Windows::Window {
   PowerWin();

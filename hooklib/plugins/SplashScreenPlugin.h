@@ -8,7 +8,7 @@
 #ifndef PLUGINS_SPLASHSCREENPLUGIN_H_
 #define PLUGINS_SPLASHSCREENPLUGIN_H_
 
-#include "../Plugin.h"
+#include "../plugin.h"
 #include "../windows/controls/onscreendisplay.h"
 #include "../windows/timeout.h"
 

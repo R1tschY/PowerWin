@@ -25,7 +25,7 @@ public:
   void setOptions(Options options) { options_ = std::move(options); }
   bool getBooleanOption(cpp::wstring_view key, bool default_);
 
-protected:
+private:
   virtual void onActivate(const Options& options) = 0;
   virtual void onDeactivate() = 0;
 

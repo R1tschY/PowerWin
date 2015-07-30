@@ -1,7 +1,7 @@
 #ifndef SYSTEMMENU_H
 #define SYSTEMMENU_H
 
-#include "../Plugin.h"
+#include "../plugin.h"
 
 class SystemMenuPlugin : public Plugin {
 public:

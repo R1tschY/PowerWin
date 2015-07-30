@@ -5,9 +5,9 @@
 
 #include <c++/stringview.h>
 
-#include "../Plugin.h"
 #include "../windows/hotkey.h"
 #include <windows/controls/messagesink.h>
+#include "../plugin.h"
 
 struct Action {
   cpp::wstring_view name;

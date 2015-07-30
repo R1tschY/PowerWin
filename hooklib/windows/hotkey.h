@@ -1,18 +1,14 @@
 #pragma once
 
+#include <windows.h>
 #include <functional>
 #include <map>
 
 #include "macros.h"
 #include "controls/messagesink.h"
-#include <windows.h>
+#include "shortcut.h"
 
 namespace Windows {
-
-struct ShortCut {
-  UINT modifiers;
-  UINT key;
-};
 
 class Hotkey {
   DISALLOW_COPY_AND_ASSIGN(Hotkey);

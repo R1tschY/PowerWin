@@ -1,6 +1,6 @@
 #include <windows.h>
 
-#include "powerwin.h"
+#include "hooklib/powerwin.h"
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,

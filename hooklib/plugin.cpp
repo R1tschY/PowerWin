@@ -1,7 +1,6 @@
-#include "Plugin.h"
-
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
+#include <plugin.h>
 
 #include "windows/debug.h"
 

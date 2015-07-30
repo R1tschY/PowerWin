@@ -8,10 +8,10 @@ GdiplusContext::GdiplusContext()
 {
   Gdiplus::GdiplusStartupInput input;
   input.GdiplusVersion = 1;
-  input.DebugEventCallback = NULL;
+  input.DebugEventCallback = NULL; // TODO
   input.SuppressBackgroundThread = false;
 
-  Gdiplus::GdiplusStartupOutput output;
+  Gdiplus::GdiplusStartupOutput output; // TODO
   GdiplusStartup(&token_, &input, &output);
 }
 

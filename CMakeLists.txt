@@ -18,7 +18,7 @@ if (NOT(CMAKE_SIZEOF_VOID_P EQUAL 8))
 endif()
 
 # Boost options
-set(Boost_USE_STATIC_LIBS OFF) 
+set(Boost_USE_STATIC_LIBS ON) 
 set(Boost_USE_MULTITHREADED ON) 
 
 # C++14
@@ -32,15 +32,18 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--subsystem,windows")
 add_definitions(-DUNICODE -D_UNICODE)
 
 # Windows XP
-add_definitions(-DNTDDI_VERSION=0x05010300 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -D_WIN32_IE=0x0700)
+#add_definitions(-DNTDDI_VERSION=0x05010300 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -D_WIN32_IE=0x0700)
+
+# Windows Vista
+add_definitions(-DNTDDI_VERSION=0x06000000 -D_WIN32_WINNT=0x0600 -DWINVER=0x0600 -D_WIN32_IE=0x0700)
 
 # Debug mode
 set(DEBUG_FLAGS "-Og -DDEBUG")
 
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${DEBUG_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DEBUG_FLAGS}")
-set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} ${DEBUG_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${DEBUG_FLAGS}")
+set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} ${DEBUG_FLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${DEBUG_FLAGS}")
 
 # Release mode
 set(RELEASE_FLAGS "-flto -s -O2 -DNDEBUG")
@@ -54,7 +57,6 @@ set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${RELEASE_
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
  -Wall \
  -Wextra \
- -Wshadow \
  -Wnon-virtual-dtor \
  -Wcast-align \
  -Wunused \
@@ -63,7 +65,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
  -Wconversion \
 ")
 
-# -Wold-style-cast -Wzero-as-null-pointer-constant
+# -Wold-style-cast -Wzero-as-null-pointer-constant -Wshadow
 
 # Output directory
 if(NOT BIICODE)
@@ -71,7 +73,7 @@ if(NOT BIICODE)
 	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 endif()
 
-include_directories(libs)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} libs)
 
 add_subdirectory(hooklib)
 add_subdirectory(app)
