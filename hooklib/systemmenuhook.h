@@ -21,7 +21,7 @@ enum MenuId : unsigned {
 } // namespace MenuId
 
 void activate(const IPCData&);
-void deactivate();
+void deactivate(const IPCData&);
 
 } // namespace SystemMenuHook
 } // namespace Windows

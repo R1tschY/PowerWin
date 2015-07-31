@@ -25,4 +25,11 @@ private:
 
 } /* namespace Windows */
 
+extern "C"
+void CALLBACK EnterGodModus(
+    HINSTANCE hInstance,
+    HINSTANCE hPrevInstance,
+    LPSTR lpCmdLine,
+    int nCmdShow);
+
 #endif /* HOOKLIB_REMOTEMANAGER_H_ */

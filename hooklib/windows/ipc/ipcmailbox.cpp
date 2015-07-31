@@ -29,13 +29,12 @@ void IPCMailbox::registerFunction(const std::string& func_name, Func func)
   vtbl_[func_name] = func;
 }
 
-void IPCMailbox::callFunction(const std::string& func_name,
-		const IPCData& data)
+void IPCMailbox::callFunction(const std::string& func_name,	const IPCData& data)
 {
   auto iter = vtbl_.find(func_name);
   if (iter == vtbl_.end())
   {
-    print(L"no function: %s", func_name.c_str());
+    print(L"no function: %s len: %u", func_name.c_str(), (unsigned)func_name.size());
     return;
     //throw std::invalid_argument("func_name");
   }

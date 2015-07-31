@@ -29,6 +29,9 @@
 #include "plugins/quickstarter.h"
 #include "macros.h"
 
+#include "remotemanager.h"
+#include <thread>
+
 #if CPUBITSET == 32
 # define POWERWIN_APP_NAME "PowerWin32"
 # define POWERWIN_64BIT_NAME "PowerWin64"
@@ -70,6 +73,9 @@ int PowerWin::run() {
     ERROR(L"%s\n", L"Kann 'common controls' nicht initailsieren!");
   }*/
 
+  std::thread hook_thread([](){ EnterGodModus(nullptr, nullptr, nullptr, 0); });
+  Sleep(100);
+
   Windows::GdiplusContext gdi;
 
   PowerWin powerwin;
@@ -80,6 +86,8 @@ int PowerWin::run() {
   print(L"%ls hwnd: %d\n", POWERWIN_APP_NAME_W, powerwin.getNativeHandle());
 
   Windows::Application::processMessages();
+
+  hook_thread.join();
 
   print(L"%ls: The end\n", POWERWIN_APP_NAME_W);
 

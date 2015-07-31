@@ -187,7 +187,7 @@ void activate(const IPCData&)
 #endif
 }
 
-void deactivate()
+void deactivate(const IPCData&)
 {
   systemmenu_hook->destroy();
 

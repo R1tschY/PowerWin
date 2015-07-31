@@ -29,7 +29,7 @@ void IPCConnection::callFunction(const std::string& func_name,
     const IPCData& data)
 {
   assert(file_);
-  write(func_name.c_str(), func_name.size() + 1);
+  write(func_name.c_str(), func_name.size());
 }
 
 void IPCConnection::write(const char* data, std::size_t datalen)
