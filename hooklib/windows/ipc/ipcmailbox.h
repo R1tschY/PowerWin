@@ -10,9 +10,9 @@
 
 #include <unordered_map>
 #include <string>
+#include <atomic>
 #include <functional>
 #include <vector>
-#include <exception>
 #include "windows/memory.h"
 
 namespace Windows {
@@ -28,8 +28,10 @@ public:
   void registerFunction(const std::string& func_name, Func func);
 
   void readLoop();
+  void quit() { quit_request_ = true; }
 
 private:
+  std::atomic<bool> quit_request_;
   std::unordered_map<std::string, Func> vtbl_;
   HandleEx mailslot_;
 

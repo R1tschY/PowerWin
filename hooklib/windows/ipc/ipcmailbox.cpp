@@ -14,6 +14,7 @@
 namespace Windows {
 
 IPCMailbox::IPCMailbox(const std::wstring& path, std::size_t max_data_size, unsigned read_timeout)
+: quit_request_(false)
 {
   mailslot_ = HandleEx(CreateMailslotW(
 			path.c_str(),
@@ -52,7 +53,7 @@ void IPCMailbox::readLoop()
   ov.OffsetHigh = 0;
   ov.hEvent = hEvent.get();
 
-  while (true)
+  while (!quit_request_)
   {
     DWORD next_message_size = 0;
     DWORD max_message_size = 0;
@@ -82,12 +83,6 @@ void IPCMailbox::readLoop()
         &bytes_read,
         &ov);
     win_throw_on_fail(success == true);
-
-    if (memcmp(data.data(), "quit", 5) == 0)
-    {
-      print(L"quit mailslot.");
-      break;
-    }
 
     callFunction(std::string(data.data(), data.data() + bytes_read), IPCData());
   }

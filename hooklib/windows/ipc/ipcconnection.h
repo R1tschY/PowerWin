@@ -16,7 +16,11 @@ class IPCData;
 
 class IPCConnection {
 public:
+  IPCConnection() { }
   IPCConnection(const std::wstring& path);
+
+  IPCConnection(IPCConnection&& other) = default;
+  IPCConnection& operator=(IPCConnection&&) = default;
 
   void callFunction(const std::string& func_name, const IPCData& data);
 

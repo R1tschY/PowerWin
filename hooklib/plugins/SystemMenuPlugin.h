@@ -2,17 +2,20 @@
 #define SYSTEMMENU_H
 
 #include "../plugin.h"
+#include "windows/ipc/ipcconnection.h"
 
 class SystemMenuPlugin : public Plugin {
 public:
   SystemMenuPlugin();
 
+private:
   virtual void onActivate(const Options& options);
   virtual void onDeactivate();
 
-  enum Menu : unsigned {
-    MenuId_AlwaysOnTop = 0x00270,
-  };
+private:
+  // TODO: use a application wide context
+  Windows::IPCConnection connection32_;
+  Windows::IPCConnection connection64_;
 };
 
 #endif // SYSTEMMENU_H

@@ -9,33 +9,22 @@
 #include "windows/shell/shelllink.h"
 #include "windows/shell/utils.h"
 #include "windows/debug.h"
-#include "windows/ipc/ipcdata.h"
-
-
 
 QuickStarter::QuickStarter()
-: Plugin(wstring_literal("quick_starter")),
-  mailslot_(LR"#(\\.\mailslot\PowerWin\32\MailSlot)#", 1024, MAILSLOT_WAIT_FOREVER),
-  connection_(LR"#(\\.\mailslot\PowerWin\32\MailSlot)#")
+: Plugin(wstring_literal("quick_starter"))
 { }
 
 void QuickStarter::onActivate(const Options& options)
 {
-  thread_ = std::thread([&](){ mailslot_.readLoop(); });
-  Sleep(1000);
-  connection_.callFunction("QuickStarter::onActivate", Windows::IPCData());
   //updateDatabase();
 
   std::wstring path;
   Windows::getKnownFolderPath(CSIDL_PROGRAMS, path);
-  print(L"Program folder: %ls\n", path);
+  print(L"Program folder: %ls\n", path.c_str());
 }
 
 void QuickStarter::onDeactivate()
 {
-  connection_.callFunction("QuickStarter::onDeactivate", Windows::IPCData());
-  connection_.callFunction("quit", Windows::IPCData());
-  thread_.join();
 }
 
 void QuickStarter::show()
