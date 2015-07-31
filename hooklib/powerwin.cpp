@@ -26,6 +26,7 @@
 #include "plugins/FullscreenPlugin.h"
 #include "plugins/SystemMenuPlugin.h"
 #include "plugins/SplashScreenPlugin.h"
+#include "plugins/quickstarter.h"
 #include "macros.h"
 
 #if CPUBITSET == 32
@@ -45,12 +46,13 @@ PowerWin::PowerWin() :
   plugins_(),
   tray_icon_()
 {
-#ifdef MAIN_MODULE
+#if MAIN_MODULE
   plugins_.push_back(std::unique_ptr<Plugin>(new ActionsPlugin()));
   plugins_.push_back(std::unique_ptr<Plugin>(new ScrollPlugin()));
   //plugins_.push_back(std::unique_ptr<Plugin>(new FullscreenPlugin()));
   plugins_.push_back(std::unique_ptr<Plugin>(new SystemMenuPlugin()));
   plugins_.push_back(std::unique_ptr<Plugin>(new SplashScreenPlugin()));
+  plugins_.emplace_back(new QuickStarter());
 #else
   plugins_.push_back(std::unique_ptr<Plugin>(new SystemMenuPlugin()));
 #endif
@@ -129,6 +131,7 @@ void PowerWin::onDestroy() {
     SetLastError(0);
     HWND window_64bit = FindWindowW(POWERWIN_64BIT_NAME_W, nullptr);
     if (window_64bit == nullptr) {
+      // TODO check GetLastError() maybe the window is really not there
       print(L"Cannot find window to 64Bit-Process: %ls\n", Windows::GetLastWindowsError().c_str());
     } else {
       print(L"Exit 64-bit process. window: %d\n", window_64bit);

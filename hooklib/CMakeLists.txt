@@ -7,9 +7,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_DLL")
   
 # Packages
 if (BIICODE)
-	bii_setup_boost(COMPONENTS filesystem system REQUIRED)
+	bii_setup_boost(REQUIRED)
 endif()
-find_package(Boost COMPONENTS filesystem system REQUIRED)
+find_package(Boost REQUIRED)
 
 # Sources
 file(GLOB_RECURSE libpowerwin_SOURCES "*.cpp")
@@ -45,7 +45,7 @@ if(BIICODE)
 
   # Wire your lib to ${BII_LIB_TARGET} so biicode can use it
   if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-  	TARGET_LINK_LIBRARIES(${BII_LIB_TARGET} INTERFACE powerwin32 powerwin64)
+  	TARGET_LINK_LIBRARIES(${BII_LIB_TARGET} INTERFACE powerwin64)
   else()
 	  TARGET_LINK_LIBRARIES(${BII_LIB_TARGET} INTERFACE powerwin32)
   endif()

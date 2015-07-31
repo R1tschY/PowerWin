@@ -33,3 +33,8 @@
 #ifndef CPUBITSET
     #error "Must define CPUBITSET"
 #endif
+
+
+#if CPUBITSET == 32
+# define MAIN_MODULE 1
+#endif

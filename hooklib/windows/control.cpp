@@ -123,12 +123,14 @@ void Control::create(
   // TODO: error checking
 }
 
-void Control::destroy() {
+void Control::destroy()
+{
   handle_.reset();
 }
 
-void Control::show(int show_command) {
-  win_print_on_fail(ShowWindow(getNativeHandle(), show_command));
+void Control::show(int show_command)
+{
+  ShowWindow(getNativeHandle(), show_command);
 }
 
 void Control::setTopmost() {

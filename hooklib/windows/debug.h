@@ -50,6 +50,8 @@ void throwWindowsFail(const char* func, const char* error_message, DWORD error_c
 
 //
 // Check return value
+#define win_throw_fail() win_throw_on_fail(false)
+#define win_print_fail() win_print_on_fail(false)
 #define win_throw_on_fail(expr) (checkReturnValue((expr), __PRETTY_FUNCTION__, "[" __FILE__ ":" STRINGIFY(__LINE__) "]", throwWindowsFail))
 #define win_print_on_fail(expr) (checkReturnValue((expr), __PRETTY_FUNCTION__, "[" __FILE__ ":" STRINGIFY(__LINE__) "]", printWindowsFail))
 #define win_return_if_failed(expr,value) \

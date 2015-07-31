@@ -23,7 +23,7 @@ template<typename T>
 using LocalPtr = std::unique_ptr<T, Detail::LocalDeleter>;
 
 //
-// Handle
+// GeneralHandle
 
 #define WINDOWS_DEFINE_HANDLE_DELETER(func) \
   template<typename PointerT> \
@@ -52,7 +52,26 @@ template<
 >
 using GeneralHandle = std::unique_ptr<PointerT, DeleterFuncT<PointerT> >;
 
-WINDOWS_DEFINE_HANDLE_TYPE(Handle, HANDLE, CloseHandle);
+//
+// Handle
+
+struct HandleDeleter {
+  typedef HANDLE pointer;
+
+  void operator()(HANDLE ptr)
+  { CloseHandle(ptr); }
+};
+
+using Handle = std::unique_ptr<HANDLE, HandleDeleter>;
+
+struct HandleExDeleter {
+  typedef HANDLE pointer;
+
+  void operator()(HANDLE ptr)
+  { if (ptr != INVALID_HANDLE_VALUE) CloseHandle(ptr); }
+};
+
+using HandleEx = std::unique_ptr<HANDLE, HandleExDeleter>;
 
 } // namespace Windows
 
