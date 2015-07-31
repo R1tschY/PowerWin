@@ -35,7 +35,7 @@ Compile (with biicode)
 
 ~~~
 bii init -L
-bii configure -DCMAKE_BUILD_TYPE=Release ..
+bii configure -DCMAKE_BUILD_TYPE=Release
 bii build -j4
 ~~~
 
@@ -44,12 +44,12 @@ Cross compile from Linux (with biicode)
 
 ~~~
 bii init -L
-bii configure -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=`pwd`/Toolchain-cross-mingw.cmake -DCOMPILER_PREFIX=<COMPILER_PREFIX> ..
+bii configure -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=`pwd`/Toolchain-cross-mingw.cmake -DCOMPILER_PREFIX=<COMPILER_PREFIX>
 bii build -j4
 ~~~
 
 Replace `<COMPILER_PREFIX>` with the prefix of your mingw cross compiler. In
-Ubuntu use `x86_64-w64-mingw32`.
+Ubuntu use `i686-w64-mingw32`.
 
   
 Compile (without biicode)
