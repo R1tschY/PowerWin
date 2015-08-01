@@ -10,10 +10,10 @@
 #include <functional>
 #include <thread>
 #include <string>
-#include "c++/macros.h"
+#include <c++/macros.h>
 #include "macros.h"
 #include "systemmenuhook.h"
-#include "windows/debug.h"
+#include <windows/core/debug.h>
 
 namespace Windows {
 
@@ -33,6 +33,7 @@ void RemoteManager::run()
 
 void RemoteManager::quit()
 {
+  print(L"%s: RemoteManager::quit", POWERWIN_APP_NAME);
   mailslot_.quit();
 }
 

@@ -3,7 +3,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 
 # Compiler
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_DLL")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_DLL") # TODO
   
 # Packages
 if (BIICODE)
@@ -12,11 +12,13 @@ endif()
 find_package(Boost REQUIRED)
 
 # Sources
-file(GLOB_RECURSE libpowerwin_SOURCES "*.cpp")
-file(GLOB_RECURSE libpowerwin_HEADERS "*.h")
+file(GLOB_RECURSE hooklib_SOURCES "*.cpp")
+file(GLOB_RECURSE windows_core_SOURCES "../libs/windows/core/*.cpp")
+set(windows_extra_SOURCES ../libs/windows/extra/hook.cpp ../libs/windows/extra/dll.cpp ../libs/windows/ipc/ipcmailbox.cpp)
+
+set(libpowerwin_SOURCES ${hooklib_SOURCES} ${windows_core_SOURCES} ${windows_extra_SOURCES})
 
 # Libs
-set(libpowerwin_LIBS "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lwinpthread -Wl,-Bdynamic -lgdiplus -lole32 -lshell32")
 if (BIICODE)
 	set(libpowerwin_LIBS ${libpowerwin_LIBS} ${BII_LIB_DEPS} ${Boost_LIBRARIES})
 else()

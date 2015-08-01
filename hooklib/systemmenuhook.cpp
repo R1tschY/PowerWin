@@ -8,9 +8,10 @@
 #include <systemmenuhook.h>
 
 #include <windows.h>
-#include "c++/uninitized.h"
-#include "c++/utils.h"
-#include "windows/hook.h"
+#include <c++/uninitized.h>
+#include <c++/utils.h>
+#include <windows/extra/hook.h>
+#include <windows/core.h>
 #include "macros.h"
 
 namespace {
@@ -75,17 +76,20 @@ bool IsWindowAlwaysOnTop(HWND hwnd) {
   return (GetWindowLongPtr(hwnd, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
 }
 
-void SetWindowAlwaysOnTop(HWND hwnd, bool new_state) {
+void SetWindowAlwaysOnTop(HWND hwnd, bool new_state)
+{
   auto exstyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
 
-  if (new_state)
+ /* if (new_state)
   {
     exstyle |= WS_EX_TOPMOST;
   }
   else
   {
     exstyle &= ~WS_EX_TOPMOST;
-  }
+  }*/
+
+  exstyle ^= WS_EX_TOPMOST;
 
   SetWindowLongPtr(hwnd, GWL_EXSTYLE, exstyle);
   SetWindowPos(hwnd, HWND_TOPMOST, 0,0,0,0,
@@ -101,16 +105,16 @@ void UpdateSystemMenu(HWND hwnd, bool new_state) {
           SystemMenuHook::MenuId::AlwaysOnTop,
           MF_STRING | state_flag,
           SystemMenuHook::MenuId::AlwaysOnTop,
-          L"Immer im Vordergrund");
+          L"Topmost");
   }
 }
 
 static BOOL CALLBACK downgrade_window(HWND hwnd, LPARAM lParam) {
   HMENU menu = GetSystemMenu(hwnd, false);
   if (IsMenu(menu)) {
-    // hat Systemmenu
+    // system menu exists
 
-    // vorhandenes Menü löschen
+    // remove existing menu
     while (ExistsMenuItem(menu, SystemMenuHook::MenuId::AlwaysOnTop))
       DeleteMenu(menu, SystemMenuHook::MenuId::AlwaysOnTop, MF_BYCOMMAND);
   }
@@ -179,6 +183,8 @@ void activate(const IPCData&)
 {
   systemmenu_hook.construct();
   systemmenu_hook->create(WH_CBT, Hook::AllThreads, systemmenu_hook_proc);
+
+  print(L"%s: %s", POWERWIN_APP_NAME, __PRETTY_FUNCTION__);
 
 #if CPUBITSET == 32
   MessageBeep(MB_OK);

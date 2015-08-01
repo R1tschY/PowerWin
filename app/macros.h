@@ -1,7 +1,5 @@
 #pragma once
 
-#include <c++/macros.h>
-
 #define DLL_SHARED __attribute__((section ("shared"), shared))
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -39,21 +37,4 @@
 
 #if CPUBITSET == 32
 # define MAIN_MODULE 1
-#endif
-
-
-#if CPUBITSET == 32
-# define POWERWIN_APP_NAME "PowerWin32"
-# define POWERWIN_64BIT_NAME "PowerWin64"
-# define POWERWIN_64BIT_NAME_W TO_WIDESTRING(POWERWIN_64BIT_NAME)
-#elif CPUBITSET == 64
-# define POWERWIN_APP_NAME "PowerWin64"
-#endif
-
-#define POWERWIN_APP_NAME_W TO_WIDESTRING(POWERWIN_APP_NAME)
-
-#ifdef BUILD_DLL
-#define DLL_PUBLIC __declspec(dllexport)
-#else
-#define DLL_PUBLIC __declspec(dllimport)
 #endif
