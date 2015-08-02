@@ -17,10 +17,15 @@
 
 namespace {
 
+bool isDotName(const wchar_t* path)
+{
+  return path[0] == '.' && (path[1] == '\0' || (path[1] == '.' && path[2] == '\0'));
+}
+
 bool ListFiles(std::wstring path, std::wstring mask, std::vector<Windows::Path>& files)
 {
   Windows::FindHandle hFind;
-  WIN32_FIND_DATA ffd;
+  WIN32_FIND_DATAW ffd;
   std::wstring spec;
   std::stack<std::wstring> directories;
 
@@ -29,17 +34,20 @@ bool ListFiles(std::wstring path, std::wstring mask, std::vector<Windows::Path>&
   while (!directories.empty())
   {
     path = directories.top();
+    print(L"Search path: %ls", path);
     spec = path + L"\\" + mask;
     directories.pop();
 
     hFind = Windows::FindHandle(FindFirstFileW(spec.c_str(), &ffd));
-    if (hFind.get() == INVALID_HANDLE_VALUE)  {
-      return false;
+    if (hFind.get() != INVALID_HANDLE_VALUE)
+    {
+      print("Cannot open path: %ls", spec.c_str());
+      win_print_fail();
+      continue;
     }
 
     do {
-      if (wcscmp(ffd.cFileName, L".") != 0 &&
-          wcscmp(ffd.cFileName, L"..") != 0)
+      if (!isDotName(ffd.cFileName))
       {
         if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {
@@ -52,7 +60,10 @@ bool ListFiles(std::wstring path, std::wstring mask, std::vector<Windows::Path>&
       }
     } while (FindNextFileW(hFind.get(), &ffd) != 0);
 
-    if (GetLastError() != ERROR_NO_MORE_FILES) {
+    DWORD error = GetLastError();
+    if (error != ERROR_NO_MORE_FILES)
+    {
+      win_print_on_fail(HRESULT(error));
       return false;
     }
   }

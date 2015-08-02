@@ -79,20 +79,21 @@ bool IsWindowAlwaysOnTop(HWND hwnd) {
 void SetWindowAlwaysOnTop(HWND hwnd, bool new_state)
 {
   auto exstyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+  HWND parent;
 
- /* if (new_state)
+  if (new_state)
   {
     exstyle |= WS_EX_TOPMOST;
+    parent = HWND_TOPMOST;
   }
   else
   {
     exstyle &= ~WS_EX_TOPMOST;
-  }*/
-
-  exstyle ^= WS_EX_TOPMOST;
+    parent = HWND_NOTOPMOST;
+  }
 
   SetWindowLongPtr(hwnd, GWL_EXSTYLE, exstyle);
-  SetWindowPos(hwnd, HWND_TOPMOST, 0,0,0,0,
+  SetWindowPos(hwnd, parent, 0,0,0,0,
                SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 }
 
