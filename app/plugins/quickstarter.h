@@ -7,10 +7,10 @@
 #include <windows/ipc/ipcmailbox.h>
 #include <windows/ipc/ipcconnection.h>
 
-class QuickStarter : public Plugin
+class QuickStarterPlugin : public Plugin
 {
 public:
-  QuickStarter();
+  QuickStarterPlugin();
 
   void updateDatabase();
   void show();

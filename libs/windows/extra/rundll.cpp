@@ -21,8 +21,7 @@ Process RunDll::execute64BitDll(cpp::wstring_view dll_name, cpp::wstring_view en
   print(L"%ls\n", cmdln.c_str());
 
   if (!Path::exists(dll_name)) {
-    print(L"RunDll64Bit: '%ls' does not exist.\n", dll_name.begin());
-    return Process();
+    throw std::runtime_error("RunDll64Bit: dll does not exist.\n");
   }
 
   return Process::runCmdln(std::move(cmdln));
