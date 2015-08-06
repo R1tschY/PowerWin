@@ -27,7 +27,6 @@
 #include "plugins/FullscreenPlugin.h"
 #include "plugins/SystemMenuPlugin.h"
 #include "plugins/SplashScreenPlugin.h"
-#include "plugins/quickstarter.h"
 #include "../hooklib/macros.h"
 
 #include "../hooklib/remotemanager.h"
@@ -45,7 +44,6 @@ PowerWin::PowerWin() :
   //plugins_.emplace_back(new FullscreenPlugin());
   plugins_.emplace_back(new SystemMenuPlugin());
   plugins_.emplace_back(new SplashScreenPlugin());
-  plugins_.emplace_back(new QuickStarterPlugin());
 }
 
 PowerWin::~PowerWin() {  }
