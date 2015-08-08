@@ -41,7 +41,7 @@ PowerWin::PowerWin() :
 {
   plugins_.emplace_back(new ActionsPlugin());
   plugins_.emplace_back(new ScrollPlugin());
-  //plugins_.emplace_back(new FullscreenPlugin());
+  plugins_.emplace_back(new FullscreenPlugin());
   plugins_.emplace_back(new SystemMenuPlugin());
   plugins_.emplace_back(new SplashScreenPlugin());
 }

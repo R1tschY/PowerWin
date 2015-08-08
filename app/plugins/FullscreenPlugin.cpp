@@ -2,8 +2,6 @@
 
 #include <functional>
 #include <powrprof.h>
-#include <string>
-#include <type_traits>
 
 #include <windows/base/timeout.h>
 #include <windows/core.h>
@@ -17,28 +15,33 @@
 
 FullscreenPlugin::FullscreenPlugin() :
   Plugin(L"fullscreen"),
-  timeout_(std::bind(&FullscreenPlugin::onTimeout, this), -1)
+  timeout_(std::bind(&FullscreenPlugin::update, this), 10000),
+  fullscreen_window_(false)
 { }
 
-void FullscreenPlugin::onActivate(const Options& options) {
+void FullscreenPlugin::onActivate(const Options& options)
+{
   fullscreen_window_ = false;
-  onTimeout();
-  timeout_.setInterval(10);
+  update();
+  timeout_.stop();
 }
 
-void FullscreenPlugin::onDeactivate() {
-  timeout_.setInterval(-1);
+void FullscreenPlugin::onDeactivate()
+{
+  timeout_.stop();
 }
 
 inline static
-bool isScreensaverActive() {
+bool isScreensaverActive()
+{
   BOOL result;
-  SystemParametersInfo(SPI_GETSCREENSAVERRUNNING, 0, &result, 0);
+  SystemParametersInfoW(SPI_GETSCREENSAVERRUNNING, 0, &result, 0);
   return result;
 }
 
 static
-HWND getFullscreenWindow() {
+HWND getFullscreenWindow()
+{
   RECT desktop_rect;
   HWND desktop_window = GetDesktopWindow();
   RECT app;
@@ -53,7 +56,7 @@ HWND getFullscreenWindow() {
       && app.top    <= desktop_rect.top
       && app.bottom >= desktop_rect.bottom
       && app.right  >= desktop_rect.right
-      && app.left   <= desktop_rect.left
+      && app.left   <= desktop_rect.left // TODO: Rect.isWarping()
       && !isScreensaverActive())
   {
     return hwnd;
@@ -63,14 +66,16 @@ HWND getFullscreenWindow() {
 }
 
 inline static
-bool existsFullscreenWindow() {
+bool existsFullscreenWindow()
+{
   return getFullscreenWindow() != nullptr;
 }
 
-void FullscreenPlugin::onTimeout() {
+void FullscreenPlugin::update()
+{
   bool state = existsFullscreenWindow();
 
-  // Wenn Fullscreenfenster vorhanden im Pollingmodus arbeiten (sollte zuverlässig auf allen Systemen funktionieren)
+  // if fullscreen window exists, work in polling mode.
   if (state) {
     SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
   }

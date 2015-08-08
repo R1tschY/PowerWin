@@ -15,6 +15,6 @@ private:
   Windows::Timeout timeout_;
   bool fullscreen_window_;
 
-  void onTimeout();
+  void update();
 };
 
