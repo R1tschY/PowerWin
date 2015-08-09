@@ -15,7 +15,7 @@
 
 FullscreenPlugin::FullscreenPlugin() :
   Plugin(L"fullscreen"),
-  timeout_(std::bind(&FullscreenPlugin::update, this), 10000),
+  timeout_(std::bind(&FullscreenPlugin::update, this), 60000),
   fullscreen_window_(false)
 { }
 
@@ -23,7 +23,7 @@ void FullscreenPlugin::onActivate(const Options& options)
 {
   fullscreen_window_ = false;
   update();
-  timeout_.stop();
+  timeout_.start();
 }
 
 void FullscreenPlugin::onDeactivate()
