@@ -26,5 +26,5 @@ include_directories(${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR})
 # Target
 add_executable(PowerWinApp ${PowerWinApp_SOURCES} ${PowerWinApp_RESOURCES})
 set_target_properties(PowerWinApp PROPERTIES COMPILE_FLAGS "-m32 -mwindows" LINK_FLAGS "-m32 -mwindows")
-target_link_libraries(PowerWinApp powerwin32 -lole32 -lshell32 -lgdiplus)
+target_link_libraries(PowerWinApp powerwin32 -lole32 -lshell32 -lcomctl32 -lgdiplus)
 

@@ -11,14 +11,17 @@
 #include <c++/uninitized.h>
 #include <c++/utils.h>
 #include <windows/extra/hook.h>
+#include <windows/base/resources.h>
+#include <windows/extra/dll.h>
 #include <windows/core.h>
 #include "macros.h"
+#include "resources.h"
 
 namespace {
 
 using namespace Windows;
 
-DLL_SHARED cpp::uninitialized<Hook> systemmenu_hook;
+WINDOWS_DLL_SHARED cpp::uninitialized<Hook> systemmenu_hook;
 
 /*static std::wstring GetMenuItemDisplayName(HMENU menu, unsigned item) {
   MENUITEMINFO info;
@@ -64,6 +67,11 @@ DLL_SHARED cpp::uninitialized<Hook> systemmenu_hook;
   return result;
 }*/
 
+const wchar_t* getTopMostString() {
+  static std::wstring topmost_string = Resources::getString(POWERWIN_STR_TOPMOST);
+  return topmost_string.c_str();
+}
+
 bool ExistsMenuItem(HMENU menu, unsigned id) {
   MENUITEMINFO info;
   info.cbSize = sizeof(info);
@@ -79,21 +87,21 @@ bool IsWindowAlwaysOnTop(HWND hwnd) {
 void SetWindowAlwaysOnTop(HWND hwnd, bool new_state)
 {
   auto exstyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-  HWND parent;
+  HWND z_pos;
 
   if (new_state)
   {
     exstyle |= WS_EX_TOPMOST;
-    parent = HWND_TOPMOST;
+    z_pos = HWND_TOPMOST;
   }
   else
   {
     exstyle &= ~WS_EX_TOPMOST;
-    parent = HWND_NOTOPMOST;
+    z_pos = HWND_NOTOPMOST;
   }
 
   SetWindowLongPtr(hwnd, GWL_EXSTYLE, exstyle);
-  SetWindowPos(hwnd, parent, 0,0,0,0,
+  SetWindowPos(hwnd, z_pos, 0,0,0,0,
                SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 }
 
@@ -106,7 +114,7 @@ void UpdateSystemMenu(HWND hwnd, bool new_state) {
           SystemMenuHook::MenuId::AlwaysOnTop,
           MF_STRING | state_flag,
           SystemMenuHook::MenuId::AlwaysOnTop,
-          L"Topmost");
+          getTopMostString());
   }
 }
 
@@ -123,11 +131,9 @@ static BOOL CALLBACK downgrade_window(HWND hwnd, LPARAM lParam) {
   return true;
 }
 
-BOOL CALLBACK systemmenu_upgrade_window(HWND hwnd, LPARAM lParam) {
-  wchar_t class_name[255];
-  GetClassNameW(hwnd, class_name, cpp::length(class_name));
+BOOL CALLBACK systemmenu_upgrade_window(HWND hwnd, LPARAM lParam)
+{
   HMENU menu = GetSystemMenu(hwnd, false);
-
   if (IsMenu(menu))
   {
     // window with system menu
@@ -140,7 +146,7 @@ BOOL CALLBACK systemmenu_upgrade_window(HWND hwnd, LPARAM lParam) {
       InsertMenu(menu, SC_CLOSE,
                  IsWindowAlwaysOnTop(hwnd) ? MF_CHECKED : MF_UNCHECKED,
                      SystemMenuHook::MenuId::AlwaysOnTop,
-                 L"Topmost"); // TODO de: Immer im Vordergrund
+                     getTopMostString());
 
       // seperator
       InsertMenu(menu, SC_CLOSE, MF_SEPARATOR, SystemMenuHook::MenuId::AlwaysOnTop, nullptr);
@@ -177,10 +183,9 @@ LRESULT CALLBACK systemmenu_hook_proc(int code, WPARAM wParam, LPARAM lParam)
 
 }
 
-namespace Windows {
 namespace SystemMenuHook {
 
-void activate(const IPCData&)
+void activate(const Windows::IPCData&)
 {
   systemmenu_hook.construct();
   systemmenu_hook->create(WH_CBT, Hook::AllThreads, systemmenu_hook_proc);
@@ -194,7 +199,7 @@ void activate(const IPCData&)
 #endif
 }
 
-void deactivate(const IPCData&)
+void deactivate(const Windows::IPCData&)
 {
   systemmenu_hook->destroy();
 
@@ -205,4 +210,3 @@ void deactivate(const IPCData&)
 }
 
 } // namespace SystemMenuHook
-} // namespace Windows

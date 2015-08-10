@@ -1,1 +1,9 @@
+#include <windows.h>
+#include "resources.h"
+
+// Manifest
 CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "powerwin.manifest"
+
+// Icons
+POWERWIN_ICON_SMALL ICON "img/small.ico"
+POWERWIN_ICON_LARGE ICON "img/large.ico"

@@ -16,14 +16,14 @@ OnScreenDisplay::OnScreenDisplay() :
 
 void OnScreenDisplay::onPaint(Graphics& context)
 {
-  SolidBrush pen(Color(Color::Black));
+  static SolidBrush white(Color(Color::White));
+  static Font font(L"Arial", 32);
+  static SolidBrush pen(Color(Color::Black));
+
   context.FillRectangle(&pen, getClientRect());
 
-  SolidBrush white(Color(Color::White));
-  Font font(L"Arial", 32);
   StringFormat format;
   format.SetAlignment(StringAlignmentCenter);
-
   context.DrawString(L"PowerWin", -1, &font, getClientRect().getRectF(), &format, &white);
 }
 

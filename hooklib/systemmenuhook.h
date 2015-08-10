@@ -9,8 +9,8 @@
 #define HOOKLIB_SYSTEMMENUHOOK_H_
 
 namespace Windows {
-
 class IPCData;
+}
 
 namespace SystemMenuHook {
 
@@ -20,10 +20,9 @@ enum MenuId : unsigned {
 };
 } // namespace MenuId
 
-void activate(const IPCData&);
-void deactivate(const IPCData&);
+void activate(const Windows::IPCData&);
+void deactivate(const Windows::IPCData&);
 
 } // namespace SystemMenuHook
-} // namespace Windows
 
 #endif /* HOOKLIB_SYSTEMMENUHOOK_H_ */

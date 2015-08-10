@@ -64,6 +64,8 @@ struct HandleDeleter {
 
 using Handle = std::unique_ptr<HANDLE, HandleDeleter>;
 
+//
+
 struct HandleExDeleter {
   typedef HANDLE pointer;
 
@@ -73,6 +75,8 @@ struct HandleExDeleter {
 
 using HandleEx = std::unique_ptr<HANDLE, HandleExDeleter>;
 
+//
+
 struct FindHandleDeleter {
   typedef HANDLE pointer;
 
@@ -81,6 +85,17 @@ struct FindHandleDeleter {
 };
 
 using FindHandle = std::unique_ptr<HANDLE, FindHandleDeleter>;
+
+//
+
+struct IconHandleDeleter {
+  typedef HICON pointer;
+
+  void operator()(HICON ptr)
+  { DestroyIcon(ptr); }
+};
+
+using IconHandle = std::unique_ptr<HICON, IconHandleDeleter>;
 
 } // namespace Windows
 

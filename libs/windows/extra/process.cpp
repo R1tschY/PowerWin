@@ -26,7 +26,7 @@ Process Process::runCmdln(cpp::wstring_view cmdln, cpp::wstring_view working_dir
     working_directory.c_str(),
     &si,
     &pi);
-  win_throw_on_fail(success != true);
+  win_throw_on_fail(success == true);
 
   return Process(pi);
 }

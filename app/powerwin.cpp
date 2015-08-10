@@ -13,6 +13,7 @@
 #include <windows/controls/utilwindow.h>
 #include <windows/base/path.h>
 #include <windows/base/application.h>
+#include <windows/base/resources.h>
 #include <windows/extra/trayicon.h>
 #include <windows/controls.h>
 #include <windows/base/configfile.h>
@@ -20,6 +21,7 @@
 #include <windows/controls/gdipluscontext.h>
 
 #include "powerwin.h"
+#include "resources.h"
 
 #include <app/powerwin.h>
 #include "plugins/ActionsPlugin.h"
@@ -111,10 +113,7 @@ void PowerWin::onCreate() {
 
 //  tray_icon_.add(getWindow(), LoadIcon(NULL, IDI_APPLICATION), wstring_literal(POWERWIN_APP_NAME));
   tray_icon_.add(getNativeHandle(),
-                ExtractIcon(
-                  Windows::Application::getInstance(),
-                  L"C:\\Windows\\system32\\shell32.dll",
-                  -26),
+    Windows::Resources::getIcon(GetModuleHandle(nullptr), POWERWIN_ICON_SMALL),
                  wstring_literal(POWERWIN_APP_NAME));
 }
 
@@ -149,15 +148,6 @@ void PowerWin::onDestroy() {
 
   // exit process
   PostQuitMessage(0);
-}
-
-extern "C"
-void CALLBACK FixWindows(HINSTANCE hInstance,
-                         HINSTANCE hPrevInstance,
-                         LPSTR lpCmdLine,
-                         int nCmdShow)
-{
-
 }
 
 int APIENTRY WinMain(HINSTANCE hInstance,

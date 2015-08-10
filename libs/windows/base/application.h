@@ -14,7 +14,7 @@
 
 namespace Windows {
 
-class Application final {
+class Application {
   DISALLOW_COPY_AND_ASSIGN(Application);
 
 public:

@@ -11,8 +11,6 @@
 #include <windows/ipc/ipcmailbox.h>
 #include "macros.h"
 
-namespace Windows {
-
 class RemoteManager {
 public:
   RemoteManager();
@@ -21,10 +19,8 @@ public:
   void quit();
 
 private:
-  IPCMailbox mailslot_;
+  Windows::IPCMailbox mailslot_;
 };
-
-} /* namespace Windows */
 
 extern "C" {
 

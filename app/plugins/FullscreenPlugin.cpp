@@ -15,7 +15,7 @@
 
 FullscreenPlugin::FullscreenPlugin() :
   Plugin(L"fullscreen"),
-  timeout_(std::bind(&FullscreenPlugin::update, this), 60000),
+  timeout_(std::bind(&FullscreenPlugin::update, this), 59000),
   fullscreen_window_(false)
 { }
 
