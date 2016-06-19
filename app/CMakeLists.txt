@@ -1,8 +1,5 @@
 
 # Packages
-if (BIICODE)
-    bii_setup_boost(REQUIRED)
-endif()
 find_package(Boost REQUIRED)
 
 # Sources

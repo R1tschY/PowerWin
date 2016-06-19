@@ -30,30 +30,8 @@ Known Issues
   	- in Visual Studio 2010
   	- when the active window is topmost
   
-Compile (with biicode)
-----------------------
-
-~~~
-bii init -L
-bii configure -DCMAKE_BUILD_TYPE=Release
-bii build -j4
-~~~
-
-Cross compile from Linux (with biicode)
----------------------------------------
-
-~~~
-bii init -L
-bii configure -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=`pwd`/Toolchain-cross-mingw.cmake -DCOMPILER_PREFIX=<COMPILER_PREFIX>
-bii build -j4
-~~~
-
-Replace `<COMPILER_PREFIX>` with the prefix of your mingw cross compiler. In
-Ubuntu use `i686-w64-mingw32`.
-
-  
-Compile (without biicode)
--------------------------
+Compile
+-------
 
 ~~~
 mkdir build
@@ -63,8 +41,8 @@ make -j4
 ~~~
 Replace `<BOOST_DIR>` with the directory you installed boost, e.x. `C:\boost_1_55_0`.
 
-Cross compile from Linux (without biicode)
-------------------------------------------
+Cross compile from Linux
+------------------------
 
 ~~~
 mkdir build
@@ -75,4 +53,5 @@ make -j4
 
 Replace `<COMPILER_PREFIX>` with the prefix of your mingw cross compiler. In
 Ubuntu use `x86_64-w64-mingw32`. Also replace `<BOOST_DIR>` with the directory
-you installed boost, e.x. `~/boost_1_55_0`.
+you installed boost, e.x. `~/boost_1_55_0`. `<BOOST_DIR>` should not be 
+`/usr/include` or a other system include directory.
