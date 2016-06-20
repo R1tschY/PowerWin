@@ -124,7 +124,7 @@ static BOOL CALLBACK downgrade_window(HWND hwnd, LPARAM lParam) {
     // system menu exists
 
     // remove existing menu
-    while (ExistsMenuItem(menu, SystemMenuHook::MenuId::AlwaysOnTop))
+    if (ExistsMenuItem(menu, SystemMenuHook::MenuId::AlwaysOnTop))
       DeleteMenu(menu, SystemMenuHook::MenuId::AlwaysOnTop, MF_BYCOMMAND);
   }
 
