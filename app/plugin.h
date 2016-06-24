@@ -2,8 +2,8 @@
 
 #include <string>
 #include <unordered_map>
-#include <c++/stringview.h>
-#include <windows/core.h>
+#include <cpp-utils/strings/string_view.h>
+#include <lightports/core.h>
 
 class Plugin {
   DISALLOW_COPY_AND_ASSIGN(Plugin);

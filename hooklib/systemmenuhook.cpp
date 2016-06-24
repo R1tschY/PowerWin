@@ -8,12 +8,10 @@
 #include <systemmenuhook.h>
 
 #include <windows.h>
-#include <c++/uninitized.h>
-#include <c++/utils.h>
-#include <windows/extra/hook.h>
-#include <windows/base/resources.h>
-#include <windows/extra/dll.h>
-#include <windows/core.h>
+#include <cpp-utils/storage/uninitized.h>
+#include <lightports/extra/hook.h>
+#include <lightports/extra/dll.h>
+#include <lightports/core.h>
 #include "macros.h"
 #include "resources.h"
 
@@ -21,7 +19,7 @@ namespace {
 
 using namespace Windows;
 
-WINDOWS_DLL_SHARED cpp::uninitialized<Hook> systemmenu_hook;
+DLL_SHARED cpp::uninitialized<Hook> systemmenu_hook;
 
 /*static std::wstring GetMenuItemDisplayName(HMENU menu, unsigned item) {
   MENUITEMINFO info;
@@ -68,7 +66,7 @@ WINDOWS_DLL_SHARED cpp::uninitialized<Hook> systemmenu_hook;
 }*/
 
 const wchar_t* getTopMostString() {
-  static std::wstring topmost_string = Resources::getString(POWERWIN_STR_TOPMOST);
+  static std::wstring topmost_string; // TODO = Resources::getString(POWERWIN_STR_TOPMOST);
   return topmost_string.c_str();
 }
 

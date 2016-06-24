@@ -10,13 +10,13 @@
 #include <functional>
 #include <thread>
 #include <string>
-#include <c++/macros.h>
+#include <cpp-utils/preprocessor.h>
 #include "macros.h"
 #include "systemmenuhook.h"
-#include <windows/core/debug.h>
+#include <lightports/core/debug.h>
 
 RemoteManager::RemoteManager()
-: mailslot_(L"\\\\.\\mailslot\\PowerWin\\" WSTRINGIFY(CPUBITSET), 1024, MAILSLOT_WAIT_FOREVER)
+: mailslot_(L"\\\\.\\mailslot\\PowerWin\\" CPP_WSTRINGIFY(CPUBITSET), 1024, MAILSLOT_WAIT_FOREVER)
 {
   print(L"add function: %s len: %u", std::string("SystemMenuHook::activate").c_str(), (unsigned)std::string("SystemMenuHook::activate").size());
 

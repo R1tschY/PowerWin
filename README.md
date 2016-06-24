@@ -30,6 +30,8 @@ Known Issues
   	- in Visual Studio 2010
   	- when the active window is topmost
   
+  * OpenCV `cv::namedWindow` ends in dead-lock for system-menu module
+  
 Compile
 -------
 
@@ -44,14 +46,19 @@ Replace `<BOOST_DIR>` with the directory you installed boost, e.x. `C:\boost_1_5
 Cross compile from Linux
 ------------------------
 
+install *Mingw* cross-compiler, e.x.
+~~~
+sudo apt-get install mingw-w64 # for ubuntu
+~~~
+
 ~~~
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=<BOOST_DIR> -DCMAKE_TOOLCHAIN_FILE=../Toolchain-cross-mingw.cmake -DCOMPILER_PREFIX=<COMPILER_PREFIX> ..
+cmake -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=<BOOST_DIR> -DCOMPILER_PREFIX=<COMPILER_PREFIX> ..
 make -j4
 ~~~
 
 Replace `<COMPILER_PREFIX>` with the prefix of your mingw cross compiler. In
 Ubuntu use `x86_64-w64-mingw32`. Also replace `<BOOST_DIR>` with the directory
 you installed boost, e.x. `~/boost_1_55_0`. `<BOOST_DIR>` should not be 
-`/usr/include` or a other system include directory.
+`/usr/include` or any other host system include directory.

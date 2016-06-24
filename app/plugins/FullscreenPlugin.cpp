@@ -3,8 +3,8 @@
 #include <functional>
 #include <powrprof.h>
 
-#include <windows/base/timeout.h>
-#include <windows/core.h>
+#include <lightports/base/timeout.h>
+#include <lightports/core.h>
 #include "../macros.h"
 
 //

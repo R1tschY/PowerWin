@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../plugin.h"
-#include <windows/extra/hook.h>
-#include <windows/base/timeout.h>
+#include <lightports/extra/hook.h>
+#include <lightports/base/timeout.h>
 
 class FullscreenPlugin : public Plugin {
 public:
