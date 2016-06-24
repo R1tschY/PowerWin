@@ -2,7 +2,7 @@
 #define SYSTEMMENU_H
 
 #include "../plugin.h"
-#include <windows/ipc/ipcconnection.h>
+#include <lightports/ipc/ipcconnection.h>
 
 class SystemMenuPlugin : public Plugin {
 public:

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../plugin.h"
-#include <windows/extra/hook.h>
+#include <lightports/extra/hook.h>
 
 constexpr int SHIFTED = 0x8000;
 

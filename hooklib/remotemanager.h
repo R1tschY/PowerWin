@@ -8,7 +8,7 @@
 #ifndef HOOKLIB_REMOTEMANAGER_H_
 #define HOOKLIB_REMOTEMANAGER_H_
 
-#include <windows/ipc/ipcmailbox.h>
+#include <lightports/ipc/ipcmailbox.h>
 #include "macros.h"
 
 class RemoteManager {

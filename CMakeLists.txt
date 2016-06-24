@@ -1,5 +1,22 @@
-cmake_minimum_required (VERSION 2.8.11)
-project (PowerWin)
+# detect non-Windows and use cross-mingw64
+if (NOT WIN32 AND NOT CMAKE_TOOLCHAIN_FILE)
+  set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Toolchain-cross-mingw.cmake")
+endif()
+
+# cmake version
+cmake_minimum_required (VERSION 3.0)
+cmake_policy(VERSION 3.2)
+cmake_policy(SET CMP0048 NEW)
+
+# project
+project(PowerWin VERSION 0.2)
+
+# include util modules
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+include(AddCXXFlags)
+include(AddConfig)
+include(LTO)
+include(CompileForWindows)
 
 if (NOT(CMAKE_SIZEOF_VOID_P EQUAL 8))
   message(WARNING "You need a 64bit enviroment to compile the 64bit hook library.")
@@ -10,58 +27,58 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON) 
 
 # C++14
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++1y")
+#set_property(GLOBAL PROPERTY CXX_STANDARD 14)
+#set_property(GLOBAL PROPERTY CXX_STANDARD_REQUIRED ON)
+add_flags(CXX "-std=gnu++14")
+
+# stdlibs
+add_flags(LD "-static-libgcc -static-libstdc++")
 
 # Windows
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--subsystem,windows")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--subsystem,windows")
-
-# Unicode
-add_definitions(-DUNICODE -D_UNICODE)
-
-# Windows XP
-#add_definitions(-DNTDDI_VERSION=0x05010300 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -D_WIN32_IE=0x0700)
-
-# Windows Vista
-add_definitions(-DNTDDI_VERSION=0x06000000 -D_WIN32_WINNT=0x0600 -DWINVER=0x0600 -D_WIN32_IE=0x0700)
+compile_for_windows(UNICODE STRICT VERSION Vista)
 
 # Debug mode
-set(DEBUG_FLAGS "-Og -DDEBUG")
-
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${DEBUG_FLAGS}")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DEBUG_FLAGS}")
-set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} ${DEBUG_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${DEBUG_FLAGS}")
+add_config(
+  Debug 
+  CXX_FLAGS "-Og -DDEBUG" 
+  LINKER_FLAGS "-Og"
+)
 
 # Release mode
-set(RELEASE_FLAGS "-s -O2 -DNDEBUG")
-
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${RELEASE_FLAGS}")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${RELEASE_FLAGS}")
-set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} ${RELEASE_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${RELEASE_FLAGS}")
+add_config(
+  Release 
+  CXX_FLAGS "-O2 -DNDEBUG" 
+  LINKER_FLAGS "-s -O2"
+)
+enable_lto(CONFIG Release)
 
 # Warnings
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
- -Wall \
- -Wextra \
- -Wnon-virtual-dtor \
- -Wcast-align \
- -Wunused \
- -Woverloaded-virtual \
- -Wcast-qual \
- -Wconversion \
-")
-
-# -Wold-style-cast -Wzero-as-null-pointer-constant -Wshadow
+add_cxx_flags("-Wall -Wextra -Wshadow -Wcast-align -Wunused -Wcast-qual -Wconversion -Wno-unused-parameter")
+add_cxx_flag_checked("-Wnon-virtual-dtor")
+add_cxx_flag_checked("-Woverloaded-virtual")
+add_cxx_flag_checked("-Wold-style-cast")     
+add_cxx_flag_checked("-Wsuggest-override")
+add_cxx_flag_checked("-Wundef")
+add_cxx_flag_checked("-Wconditionally-supported")
+add_cxx_flag_checked("-Wzero-as-null-pointer-constant")
+add_cxx_flag_checked("-Wnull-dereference") # gcc 6
+add_cxx_flag_checked("-Wduplicated-cond") # gcc 6
+add_cxx_flag_checked("-Wshift-negative-value") # gcc 6
+#add_cxx_flag_checked("-Wsuggest-final-methods")
+#add_cxx_flag_checked("-Wsuggest-final-types")
 
 # Output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} libs)
+# libs
+add_subdirectory(libs/c++)
+add_subdirectory(libs/lightports)
 
+# hooklib
 add_subdirectory(hooklib)
+
+# app
 add_subdirectory(app)
 
 # utils

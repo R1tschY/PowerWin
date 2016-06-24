@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
-#include <plugin.h>
+#include "plugin.h"
 
 Plugin::Plugin(cpp::wstring_view name) :
   active_(false), options_(), name_(name.to_string())
@@ -28,7 +28,7 @@ void Plugin::deactivate() {
 }
 
 bool Plugin::getBooleanOption(cpp::wstring_view key, bool default_) {
-  auto opt = options_.find(key);
+  auto opt = options_.find(std::wstring(key));
   if (opt != options_.end()) {
     // Schlüssel vorhanden
 
@@ -40,7 +40,7 @@ bool Plugin::getBooleanOption(cpp::wstring_view key, bool default_) {
       return false;
     }
 
-    print(L"Cannot read config key %s\n", key.c_str());
+    print(L"Cannot read config key %s\n", key.data());
   }
 
   return default_;

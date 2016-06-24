@@ -1,4 +1,4 @@
-#include <app/powerwin.h>
+#include "../powerwin.h"
 #include "ActionsPlugin.h"
 
 #include <utility>
@@ -7,9 +7,9 @@
 #include <boost/range/algorithm/equal.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <c++/stringliteral.h>
-#include <c++/utils.h>
-#include <windows/core/debug.h>
+#include <cpp-utils/strings/string_literal.h>
+#include <cpp-utils/algorithm/length.h>
+#include <lightports/core/debug.h>
 
 
 ActionsPlugin::ActionsPlugin() :
@@ -54,7 +54,7 @@ void ActionsPlugin::onActivate(const Options& options)
 
   int index = 0;
   for (const Action& action : actions_) {
-    auto option = options.find(action.name);
+    auto option = options.find(std::wstring(action.name));
     if (option != options.end() &&
         parseHotkey(option->second, &hotkey))
     {

@@ -9,8 +9,8 @@
 #define PLUGINS_SPLASHSCREENPLUGIN_H_
 
 #include "../plugin.h"
-#include <windows/controls/onscreendisplay.h>
-#include <windows/base/timeout.h>
+#include <lightports/controls/onscreendisplay.h>
+#include <lightports/base/timeout.h>
 
 class SplashScreenPlugin: public Plugin {
 public:

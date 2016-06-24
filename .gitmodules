@@ -1,3 +1,12 @@
 [submodule "libs/luabridge"]
 	path = libs/luabridge
 	url = https://github.com/vinniefalco/LuaBridge.git
+[submodule "libs/c++"]
+	path = libs/c++
+	url = https://github.com/R1tschY/cpp-utils.git
+[submodule "libs/lightports"]
+	path = libs/lightports
+	url = https://github.com/R1tschY/liblightports.git
+[submodule "cmake/modules"]
+	path = cmake/modules
+	url = https://github.com/R1tschY/cmake-modules.git

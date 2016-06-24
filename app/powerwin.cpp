@@ -5,25 +5,21 @@
 #include <cstring>
 #include <iostream>
 
-#include "c++/algorithm.h"
-#include "c++/arrayref.h"
-#include "c++/boolean.h"
-#include "c++/stringliteral.h"
-#include <windows/core.h>
-#include <windows/controls/utilwindow.h>
-#include <windows/base/path.h>
-#include <windows/base/application.h>
-#include <windows/base/resources.h>
-#include <windows/extra/trayicon.h>
-#include <windows/controls.h>
-#include <windows/base/configfile.h>
-#include <windows/extra/rundll.h>
-#include <windows/controls/gdipluscontext.h>
+#include <cpp-utils/strings/string_literal.h>
+#include <lightports/core.h>
+#include <lightports/controls/utilwindow.h>
+#include <lightports/base/path.h>
+#include <lightports/base/application.h>
+#include <lightports/base/resources.h>
+#include <lightports/extra/trayicon.h>
+#include <lightports/controls.h>
+#include <lightports/base/configfile.h>
+#include <lightports/extra/rundll.h>
+#include <lightports/controls/gdipluscontext.h>
 
 #include "powerwin.h"
 #include "resources.h"
 
-#include <app/powerwin.h>
 #include "plugins/ActionsPlugin.h"
 #include "plugins/ScrollPlugin.h"
 #include "plugins/FullscreenPlugin.h"
@@ -67,7 +63,7 @@ int PowerWin::run() {
   // start 64Bit-DLL
   if (Windows::Application::Is64BitWindows()) {
     print(L"Start 64-bit process\n");
-    Windows::RunDll::execute64BitDll(Windows::Application::getExecutablePath().getFolder() + L"\\libpowerwin64.dll", L"EnterGodModus", L"");
+    Windows::RunDll::execute64BitDll(Windows::Path(Windows::Application::getExecutablePath()).getFolder() + L"\\libpowerwin64.dll", L"EnterGodModus", L"");
     // TODO: error logging
   }
 
@@ -95,7 +91,7 @@ void PowerWin::onCreate() {
   print(L"PowerWin::start\n");
 
   Windows::ConfigFile config;
-  config.loadFromFile(Windows::Application::getExecutablePath().toString()
+  config.loadFromFile(Windows::Application::getExecutablePath()
 		  + L"\\config.ini");
 
   for (auto&& plugin : plugins_) {

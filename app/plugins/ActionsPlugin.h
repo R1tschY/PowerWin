@@ -3,10 +3,10 @@
 #include <vector>
 #include <string>
 
-#include <c++/stringview.h>
+#include <cpp-utils/strings/string_view.h>
 
-#include <windows/extra/hotkey.h>
-#include <windows/controls/messagesink.h>
+#include <lightports/extra/hotkey.h>
+#include <lightports/controls/messagesink.h>
 #include "../plugin.h"
 
 struct Action {

@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include <windows/controls/window.h>
-#include <windows/extra/trayicon.h>
+#include <lightports/controls/window.h>
+#include <lightports/extra/trayicon.h>
 #include <windows.h>
 #include "plugin.h"
 
