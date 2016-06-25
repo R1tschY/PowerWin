@@ -146,10 +146,11 @@ void PowerWin::onDestroy() {
   PostQuitMessage(0);
 }
 
-int APIENTRY WinMain(HINSTANCE hInstance,
-                     HINSTANCE hPrevInstance,
-                     LPSTR lpCmdLine,
-                     int nCmdShow)
+int APIENTRY wWinMain(
+  HINSTANCE hInstance,
+  HINSTANCE hPrevInstance,
+  PWSTR pCmdLine,
+  int nCmdShow)
 {
   Windows::Application app(wstring_literal(POWERWIN_APP_NAME), hInstance);
   return app.run(PowerWin::run);

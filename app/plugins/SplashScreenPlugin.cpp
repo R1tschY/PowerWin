@@ -9,8 +9,8 @@
 
 #include <functional>
 
-#include <windows/core.h>
-#include <windows/extra/systeminformation.h>
+#include <lightports/core.h>
+#include <lightports/extra/systeminformation.h>
 
 SplashScreenPlugin::SplashScreenPlugin() :
     Plugin(wstring_literal("splash_screen")),
