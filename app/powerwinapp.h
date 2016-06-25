@@ -7,14 +7,14 @@
 #include <windows.h>
 #include "plugin.h"
 
-class PowerWin : public Windows::Window {
-  PowerWin();
-  virtual ~PowerWin();
+class PowerWinApp : public Windows::Window {
+  PowerWinApp();
+  virtual ~PowerWinApp();
 
 public:
   static int run();
 
-  static PowerWin* get() {
+  static PowerWinApp* get() {
     return instance_;
   }
 
@@ -30,7 +30,7 @@ private:
 
   Windows::TrayIcon tray_icon_;
 
-  static PowerWin* instance_;
+  static PowerWinApp* instance_;
 
   static ATOM RegisterWinClass(HINSTANCE hInstance);
 };

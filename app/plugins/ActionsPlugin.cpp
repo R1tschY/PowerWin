@@ -1,4 +1,3 @@
-#include "../powerwin.h"
 #include "ActionsPlugin.h"
 
 #include <utility>
@@ -10,6 +9,7 @@
 #include <cpp-utils/strings/string_literal.h>
 #include <cpp-utils/algorithm/length.h>
 #include <lightports/core/debug.h>
+#include "../powerwinapp.h"
 
 
 ActionsPlugin::ActionsPlugin() :
@@ -18,7 +18,7 @@ ActionsPlugin::ActionsPlugin() :
 { }
 
 static void onActionQuit() {
-  PowerWin::get()->destroy();
+  PowerWinApp::get()->destroy();
 }
 
 const Action ActionsPlugin::actions_[] = {
