@@ -34,6 +34,8 @@
 #include "../hooklib/remotemanager.h"
 #include <thread>
 
+namespace fs = boost::filesystem;
+
 PowerWin* PowerWin::instance_ = nullptr;
 
 PowerWin::PowerWin() :
@@ -66,8 +68,12 @@ int PowerWin::run() {
 
   // start 64Bit-DLL
   if (Windows::Application::Is64BitWindows()) {
+    fs::path dll_path = Windows::Application::getExecutablePath();
+    dll_path.remove_filename();
+    dll_path /= L"libpowerwin64.dll";
+
     print(L"Start 64-bit process\n");
-    Windows::RunDll::execute64BitDll(Windows::Application::getExecutablePath().getFolder() + L"\\libpowerwin64.dll", L"EnterGodModus", L"");
+    Windows::RunDll::execute64BitDll(dll_path.wstring(), L"EnterGodModus", L"");
     // TODO: error logging
   }
 
@@ -94,9 +100,12 @@ int PowerWin::run() {
 void PowerWin::onCreate() {
   print(L"PowerWin::start\n");
 
+  fs::path config_path = Windows::Application::getExecutablePath();
+  config_path.remove_filename();
+  config_path /= L"config.ini";
+
   Windows::ConfigFile config;
-  config.loadFromFile(Windows::Application::getExecutablePath().toString()
-		  + L"\\config.ini");
+  config.loadFromFile(config_path.wstring());
 
   for (auto&& plugin : plugins_) {
     Plugin::Options opts;

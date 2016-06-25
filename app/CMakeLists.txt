@@ -1,9 +1,6 @@
 
 # Packages
-if (BIICODE)
-    bii_setup_boost(REQUIRED)
-endif()
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem system)
 
 # Sources
 file(GLOB_RECURSE app_SOURCES "*.cpp")
@@ -21,10 +18,10 @@ file(GLOB_RECURSE PowerWinApp_RESOURCES "*.rc")
 # Resource compiler
 set(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} --output-format=coff --target=pe-i386")
 
-include_directories(${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
 
 # Target
 add_executable(PowerWinApp ${PowerWinApp_SOURCES} ${PowerWinApp_RESOURCES})
 set_target_properties(PowerWinApp PROPERTIES COMPILE_FLAGS "-m32 -mwindows" LINK_FLAGS "-m32 -mwindows")
-target_link_libraries(PowerWinApp powerwin32 -lole32 -lshell32 -lcomctl32 -lgdiplus)
+target_link_libraries(PowerWinApp powerwin32 -lole32 -lshell32 -lcomctl32 -lgdiplus ${Boost_LIBRARIES})
 

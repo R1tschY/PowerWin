@@ -111,16 +111,21 @@ bool Application::Is64BitWindows()
 
 // Utils
 
-Path Application::getExecutablePath() {
+std::wstring Application::getExecutablePath() {
   wchar_t result[MAX_PATH+1];
-  GetModuleFileNameW(nullptr, result, sizeof(result));
-  return Path(result);
+  DWORD size = GetModuleFileNameW(nullptr, result, MAX_PATH+1);
+  if (size == MAX_PATH+1) // TODO: use bigger buffer
+    return std::wstring(); // Ups: buffer to small
+  if (size == 0)
+    return std::wstring(); // TODO: throw
+
+  return std::wstring(result, result + size);
 }
 
-Path Application::getConigPath() {
+std::wstring Application::getConigPath() {
   wchar_t path[MAX_PATH+1];
   HRESULT hr = SHGetFolderPathW(nullptr, CSIDL_APPDATA, nullptr, 0, path);
-  return Path((hr == S_OK) ? path : nullptr);
+  return (hr == S_OK) ? path : nullptr; // TODO: exception on error, nullptr cannot be used for std::wstring
 }
 
 } // namespace Windows

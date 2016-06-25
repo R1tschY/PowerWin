@@ -32,8 +32,8 @@ public:
   static cpp::wstring_view getName() { return self().name_; }
 
   // paths
-  static Path getExecutablePath();
-  static Path getConigPath();
+  static std::wstring getExecutablePath();
+  static std::wstring getConigPath();
 
   // system
   //static WindowsVersion getWindowsVersion() { return winversion; }

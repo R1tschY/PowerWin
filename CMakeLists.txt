@@ -1,17 +1,5 @@
-if(BIICODE)
-	include(${CMAKE_HOME_DIRECTORY}/biicode.cmake)
-     
-	# Clear biicode auto detected files.
-	# BII_LIB_TARGET will be an interface target.
-	SET(BII_LIB_SRC)
-	SET(BII_BLOCK_EXES) 
-   
-	ADD_BII_TARGETS()
-	include(biicode/boost/setup)
-else()
-	cmake_minimum_required (VERSION 2.8.11)
-	project (PowerWin)
-endif()
+cmake_minimum_required (VERSION 2.8.11)
+project (PowerWin)
 
 if (NOT(CMAKE_SIZEOF_VOID_P EQUAL 8))
   message(WARNING "You need a 64bit enviroment to compile the 64bit hook library.")
@@ -68,10 +56,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
 # -Wold-style-cast -Wzero-as-null-pointer-constant -Wshadow
 
 # Output directory
-if(NOT BIICODE)
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
-	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
-endif()
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} libs)
 

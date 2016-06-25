@@ -5,6 +5,7 @@
 #include <windows/controls/window.h>
 #include <windows/extra/trayicon.h>
 #include <windows.h>
+#include <boost/filesystem/path.hpp>
 #include "plugin.h"
 
 class PowerWin : public Windows::Window {
