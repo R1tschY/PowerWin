@@ -76,13 +76,13 @@ int PowerWin::run() {
 
   powerwin.create(nullptr, wstring_literal(POWERWIN_APP_NAME));
 
-  print(L"%ls hwnd: %d\n", POWERWIN_APP_NAME_W, powerwin.getNativeHandle());
+  print(L"%ls hwnd: %d\n", CPP_TO_WIDESTRING(POWERWIN_APP_NAME), powerwin.getNativeHandle());
 
   Windows::Application::processMessages();
 
   hook_thread.join();
 
-  print(L"%ls: The end\n", POWERWIN_APP_NAME_W);
+  print(L"%ls: The end\n", CPP_TO_WIDESTRING(POWERWIN_APP_NAME));
 
   return 0;
 }
@@ -117,7 +117,7 @@ void PowerWin::onDestroy() {
   // exit 64Bit-DLL
   if (Windows::Application::Is64BitWindows()) {
     SetLastError(0);
-    HWND window_64bit = FindWindowW(POWERWIN_64BIT_NAME_W, nullptr);
+    HWND window_64bit = FindWindowW(CPP_TO_WIDESTRING(POWERWIN_64BIT_NAME), nullptr);
     if (window_64bit == nullptr) {
       // TODO check GetLastError() maybe the window is really not there
       print(L"Cannot find window to 64Bit-Process: %ls\n", Windows::GetLastWindowsError().c_str());

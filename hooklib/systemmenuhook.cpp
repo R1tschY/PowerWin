@@ -10,7 +10,9 @@
 #include <windows.h>
 #include <cpp-utils/storage/uninitized.h>
 #include <lightports/extra/hook.h>
-#include <lightports/extra/dll.h>
+#include <lightports/dll/dll.h>
+#include <lightports/extra/menu.h>
+#include <lightports/base/resources.h>
 #include <lightports/core.h>
 #include "macros.h"
 #include "resources.h"
@@ -19,7 +21,7 @@ namespace {
 
 using namespace Windows;
 
-DLL_SHARED cpp::uninitialized<Hook> systemmenu_hook;
+WINDOWS_DLL_SHARED cpp::uninitialized<Hook> systemmenu_hook;
 
 /*static std::wstring GetMenuItemDisplayName(HMENU menu, unsigned item) {
   MENUITEMINFO info;
@@ -66,16 +68,8 @@ DLL_SHARED cpp::uninitialized<Hook> systemmenu_hook;
 }*/
 
 const wchar_t* getTopMostString() {
-  static std::wstring topmost_string; // TODO = Resources::getString(POWERWIN_STR_TOPMOST);
+  static std::wstring topmost_string = Resources::getString(POWERWIN_STR_TOPMOST);
   return topmost_string.c_str();
-}
-
-bool ExistsMenuItem(HMENU menu, unsigned id) {
-  MENUITEMINFO info;
-  info.cbSize = sizeof(info);
-  info.fMask = MIIM_ID;
-  info.wID = 0;
-  return GetMenuItemInfo(menu, id, false, &info) && info.wID == id;
 }
 
 bool IsWindowAlwaysOnTop(HWND hwnd) {
@@ -103,27 +97,25 @@ void SetWindowAlwaysOnTop(HWND hwnd, bool new_state)
                SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 }
 
-void UpdateSystemMenu(HWND hwnd, bool new_state) {
-  HMENU menu = GetSystemMenu(hwnd, false);
-  if (IsMenu(menu)) {
-    UINT state_flag = ((new_state) ? (MF_CHECKED) : (MF_UNCHECKED));
-    ModifyMenu(
-          menu,
-          SystemMenuHook::MenuId::AlwaysOnTop,
-          MF_STRING | state_flag,
-          SystemMenuHook::MenuId::AlwaysOnTop,
-          getTopMostString());
+void updateSystemMenu(HWND hwnd, bool new_state)
+{
+  Menu menu = Menu::getSystemMenu(hwnd);
+  if (menu)
+  {
+    menu.modifyEntry(
+      SystemMenuHook::MenuId::AlwaysOnTop,
+      getTopMostString(),
+      new_state ? MenuEntryFlags::Checked : MenuEntryFlags::Unchecked);
   }
 }
 
-static BOOL CALLBACK downgrade_window(HWND hwnd, LPARAM lParam) {
-  HMENU menu = GetSystemMenu(hwnd, false);
-  if (IsMenu(menu)) {
-    // system menu exists
-
+static BOOL CALLBACK downgradeWindow(HWND hwnd, LPARAM lParam)
+{
+  Menu menu = Menu::getSystemMenu(hwnd);
+  if (menu) {
     // remove existing menu
-    if (ExistsMenuItem(menu, SystemMenuHook::MenuId::AlwaysOnTop))
-      DeleteMenu(menu, SystemMenuHook::MenuId::AlwaysOnTop, MF_BYCOMMAND);
+    if (menu.existsEntry(SystemMenuHook::MenuId::AlwaysOnTop))
+      menu.deleteEntry(SystemMenuHook::MenuId::AlwaysOnTop);
   }
 
   return true;
@@ -131,23 +123,25 @@ static BOOL CALLBACK downgrade_window(HWND hwnd, LPARAM lParam) {
 
 BOOL CALLBACK systemmenu_upgrade_window(HWND hwnd, LPARAM lParam)
 {
-  HMENU menu = GetSystemMenu(hwnd, false);
-  if (IsMenu(menu))
+  Menu menu = Menu::getSystemMenu(hwnd);
+  if (menu)
   {
     // window with system menu
 
-    if (ExistsMenuItem(menu, SC_CLOSE))
+    if (menu.existsEntry(SC_CLOSE))
     {
       // add own menu
 
       // 'Topmost' entry
-      InsertMenu(menu, SC_CLOSE,
-                 IsWindowAlwaysOnTop(hwnd) ? MF_CHECKED : MF_UNCHECKED,
-                     SystemMenuHook::MenuId::AlwaysOnTop,
-                     getTopMostString());
+      menu.insertEntryBefore(
+        SC_CLOSE,
+        SystemMenuHook::MenuId::AlwaysOnTop,
+        getTopMostString(),
+        IsWindowAlwaysOnTop(hwnd)
+        ? MenuEntryFlags::Checked : MenuEntryFlags::Unchecked);
 
       // seperator
-      InsertMenu(menu, SC_CLOSE, MF_SEPARATOR, SystemMenuHook::MenuId::AlwaysOnTop, nullptr);
+      menu.insertSeperatorBefore(SC_CLOSE);
     }
   }
 
@@ -166,7 +160,7 @@ LRESULT CALLBACK systemmenu_hook_proc(int code, WPARAM wParam, LPARAM lParam)
       auto hwnd = GetForegroundWindow();
       bool state = IsWindowAlwaysOnTop(hwnd);
       SetWindowAlwaysOnTop(hwnd, !state);
-      UpdateSystemMenu(hwnd, !state);
+      updateSystemMenu(hwnd, !state);
       return 1;
     }
 
@@ -192,18 +186,18 @@ void activate(const Windows::IPCData&)
 
 #if CPUBITSET == 32
   MessageBeep(MB_OK);
-  EnumWindows(downgrade_window, 0);
+  EnumWindows(downgradeWindow, 0);
   EnumWindows(systemmenu_upgrade_window, 0);
 #endif
 }
 
 void deactivate(const Windows::IPCData&)
 {
-  systemmenu_hook->destroy();
+  systemmenu_hook.destruct();
 
 #if CPUBITSET == 32
   MessageBeep(MB_OK);
-  EnumWindows(downgrade_window, 0);
+  EnumWindows(downgradeWindow, 0);
 #endif
 }
 
