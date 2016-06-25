@@ -8,8 +8,12 @@
 #ifndef HOOKLIB_REMOTEMANAGER_H_
 #define HOOKLIB_REMOTEMANAGER_H_
 
+#include <memory>
+#include <vector>
 #include <lightports/ipc/ipcmailbox.h>
+
 #include "macros.h"
+#include "hookmodule.h"
 
 class RemoteManager {
 public:
@@ -18,8 +22,12 @@ public:
   void run();
   void quit();
 
+  void activate();
+  void deactivate();
+
 private:
   Windows::IPCMailbox mailslot_;
+  std::vector<std::unique_ptr<PowerWin::HookModule>> modules_;
 };
 
 extern "C" {

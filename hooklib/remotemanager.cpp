@@ -11,8 +11,8 @@
 #include <thread>
 #include <string>
 #include <cpp-utils/preprocessor.h>
+#include <cpp-utils/algorithm/container.h>
 #include "macros.h"
-#include "systemmenuhook.h"
 #include <lightports/core/debug.h>
 
 RemoteManager::RemoteManager()
@@ -20,14 +20,26 @@ RemoteManager::RemoteManager()
 {
   print(L"add function: %s len: %u", std::string("SystemMenuHook::activate").c_str(), (unsigned)std::string("SystemMenuHook::activate").size());
 
-  mailslot_.registerFunction("SystemMenuHook::activate", &SystemMenuHook::activate);
-  mailslot_.registerFunction("SystemMenuHook::deactivate", &SystemMenuHook::deactivate);
-  mailslot_.registerFunction("quit", std::bind(&RemoteManager::quit, this));
+  cpp::transform(PowerWin::HookModuleRegistry::entries(), modules_, [](auto& entry){ return entry.create(); });
+
+  mailslot_.registerFunction("activate", [=](auto&){ this->activate(); });
+  mailslot_.registerFunction("deactivate", [=](auto&){ this->deactivate(); });
+  mailslot_.registerFunction("quit", [=](auto&){ this->quit(); });
 }
 
 void RemoteManager::run()
 {
   mailslot_.readLoop();
+}
+
+void RemoteManager::activate()
+{
+  cpp::for_each(modules_, [](auto& module) { module->activate(); });
+}
+
+void RemoteManager::deactivate()
+{
+  cpp::for_each(modules_, [](auto& module) { module->deactivate(); });
 }
 
 void RemoteManager::quit()

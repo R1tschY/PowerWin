@@ -1,3 +1,5 @@
+#include "powerwinapp.h"
+
 #include <string>
 #include <algorithm>
 #include <memory>
@@ -17,7 +19,6 @@
 #include <lightports/extra/rundll.h>
 #include <lightports/controls/gdipluscontext.h>
 
-#include "powerwin.h"
 #include "resources.h"
 
 #include "plugins/ActionsPlugin.h"
@@ -30,9 +31,9 @@
 #include "../hooklib/remotemanager.h"
 #include <thread>
 
-PowerWin* PowerWin::instance_ = nullptr;
+PowerWinApp* PowerWinApp::instance_ = nullptr;
 
-PowerWin::PowerWin() :
+PowerWinApp::PowerWinApp() :
   Window(Window::Type::Normal),
   plugins_(),
   tray_icon_()
@@ -44,9 +45,9 @@ PowerWin::PowerWin() :
   plugins_.emplace_back(new SplashScreenPlugin());
 }
 
-PowerWin::~PowerWin() {  }
+PowerWinApp::~PowerWinApp() {  }
 
-int PowerWin::run() {
+int PowerWinApp::run() {
   //  init Comctl32.dll
   /*const INITCOMMONCONTROLSEX icce = {
     sizeof(INITCOMMONCONTROLSEX),
@@ -71,7 +72,7 @@ int PowerWin::run() {
 
   Windows::GdiplusContext gdi;
 
-  PowerWin powerwin;
+  PowerWinApp powerwin;
   instance_ = &powerwin;
 
   powerwin.create(nullptr, wstring_literal(POWERWIN_APP_NAME));
@@ -87,7 +88,7 @@ int PowerWin::run() {
   return 0;
 }
 
-void PowerWin::onCreate() {
+void PowerWinApp::onCreate() {
   print(L"PowerWin::start\n");
 
   Windows::ConfigFile config;
@@ -113,7 +114,7 @@ void PowerWin::onCreate() {
                  wstring_literal(POWERWIN_APP_NAME));
 }
 
-void PowerWin::onDestroy() {
+void PowerWinApp::onDestroy() {
   // exit 64Bit-DLL
   if (Windows::Application::Is64BitWindows()) {
     SetLastError(0);
@@ -153,7 +154,7 @@ int APIENTRY wWinMain(
   int nCmdShow)
 {
   Windows::Application app(wstring_literal(POWERWIN_APP_NAME), hInstance);
-  return app.run(PowerWin::run);
+  return app.run(PowerWinApp::run);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

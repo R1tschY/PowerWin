@@ -9,13 +9,13 @@
 
 #include <windows.h>
 #include <cpp-utils/storage/uninitized.h>
-#include <lightports/extra/hook.h>
 #include <lightports/dll/dll.h>
 #include <lightports/extra/menu.h>
 #include <lightports/base/resources.h>
 #include <lightports/core.h>
 #include "macros.h"
 #include "resources.h"
+
 
 namespace {
 
@@ -175,12 +175,17 @@ LRESULT CALLBACK systemmenu_hook_proc(int code, WPARAM wParam, LPARAM lParam)
 
 }
 
-namespace SystemMenuHook {
+SystemMenuHook::SystemMenuHook()
+: hook_(systemmenu_hook)
+{ }
 
-void activate(const Windows::IPCData&)
+void SystemMenuHook::init(PowerWin::HookModuleContext& context)
 {
-  systemmenu_hook.construct();
-  systemmenu_hook->create(WH_CBT, Hook::AllThreads, systemmenu_hook_proc);
+}
+
+void SystemMenuHook::activate()
+{
+  hook_->create(WH_CBT, Hook::AllThreads, systemmenu_hook_proc);
 
   print(L"%s: %s", POWERWIN_APP_NAME, __PRETTY_FUNCTION__);
 
@@ -191,14 +196,14 @@ void activate(const Windows::IPCData&)
 #endif
 }
 
-void deactivate(const Windows::IPCData&)
+void SystemMenuHook::deactivate()
 {
-  systemmenu_hook.destruct();
-
 #if CPUBITSET == 32
   MessageBeep(MB_OK);
   EnumWindows(downgradeWindow, 0);
 #endif
 }
 
-} // namespace SystemMenuHook
+PowerWin::HookModuleRegistry::element<SystemMenuHook> SystemMenuHookModule(
+  "systemmenu", "adds extra system menu items to all windows"
+);

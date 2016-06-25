@@ -8,21 +8,33 @@
 #ifndef HOOKLIB_SYSTEMMENUHOOK_H_
 #define HOOKLIB_SYSTEMMENUHOOK_H_
 
+#include <cpp-utils/storage/uninitized.h>
+#include <lightports/extra/hook.h>
+
+#include "hookmodule.h"
+
 namespace Windows {
 class IPCData;
 }
 
-namespace SystemMenuHook {
+class SystemMenuHook : public PowerWin::HookModule
+{
+public:
+  struct MenuId {
+  enum : unsigned {
+    AlwaysOnTop = 0x00270,
+  };
+  };
 
-namespace MenuId {
-enum MenuId : unsigned {
-  AlwaysOnTop = 0x00270,
+  SystemMenuHook();
+
+  void init(PowerWin::HookModuleContext& context) override;
+
+  void activate() override;
+  void deactivate() override;
+
+private:
+  cpp::scoped_lifetime<Windows::Hook> hook_;
 };
-} // namespace MenuId
-
-void activate(const Windows::IPCData&);
-void deactivate(const Windows::IPCData&);
-
-} // namespace SystemMenuHook
 
 #endif /* HOOKLIB_SYSTEMMENUHOOK_H_ */
