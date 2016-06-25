@@ -3,9 +3,8 @@
 #include <functional>
 
 #include "../macros.h"
-#include <c++/algorithm.h>
-#include <windows/core.h>
-#include <c++/utils.h>
+#include <cpp-utils/algorithm/container.h>
+#include <lightports/core.h>
 
 ScrollPlugin::ScrollPlugin() :
   Plugin(L"scroll"),
@@ -54,8 +53,8 @@ bool ScrollPlugin::handle(POINT pt, int steps) {
       ((GetKeyState(VK_SHIFT) & SHIFTED) != 0) << 2
     | ((GetKeyState(VK_CONTROL) & SHIFTED) != 0) << 3;
 
-  PostMessage(window, WM_MOUSEWHEEL, cpp::dword(steps, vkeys),
-    cpp::dword(pt.y, pt.x));
+  PostMessage(window, WM_MOUSEWHEEL, Windows::dword(steps, vkeys),
+    Windows::dword(pt.y, pt.x));
 
   return true;
 }
