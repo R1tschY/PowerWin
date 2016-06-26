@@ -21,11 +21,6 @@
 
 #include "resources.h"
 
-#include "plugins/ActionsPlugin.h"
-#include "plugins/ScrollPlugin.h"
-#include "plugins/FullscreenPlugin.h"
-#include "plugins/SystemMenuPlugin.h"
-#include "plugins/SplashScreenPlugin.h"
 #include "../hooklib/macros.h"
 
 #include "../hooklib/remotemanager.h"
@@ -38,11 +33,6 @@ PowerWinApp::PowerWinApp() :
   plugins_(),
   tray_icon_()
 {
-  plugins_.emplace_back(new ActionsPlugin());
-  plugins_.emplace_back(new ScrollPlugin());
-  plugins_.emplace_back(new FullscreenPlugin());
-  plugins_.emplace_back(new SystemMenuPlugin());
-  plugins_.emplace_back(new SplashScreenPlugin());
 }
 
 PowerWinApp::~PowerWinApp() {  }

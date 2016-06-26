@@ -13,6 +13,7 @@ project(PowerWin VERSION 0.2)
 
 # include util modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+include(Listx)
 include(AddCXXFlags)
 include(AddConfig)
 include(LTO)
@@ -22,9 +23,12 @@ if (NOT(CMAKE_SIZEOF_VOID_P EQUAL 8))
   message(WARNING "You need a 64bit enviroment to compile the 64bit hook library.")
 endif()
 
-# Boost options
+# Boost
 set(Boost_USE_STATIC_LIBS ON) 
 set(Boost_USE_MULTITHREADED ON) 
+find_package(Boost REQUIRED)
+add_library(boost INTERFACE)
+target_include_directories(boost INTERFACE ${Boost_INCLUDE_DIRS})
 
 # C++14
 #set_property(GLOBAL PROPERTY CXX_STANDARD 14)
@@ -74,6 +78,9 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # libs
 add_subdirectory(libs/c++)
 add_subdirectory(libs/lightports)
+
+# modules
+add_subdirectory(modules)
 
 # hooklib
 add_subdirectory(hooklib)

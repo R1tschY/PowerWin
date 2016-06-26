@@ -1,7 +1,7 @@
 #ifndef SYSTEMMENU_H
 #define SYSTEMMENU_H
 
-#include "../plugin.h"
+#include <app/plugin.h>
 #include <lightports/ipc/ipcconnection.h>
 
 class SystemMenuPlugin : public Plugin {

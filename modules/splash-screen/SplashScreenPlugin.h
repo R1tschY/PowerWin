@@ -8,7 +8,7 @@
 #ifndef PLUGINS_SPLASHSCREENPLUGIN_H_
 #define PLUGINS_SPLASHSCREENPLUGIN_H_
 
-#include "../plugin.h"
+#include <app/plugin.h>
 #include <lightports/controls/onscreendisplay.h>
 #include <lightports/base/timeout.h>
 

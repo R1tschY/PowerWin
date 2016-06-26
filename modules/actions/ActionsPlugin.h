@@ -7,7 +7,7 @@
 
 #include <lightports/extra/hotkey.h>
 #include <lightports/controls/messagesink.h>
-#include "../plugin.h"
+#include <app/plugin.h>
 
 struct Action {
   cpp::wstring_view name;

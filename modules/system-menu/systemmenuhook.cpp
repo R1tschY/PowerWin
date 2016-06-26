@@ -5,7 +5,7 @@
  *      Author: richard
  */
 
-#include <systemmenuhook.h>
+#include "systemmenuhook.h"
 
 #include <windows.h>
 #include <cpp-utils/storage/uninitized.h>
@@ -13,8 +13,8 @@
 #include <lightports/extra/menu.h>
 #include <lightports/base/resources.h>
 #include <lightports/core.h>
-#include "macros.h"
-#include "resources.h"
+#include <hooklib/macros.h>
+#include <hooklib/resources.h>
 
 
 namespace {
