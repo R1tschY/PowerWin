@@ -9,7 +9,7 @@
 #include <lightports/ipc/ipcdata.h>
 #include <cpp-utils/preprocessor.h>
 #include <cpp-utils/storage/uninitized.h>
-#include "../macros.h"
+#include <app/macros.h>
 
 SystemMenuPlugin::SystemMenuPlugin() :
   Plugin(L"system_menu")

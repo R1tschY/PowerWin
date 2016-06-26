@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../plugin.h"
+#include <app/plugin.h>
 #include <lightports/extra/hook.h>
 
 constexpr int SHIFTED = 0x8000;

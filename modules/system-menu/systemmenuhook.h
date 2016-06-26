@@ -11,7 +11,7 @@
 #include <cpp-utils/storage/uninitized.h>
 #include <lightports/extra/hook.h>
 
-#include "hookmodule.h"
+#include <hooklib/hookmodule.h>
 
 namespace Windows {
 class IPCData;
