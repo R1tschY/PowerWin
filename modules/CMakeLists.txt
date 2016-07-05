@@ -1,6 +1,4 @@
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/..")
-
 # TODO. add options: INCLUDES LIBRARIES DEFINITIONS
 macro(powerwin_module)
   

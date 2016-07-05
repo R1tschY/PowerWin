@@ -20,14 +20,31 @@
 /// IN THE SOFTWARE.
 ///
 
-#include "hookmodule.h"
+#ifndef APP_HOOKLIBMANAGER_H_
+#define APP_HOOKLIBMANAGER_H_
 
-template class cpp::registry<PowerWin::HookModule, cpp::simple_registry_entry<PowerWin::HookModule, wchar_t>>;
+#include <windows.h>
+#include <vector>
 
 namespace PowerWin {
 
+/// \brief
+class HookLibManager
+{
+public:
+  HookLibManager();
 
+  void startLibs();
+  void unloadLibs();
+
+  void sendMessage(UINT msg, WPARAM wparam, LPARAM lparam);
+
+  void registerHookLib(HWND window);
+
+private:
+  std::vector<HWND> hooklibs_;
+};
 
 } // namespace PowerWin
 
-
+#endif /* APP_HOOKLIBMANAGER_H_ */

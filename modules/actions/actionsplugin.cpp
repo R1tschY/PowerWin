@@ -1,5 +1,3 @@
-#include "ActionsPlugin.h"
-
 #include <utility>
 
 #include <boost/algorithm/string.hpp>
@@ -10,70 +8,37 @@
 #include <cpp-utils/algorithm/length.h>
 #include <lightports/core/debug.h>
 #include <app/powerwinapp.h>
+#include <modules/actions/actionsplugin.h>
 
 
-ActionsPlugin::ActionsPlugin() :
-	Plugin(wstring_literal("actions")),
-  message_sink_(&ActionsPlugin::onHotkey)
+ActionsPlugin::ActionsPlugin()
 { }
 
-static void onActionQuit() {
-  PowerWinApp::get()->destroy();
-}
-
-const Action ActionsPlugin::actions_[] = {
-  {L"quit", onActionQuit}  
-};
-
-LRESULT ActionsPlugin::onHotkey(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-  if (msg != WM_HOTKEY)
-    return DefWindowProcW(hwnd, msg, wparam, lparam);
-
-  if (wparam >= cpp::length(actions_)) {
-    return 0;
-  }
-
-  actions_[wparam].handler();
-
-	return 0;
-}
-
-void ActionsPlugin::onActivate(const Options& options)
+void ActionsPlugin::activate(PowerWin::ModuleContext& context)
 {
-  message_sink_.create();
-
-  std::pair<unsigned,unsigned> hotkey;
-  if (options.find(L"quit") == options.end()) {
-    parseHotkey(L"Ctrl+F12", &hotkey);
-    Windows::Hotkey hk(
-    		hotkey.first, hotkey.second,
-    		message_sink_.getNativeHandle(), 0);
-    hk.activate();
-    hotkeys_.emplace_back(std::move(hk));
-  }
-
-  int index = 0;
-  for (const Action& action : actions_) {
-    auto option = options.find(std::wstring(action.name));
-    if (option != options.end() &&
-        parseHotkey(option->second, &hotkey))
-    {
-      Windows::Hotkey hk(
-    		  hotkey.first, hotkey.second,
-    		  message_sink_.getNativeHandle(),
-			  index);
-      hk.activate();
-      hotkeys_.emplace_back(std::move(hk));
-    }
-    index++;
-  }
+//  std::pair<unsigned,unsigned> hotkey;
+//  int index = 0;
+//  for (const Action& action : actions_) {
+//    auto option = options.find(std::wstring(action.name));
+//    if (option != options.end() &&
+//        parseHotkey(option->second, &hotkey))
+//    {
+//      Windows::Hotkey hk(
+//    		  hotkey.first, hotkey.second,
+//    		  message_sink_.getNativeHandle(),
+//			  index);
+//      hk.activate();
+//      hotkeys_.emplace_back(std::move(hk));
+//    }
+//    index++;
+//  }
 }
 
-void ActionsPlugin::onDeactivate() {
-  for (auto& hotkey : hotkeys_)
-    hotkey.deactivate();
-
-  message_sink_.destroy();
+void ActionsPlugin::deactivate() {
+//  for (auto& hotkey : hotkeys_)
+//    hotkey.deactivate();
+//
+//  message_sink_.destroy();
 }
 
 int get_function_key(const std::wstring& key) {
@@ -90,7 +55,7 @@ int get_function_key(const std::wstring& key) {
 bool
 ActionsPlugin::parseHotkey(cpp::wstring_view hotkey, std::pair<unsigned,unsigned>* result) {
   std::vector<std::wstring> splited;
-  boost::split(splited, hotkey, boost::is_any_of(L" +"), boost::token_compress_on);
+  boost::split(splited, hotkey, boost::is_any_of(L"+"), boost::token_compress_on);
 
   UINT modifiers = 0;
   UINT vk = 0;
@@ -134,3 +99,7 @@ ActionsPlugin::parseHotkey(cpp::wstring_view hotkey, std::pair<unsigned,unsigned
   *result = std::make_pair(modifiers, vk);
   return true;
 }
+
+PowerWin::ModuleRegistry::element<ActionsPlugin> ActionsModule(
+  L"actions", L"configure hotkeys for windows"
+);

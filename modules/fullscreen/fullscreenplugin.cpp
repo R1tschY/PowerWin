@@ -1,11 +1,9 @@
-#include "FullscreenPlugin.h"
-
 #include <functional>
+#include <windows.h>
 #include <powrprof.h>
-
 #include <lightports/base/timeout.h>
 #include <lightports/core.h>
-#include <app/macros.h>
+#include <modules/fullscreen/fullscreenplugin.h>
 
 //
 // Fullscreen Feature
@@ -14,19 +12,18 @@
 //
 
 FullscreenPlugin::FullscreenPlugin() :
-  Plugin(L"fullscreen"),
   timeout_(std::bind(&FullscreenPlugin::update, this), 59000),
   fullscreen_window_(false)
 { }
 
-void FullscreenPlugin::onActivate(const Options& options)
+void FullscreenPlugin::activate(PowerWin::ModuleContext& context)
 {
   fullscreen_window_ = false;
   update();
   timeout_.start();
 }
 
-void FullscreenPlugin::onDeactivate()
+void FullscreenPlugin::deactivate()
 {
   timeout_.stop();
 }
@@ -89,3 +86,7 @@ void FullscreenPlugin::update()
     }
   }
 }
+
+PowerWin::ModuleRegistry::element<FullscreenPlugin> FullscreenModule(
+  L"fullscreen", L"inactivate stand-by and screensaver if fullscreen window exists"
+);

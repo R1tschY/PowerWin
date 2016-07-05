@@ -8,17 +8,17 @@
 #ifndef PLUGINS_SPLASHSCREENPLUGIN_H_
 #define PLUGINS_SPLASHSCREENPLUGIN_H_
 
-#include <app/plugin.h>
 #include <lightports/controls/onscreendisplay.h>
 #include <lightports/base/timeout.h>
+#include <app/module.h>
 
-class SplashScreenPlugin: public Plugin {
+class SplashScreenPlugin: public PowerWin::Module {
 public:
 	SplashScreenPlugin();
-
-  void onActivate(const Options& options) override;
-  void onDeactivate() override;
 	
+  void activate(PowerWin::ModuleContext& context) override;
+  void deactivate() override;
+
 private:
 	Windows::OnScreenDisplay window_;
   Windows::Timeout timeout_;

@@ -20,18 +20,22 @@
 #include <lightports/controls/gdipluscontext.h>
 
 #include "resources.h"
+#include "messages.h"
 
 #include "../hooklib/macros.h"
 
 #include "../hooklib/remotemanager.h"
 #include <thread>
 
-PowerWinApp* PowerWinApp::instance_ = nullptr;
+namespace PowerWin {
 
 PowerWinApp::PowerWinApp() :
   Window(Window::Type::Normal),
-  plugins_(),
-  tray_icon_()
+  tray_icon_(),
+  configuration_(),
+  modules_(configuration_),
+  hotkeys_(),
+  hooklibs_()
 {
 }
 
@@ -47,31 +51,15 @@ int PowerWinApp::run() {
     ERROR(L"%s\n", L"Kann 'common controls' nicht initailsieren!");
   }*/
 
-  // start hook libs
-
-  std::thread hook_thread([](){ EnterGodModus(nullptr, nullptr, nullptr, 0); });
-
-  // start 64Bit-DLL
-  if (Windows::Application::Is64BitWindows()) {
-    print(L"Start 64-bit process\n");
-    Windows::RunDll::execute64BitDll(Windows::Path(Windows::Application::getExecutablePath()).getFolder() + L"\\libpowerwin64.dll", L"EnterGodModus", L"");
-    // TODO: error logging
-  }
-
-  Sleep(100);
-
   Windows::GdiplusContext gdi;
 
   PowerWinApp powerwin;
-  instance_ = &powerwin;
 
   powerwin.create(nullptr, wstring_literal(POWERWIN_APP_NAME));
 
   print(L"%ls hwnd: %d\n", CPP_TO_WIDESTRING(POWERWIN_APP_NAME), powerwin.getNativeHandle());
 
   Windows::Application::processMessages();
-
-  hook_thread.join();
 
   print(L"%ls: The end\n", CPP_TO_WIDESTRING(POWERWIN_APP_NAME));
 
@@ -81,22 +69,13 @@ int PowerWinApp::run() {
 void PowerWinApp::onCreate() {
   print(L"PowerWin::start\n");
 
-  Windows::ConfigFile config;
-  config.loadFromFile(Windows::Application::getExecutablePath()
-		  + L"\\config.ini");
+  hooklibs_.startLibs();
 
-  for (auto&& plugin : plugins_) {
-    Plugin::Options opts;
-    for (const std::wstring& key : config.getKeys(plugin->getName())) {
-      opts[key] = config.getString(plugin->getName(), key.c_str(), nullptr);
-    }
-    plugin->setOptions(std::move(opts));
+  configuration_.loadIniFile(
+    Windows::Application::getExecutablePath() + L"\\config.ini"
+  );
 
-    if (plugin->getBooleanOption(L"active", true)) {
-      print(L"activate plugin (0x%p) %ls\n", plugin.get(), plugin->getName());
-      plugin->activate();
-    }
-  }
+  modules_.loadModules();
 
 //  tray_icon_.add(getWindow(), LoadIcon(NULL, IDI_APPLICATION), wstring_literal(POWERWIN_APP_NAME));
   tray_icon_.add(getNativeHandle(),
@@ -105,30 +84,11 @@ void PowerWinApp::onCreate() {
 }
 
 void PowerWinApp::onDestroy() {
-  // exit 64Bit-DLL
-  if (Windows::Application::Is64BitWindows()) {
-    SetLastError(0);
-    HWND window_64bit = FindWindowW(CPP_TO_WIDESTRING(POWERWIN_64BIT_NAME), nullptr);
-    if (window_64bit == nullptr) {
-      // TODO check GetLastError() maybe the window is really not there
-      print(L"Cannot find window to 64Bit-Process: %ls\n", Windows::GetLastWindowsError().c_str());
-    } else {
-      print(L"Exit 64-bit process. window: %d\n", window_64bit);
-      if (!PostMessage(window_64bit, WM_CLOSE, 0, 0)) {
-        print(L"PostMessage to 64-bit process window failed: %ls\n", Windows::GetLastWindowsError().c_str());
-      }
-    }
-  }
+
+  hooklibs_.unloadLibs();
 
   // deactivate all plugins
-  try {
-    for (auto&& plugin : plugins_) {
-      print(L"Deactivate plugin %ls\n", plugin->getName());
-      plugin->deactivate();
-    }
-  } catch (...) {
-    MessageBoxW(NULL, L"Ups", L"!!!", MB_ICONERROR | MB_OK);
-  }
+  modules_.unloadModules();
 
   // remove tray icon
   tray_icon_.remove();
@@ -137,6 +97,21 @@ void PowerWinApp::onDestroy() {
   PostQuitMessage(0);
 }
 
+LRESULT PowerWinApp::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
+{
+  switch (msg)
+  {
+  case Messages::RegisterHooklib:
+    hooklibs_.registerHookLib(reinterpret_cast<HWND>(wparam));
+    return 0;
+
+  }
+
+  return Window::onMessage(msg, wparam, lparam);
+}
+
+} // namespace PowerWin
+
 int APIENTRY wWinMain(
   HINSTANCE hInstance,
   HINSTANCE hPrevInstance,
@@ -144,7 +119,7 @@ int APIENTRY wWinMain(
   int nCmdShow)
 {
   Windows::Application app(wstring_literal(POWERWIN_APP_NAME), hInstance);
-  return app.run(PowerWinApp::run);
+  return app.run(PowerWin::PowerWinApp::run);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -12,7 +12,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set(libpowerwin_Libs 
   lightports-base
   lightports-extra
-  lightports-ipc
+  lightports-controls
   lightports-dll
 )
 

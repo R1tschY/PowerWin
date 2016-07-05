@@ -20,14 +20,59 @@
 /// IN THE SOFTWARE.
 ///
 
-#include "hookmodule.h"
+#ifndef APP_MODULEMANAGER_H_
+#define APP_MODULEMANAGER_H_
 
-template class cpp::registry<PowerWin::HookModule, cpp::simple_registry_entry<PowerWin::HookModule, wchar_t>>;
+#include "module.h"
 
 namespace PowerWin {
 
+class PowerWinApp;
+class Configuration;
+class ModuleManager;
 
+class ManagedModule
+{
+public:
+  template<typename T>
+  ManagedModule(ModuleManager& mgr, const T& t)
+  : mgr_(mgr), module_(t.create()), name_(t.name())
+  { }
+
+  void activate();
+  void deactivate();
+
+  bool isOkay() { return module_ != nullptr; }
+
+  Module* getModule() { return module_.get(); }
+  cpp::wstring_view getName() const { return name_; }
+  bool isActive() const { return active_; }
+
+private:
+  ModuleManager& mgr_;
+
+  std::unique_ptr<Module> module_;
+  std::wstring name_;
+  bool active_ = false;
+};
+
+/// \brief
+class ModuleManager
+{
+public:
+  ModuleManager(Configuration& configuration);
+  ~ModuleManager();
+
+  Configuration& getConfiguration() { return config_; }
+
+  void loadModules();
+  void unloadModules();
+
+private:
+  std::vector<ManagedModule> modules_;
+  Configuration& config_;
+};
 
 } // namespace PowerWin
 
-
+#endif /* APP_MODULEMANAGER_H_ */
