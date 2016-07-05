@@ -205,5 +205,5 @@ void SystemMenuHook::deactivate()
 }
 
 PowerWin::HookModuleRegistry::element<SystemMenuHook> SystemMenuHookModule(
-  "systemmenu", "adds extra system menu items to all windows"
+  L"system-menu", L"adds extra system menu items to all windows"
 );

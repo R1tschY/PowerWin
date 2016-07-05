@@ -14,38 +14,67 @@
 #include <cpp-utils/algorithm/container.h>
 #include "macros.h"
 #include <lightports/core/debug.h>
+#include <lightports/base/application.h>
+#include <app/messages.h>
+
+namespace PowerWin {
 
 RemoteManager::RemoteManager()
-: mailslot_(L"\\\\.\\mailslot\\PowerWin\\" CPP_WSTRINGIFY(CPUBITSET), 1024, MAILSLOT_WAIT_FOREVER)
 {
-  print(L"add function: %s len: %u", std::string("SystemMenuHook::activate").c_str(), (unsigned)std::string("SystemMenuHook::activate").size());
+  create(CPP_TO_WIDESTRING(POWERWIN_APP_NAME) L"-Hooklib");
 
-  cpp::transform(PowerWin::HookModuleRegistry::entries(), modules_, [](auto& entry){ return entry.create(); });
-
-  mailslot_.registerFunction("activate", [=](auto&){ this->activate(); });
-  mailslot_.registerFunction("deactivate", [=](auto&){ this->deactivate(); });
-  mailslot_.registerFunction("quit", [=](auto&){ this->quit(); });
-}
-
-void RemoteManager::run()
-{
-  mailslot_.readLoop();
+  cpp::transform(
+    HookModuleRegistry::entries(),
+    modules_, [](auto& entry){ return entry.create(); });
 }
 
 void RemoteManager::activate()
 {
-  cpp::for_each(modules_, [](auto& module) { module->activate(); });
+  cpp::for_each(modules_, std::mem_fn(&HookModule::activate));
 }
 
 void RemoteManager::deactivate()
 {
-  cpp::for_each(modules_, [](auto& module) { module->deactivate(); });
+  cpp::for_each(modules_, std::mem_fn(&HookModule::deactivate));
 }
 
-void RemoteManager::quit()
+void RemoteManager::onCreate()
 {
-  print(L"%s: RemoteManager::quit", POWERWIN_APP_NAME);
-  mailslot_.quit();
+  app_hwnd_ = MessageSink::find(L"PowerWinApp", nullptr);
+  if (app_hwnd_ != nullptr)
+  {
+    PostMessage(
+      app_hwnd_,
+      Messages::RegisterHooklib,
+      reinterpret_cast<WPARAM>(getNativeHandle()),
+      0);
+  }
+  else
+  {
+    print(L"cannot find PowerWinApp window.");
+  }
+
+}
+
+void RemoteManager::onDestroy()
+{
+  // end hook lib if window is destroyed
+  PostQuitMessage(0);
+}
+
+LRESULT RemoteManager::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
+{
+  switch (msg)
+  {
+  case WM_CLOSE:
+    // destroy window on close request
+    destroy();
+    return 0;
+
+  default:;
+  }
+
+  return Windows::Control::onMessage(msg, wparam, lparam);
 }
 
 extern "C"
@@ -56,5 +85,8 @@ void CALLBACK EnterGodModus(
     int nCmdShow)
 {
   RemoteManager mgr;
-  mgr.run();
+
+  Windows::Application::processMessages();
 }
+
+} // namespace PowerWin

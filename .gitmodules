@@ -10,3 +10,6 @@
 [submodule "cmake/modules"]
 	path = cmake/modules
 	url = https://github.com/R1tschY/cmake-modules.git
+[submodule "libs/range"]
+	path = libs/range
+	url = https://github.com/ericniebler/range-v3.git

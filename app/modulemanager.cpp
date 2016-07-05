@@ -20,14 +20,52 @@
 /// IN THE SOFTWARE.
 ///
 
-#include "hookmodule.h"
+#include "modulemanager.h"
 
-template class cpp::registry<PowerWin::HookModule, cpp::simple_registry_entry<PowerWin::HookModule, wchar_t>>;
+#include <functional>
+#include <cpp-utils/algorithm/container.h>
 
 namespace PowerWin {
 
+void ManagedModule::activate()
+{
+  if (active_) return;
 
+  ModuleContext context(name_, mgr_.getConfiguration());
+  module_->activate(context);
+}
+
+void ManagedModule::deactivate()
+{
+  if (!active_) return;
+
+  module_->deactivate();
+}
+
+ModuleManager::ModuleManager(Configuration& configuration)
+: config_(configuration)
+{ }
+
+ModuleManager::~ModuleManager()
+{ }
+
+void ModuleManager::loadModules()
+{
+  // TODO: use a cool back_emplacer: ModuleRegistry::entries() | filter() | transform([](auto& entry){ return make_tuple(*this, entry); }) | back_emplace(modules);
+  for (auto& entry : ModuleRegistry::entries())
+  {
+    if (config_.readBoolean(entry.name(), L"active", true))
+    {
+      modules_.emplace_back(*this, entry);
+      modules_.back().activate();
+    }
+  }
+}
+
+void ModuleManager::unloadModules()
+{
+  // TODO: idea: fn cpp::member_call(MemFunc&f,Args...args) { std::bind(std::men_fn(f), args...) }
+  cpp::for_each(modules_, std::mem_fn(&ManagedModule::deactivate));
+}
 
 } // namespace PowerWin
-
-

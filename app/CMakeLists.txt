@@ -23,5 +23,5 @@ listx_append_suffix(PowerWinApp_Libs 32 ${PowerWinApp_Libs})
 # Target
 add_executable(PowerWinApp ${PowerWinApp_SOURCES} ${PowerWinApp_MODULE_SOURCES} ${PowerWinApp_RESOURCES})
 set_target_properties(PowerWinApp PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
-target_link_libraries(PowerWinApp cpp-utils32 ${PowerWinApp_Libs} ${PowerWinApp_MODULES})
+target_link_libraries(PowerWinApp cpp-utils32 range-v3 ${PowerWinApp_Libs} ${PowerWinApp_MODULES})
 

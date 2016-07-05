@@ -10,24 +10,27 @@
 
 #include <memory>
 #include <vector>
-#include <lightports/ipc/ipcmailbox.h>
+#include <lightports/controls/messagesink.h>
 
 #include "macros.h"
 #include "hookmodule.h"
 
-class RemoteManager {
+namespace PowerWin {
+
+class RemoteManager : public Windows::MessageSink {
 public:
   RemoteManager();
-
-  void run();
-  void quit();
 
   void activate();
   void deactivate();
 
+  void onCreate() override;
+  void onDestroy() override;
+  LRESULT onMessage(UINT msg, WPARAM wparam, LPARAM lparam) override;
+
 private:
-  Windows::IPCMailbox mailslot_;
-  std::vector<std::unique_ptr<PowerWin::HookModule>> modules_;
+  std::vector<std::unique_ptr<HookModule>> modules_;
+  HWND app_hwnd_ = nullptr;
 };
 
 extern "C" {
@@ -40,5 +43,7 @@ void CALLBACK EnterGodModus(
     int nCmdShow);
 
 } // extern "C"
+
+} // namespace PowerWin
 
 #endif /* HOOKLIB_REMOTEMANAGER_H_ */

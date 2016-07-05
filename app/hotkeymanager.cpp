@@ -20,33 +20,74 @@
 /// IN THE SOFTWARE.
 ///
 
-#ifndef HOOKLIB_HOOKMODULE_H_
-#define HOOKLIB_HOOKMODULE_H_
+#include "hotkeymanager.h"
 
-#include <cpp-utils/pattern/registry.h>
+#include <lightports/core.h>
+#include <cpp-utils/assert.h>
+#include <windows.h>
 
 namespace PowerWin {
 
-class HookModuleContext
+Hotkey::~Hotkey()
 {
+  if (manager_)
+    manager_->unregisterHotkey(*this);
+}
 
-};
 
-struct HookModule
+HotkeyManager::HotkeyManager()
 {
-  virtual ~HookModule() = default;
+  create(L"PowerWin.HotkeyManager");
+}
 
-  virtual void init(HookModuleContext& context) = 0;
+Hotkey HotkeyManager::registerHotkey(const Windows::ShortCut& keys, Callback func)
+{
+  cpp_assert(func);
 
-  virtual void activate() = 0;
-  virtual void deactivate() = 0;
-};
+  win_throw_on_fail(
+    RegisterHotKey(
+        getNativeHandle(),
+        ++last_id_, keys.modifiers, keys.key)
+  );
 
+  hotkeys_[last_id_] = std::move(func);
 
-using HookModuleRegistry = cpp::registry<HookModule, cpp::simple_registry_entry<HookModule, wchar_t>>;
+  Hotkey result;
+  result.manager_ = this;
+  result.id_ = last_id_;
+  return result;
+}
+
+void HotkeyManager::unregisterHotkey(Hotkey& hotkey)
+{
+  cpp_assert(hotkey.manager_ == this);
+
+  win_throw_on_fail(
+    UnregisterHotKey(
+      getNativeHandle(),
+      hotkey.id_
+    )
+  );
+
+  hotkey.manager_ = nullptr;
+
+  hotkeys_.erase(hotkey.id_);
+}
+
+LRESULT HotkeyManager::onMessage(UINT msg, WPARAM wparam,
+  LPARAM lparam)
+{
+  if (msg != WM_HOTKEY)
+    return Control::onMessage(msg, wparam, lparam);
+
+  auto iter = hotkeys_.find(wparam);
+  if (iter == hotkeys_.end())
+  {
+    // TODO: log error
+    return 0;
+  }
+
+  iter->second();
+}
 
 } // namespace PowerWin
-
-extern template class cpp::registry<PowerWin::HookModule, cpp::simple_registry_entry<PowerWin::HookModule, wchar_t>>;
-
-#endif /* HOOKLIB_HOOKMODULE_H_ */

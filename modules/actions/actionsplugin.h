@@ -7,28 +7,22 @@
 
 #include <lightports/extra/hotkey.h>
 #include <lightports/controls/messagesink.h>
-#include <app/plugin.h>
+#include "../../app/module.h"
 
 struct Action {
   cpp::wstring_view name;
   void (*handler)();
 };
 
-class ActionsPlugin : public Plugin {
+class ActionsPlugin : public PowerWin::Module {
 public:
   ActionsPlugin();
 
 protected:
-  virtual void onActivate(const Options& options);
-  virtual void onDeactivate();
+  void activate(PowerWin::ModuleContext& context) override;
+  void deactivate() override;
 
 private:
-  std::vector<Windows::Hotkey> hotkeys_;
-  Windows::MessageSink message_sink_;
-
-  static const Action actions_[];
-
-  static LRESULT onHotkey(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
   static bool parseHotkey(cpp::wstring_view hotkey, std::pair<unsigned,unsigned>* result);
 };
 

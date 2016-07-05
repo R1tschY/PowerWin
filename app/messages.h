@@ -20,14 +20,22 @@
 /// IN THE SOFTWARE.
 ///
 
-#include "hookmodule.h"
+#ifndef APP_MESSAGES_H_
+#define APP_MESSAGES_H_
 
-template class cpp::registry<PowerWin::HookModule, cpp::simple_registry_entry<PowerWin::HookModule, wchar_t>>;
+#include <windows.h>
 
 namespace PowerWin {
 
-
+namespace Messages {
+enum : UINT {
+  /// register a hooklib
+  /// lparam: HWND for messages
+  /// rparam: null
+  RegisterHooklib = WM_APP
+};
+}
 
 } // namespace PowerWin
 
-
+#endif /* APP_MESSAGES_H_ */

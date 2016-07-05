@@ -1,15 +1,15 @@
 #pragma once
 
-#include <app/plugin.h>
 #include <lightports/extra/hook.h>
 #include <lightports/base/timeout.h>
+#include <app/module.h>
 
-class FullscreenPlugin : public Plugin {
+class FullscreenPlugin : public PowerWin::Module {
 public:
   FullscreenPlugin();
 
-  virtual void onActivate(const Options& options);
-  virtual void onDeactivate();
+  void activate(PowerWin::ModuleContext& context) override;
+  void deactivate() override;
 
 private:
   Windows::Timeout timeout_;

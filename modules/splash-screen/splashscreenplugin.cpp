@@ -5,20 +5,18 @@
  *      Author: richard
  */
 
-#include "SplashScreenPlugin.h"
-
 #include <functional>
 
 #include <lightports/core.h>
 #include <lightports/extra/systeminformation.h>
+#include <modules/splash-screen/splashscreenplugin.h>
 
 SplashScreenPlugin::SplashScreenPlugin() :
-    Plugin(wstring_literal("splash_screen")),
     window_(),
     timeout_(std::bind(&SplashScreenPlugin::onTimeout, this), 3000)
 { }
 
-void SplashScreenPlugin::onActivate(const Options& options)
+void SplashScreenPlugin::activate(PowerWin::ModuleContext& context)
 {
   auto monitor_info = Windows::Monitor::getPrimary().getInfo();
   auto monitor_rect = monitor_info.getMonitorRect();
@@ -32,7 +30,7 @@ void SplashScreenPlugin::onActivate(const Options& options)
   timeout_.start();
 }
 
-void SplashScreenPlugin::onDeactivate()
+void SplashScreenPlugin::deactivate()
 {
   window_.destroy();
   timeout_.stop();
@@ -42,3 +40,7 @@ void SplashScreenPlugin::onTimeout()
 {
   window_.hide();
 }
+
+PowerWin::ModuleRegistry::element<SplashScreenPlugin> SplashScreenModule(
+  L"splash-screen", L"show splash screen at start of PowerWin"
+);

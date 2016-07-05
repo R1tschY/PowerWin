@@ -1,23 +1,20 @@
-#include "ScrollPlugin.h"
-
 #include <functional>
-
-#include <app/macros.h>
 #include <cpp-utils/algorithm/container.h>
 #include <lightports/core.h>
+#include <modules/scroll/scrollplugin.h>
 
 ScrollPlugin::ScrollPlugin() :
-  Plugin(L"scroll"),
   hook_(std::bind(&ScrollPlugin::handle, this, std::placeholders::_1, std::placeholders::_2))
 { }
 
-void ScrollPlugin::onActivate(const Options& options) {
-  inverse_ = getBooleanOption(L"inverse", false);
+void ScrollPlugin::activate(PowerWin::ModuleContext& context) {
+  auto& config = context.getConfiguration();
+  inverse_ = config.readBoolean(L"scroll", L"inverse", false);
 
   hook_.activate();
 }
 
-void ScrollPlugin::onDeactivate() {
+void ScrollPlugin::deactivate() {
   hook_.deactivate();
 }
 
@@ -58,3 +55,7 @@ bool ScrollPlugin::handle(POINT pt, int steps) {
 
   return true;
 }
+
+PowerWin::ModuleRegistry::element<ScrollPlugin> ScrollModule(
+  L"scroll", L"scroll in inactive windows"
+);
