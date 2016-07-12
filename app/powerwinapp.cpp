@@ -16,7 +16,6 @@
 #include <lightports/extra/trayicon.h>
 #include <lightports/controls.h>
 #include <lightports/base/configfile.h>
-#include <lightports/extra/rundll.h>
 #include <lightports/controls/gdipluscontext.h>
 
 #include "resources.h"
