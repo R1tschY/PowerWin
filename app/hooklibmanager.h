@@ -37,7 +37,8 @@ public:
   void startLibs();
   void unloadLibs();
 
-  void sendMessage(UINT msg, WPARAM wparam, LPARAM lparam);
+  void sendMessage(UINT msg, WPARAM wparam = 0, LPARAM lparam = 0);
+  void postMessage(UINT msg, WPARAM wparam = 0, LPARAM lparam = 0);
 
   void registerHookLib(HWND window);
 

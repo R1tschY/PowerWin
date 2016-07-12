@@ -32,7 +32,8 @@ enum : UINT {
   /// register a hooklib
   /// lparam: HWND for messages
   /// rparam: null
-  RegisterHooklib = WM_APP
+  /// return: 0
+  RegisterHooklib = WM_APP + 0
 };
 }
 
