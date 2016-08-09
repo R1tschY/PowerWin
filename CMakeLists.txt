@@ -27,8 +27,9 @@ endif()
 set(Boost_USE_STATIC_LIBS ON) 
 set(Boost_USE_MULTITHREADED ON) 
 find_package(Boost REQUIRED)
-add_library(boost INTERFACE)
-target_include_directories(boost INTERFACE ${Boost_INCLUDE_DIRS})
+#add_library(boost INTERFACE)
+#target_include_directories(boost INTERFACE ${Boost_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIRS})
 
 # C++14
 #set_property(GLOBAL PROPERTY CXX_STANDARD 14)
