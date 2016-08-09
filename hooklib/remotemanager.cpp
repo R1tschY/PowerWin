@@ -54,10 +54,13 @@ void RemoteManager::onCreate()
     print(L"cannot find PowerWinApp window.");
   }
 
+  activate();
 }
 
 void RemoteManager::onDestroy()
 {
+  deactivate();
+
   // end hook lib if window is destroyed
   PostQuitMessage(0);
 }
