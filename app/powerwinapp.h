@@ -14,13 +14,6 @@
 
 namespace PowerWin {
 
-/* TODO
- * - Action backend: powerwin.exit(), windows.start("cmd.exe"), ...
- *   class ActionManager { registerFunction(module, funcname, func); };
- * - LuaBrigde
- * - Log-Backend and log-frondend from module
- */
-
 class PowerWinApp : public Windows::Window {
   PowerWinApp();
   ~PowerWinApp();
@@ -39,8 +32,8 @@ private:
   Windows::TrayIcon tray_icon_;
 
   Configuration configuration_;
-  ModuleManager modules_;
   HotkeyManager hotkeys_;
+  ModuleManager modules_;
   HookLibManager hooklibs_;
 
   static ATOM RegisterWinClass(HINSTANCE hInstance);

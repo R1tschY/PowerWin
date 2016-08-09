@@ -31,7 +31,7 @@ void ManagedModule::activate()
 {
   if (active_) return;
 
-  ModuleContext context(name_, mgr_.getConfiguration());
+  ModuleContext context(name_, mgr_.getConfiguration(), mgr_.getHotkeys());
   module_->activate(context);
 }
 
@@ -42,8 +42,8 @@ void ManagedModule::deactivate()
   module_->deactivate();
 }
 
-ModuleManager::ModuleManager(Configuration& configuration)
-: config_(configuration)
+ModuleManager::ModuleManager(Configuration& configuration, HotkeyManager& hotkeys)
+: config_(configuration), hotkeys_(hotkeys)
 { }
 
 ModuleManager::~ModuleManager()

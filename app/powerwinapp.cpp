@@ -32,8 +32,8 @@ PowerWinApp::PowerWinApp() :
   Window(Window::Type::Normal),
   tray_icon_(),
   configuration_(),
-  modules_(configuration_),
   hotkeys_(),
+  modules_(configuration_, hotkeys_),
   hooklibs_()
 {
 }

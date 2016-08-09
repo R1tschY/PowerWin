@@ -29,6 +29,7 @@
 #include <lightports/extra/shortcut.h>
 #include <lightports/controls/messagesink.h>
 #include <boost/container/flat_map.hpp>
+#include <boost/optional.hpp>
 
 namespace PowerWin {
 
@@ -39,6 +40,8 @@ class Hotkey
 public:
   Hotkey() { }
   ~Hotkey();
+
+  // TODO: move operator
 
 private:
   HotkeyManager* manager_ = nullptr;
@@ -55,8 +58,11 @@ public:
 
   HotkeyManager();
 
+  Hotkey registerHotkey(cpp::wstring_view hotkey, Callback func);
   Hotkey registerHotkey(const Windows::ShortCut& keys, Callback func);
   void unregisterHotkey(Hotkey& hotkey);
+
+  static Windows::ShortCut parseHotkey(cpp::wstring_view hotkey);
 
 private:
   boost::container::flat_map<int, Callback> hotkeys_;

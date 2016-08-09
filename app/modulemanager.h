@@ -60,10 +60,11 @@ private:
 class ModuleManager
 {
 public:
-  ModuleManager(Configuration& configuration);
+  ModuleManager(Configuration& configuration, HotkeyManager& hotkeys);
   ~ModuleManager();
 
   Configuration& getConfiguration() { return config_; }
+  HotkeyManager& getHotkeys() { return hotkeys_; }
 
   void loadModules();
   void unloadModules();
@@ -71,6 +72,7 @@ public:
 private:
   std::vector<ManagedModule> modules_;
   Configuration& config_;
+  HotkeyManager& hotkeys_;
 };
 
 } // namespace PowerWin

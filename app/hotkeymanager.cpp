@@ -22,7 +22,12 @@
 
 #include "hotkeymanager.h"
 
+#include <boost/algorithm/string.hpp>
+#include <boost/range/algorithm/equal.hpp>
+#include <boost/lexical_cast.hpp>
+
 #include <lightports/core.h>
+#include <lightports/core/debugstream.h>
 #include <cpp-utils/assert.h>
 #include <windows.h>
 
@@ -38,6 +43,64 @@ Hotkey::~Hotkey()
 HotkeyManager::HotkeyManager()
 {
   create(L"PowerWin.HotkeyManager");
+}
+
+static
+int get_function_key(const std::wstring& key) {
+  int fkey = 0;
+  try {
+    fkey = boost::lexical_cast<int>(key.c_str() + 1);
+  } catch (const boost::bad_lexical_cast&) {
+    return 0;
+  }
+
+  return (fkey > 0 && fkey < 25) ? (fkey - 1 + VK_F1) : 0;
+}
+
+Windows::ShortCut HotkeyManager::parseHotkey(cpp::wstring_view hotkey)
+{
+  Windows::ShortCut result;
+
+  std::vector<std::wstring> splited;
+  boost::split(splited, hotkey, boost::is_any_of(L"+"), boost::token_compress_on);
+
+  for (std::wstring& key : splited) {
+    boost::to_upper(key);
+
+    if (key.size() == 1) {
+      if ((key[0] >= L'A' && key[0] <= L'Z') ||
+          (key[0] >= L'0' && key[0] <= L'9'))
+      {
+        result.key = key[0];
+        continue;
+      } else {
+        return Windows::ShortCut();
+      }
+    }
+
+    if (key[0] == 'F') {
+      int fkey = get_function_key(key);
+      if (fkey != 0) {
+        result.key = fkey;
+        continue;
+      } else {
+        return Windows::ShortCut();
+      }
+    }
+    if (key.compare(L"CTRL") == 0) {
+      result.modifiers |= MOD_CONTROL;
+    } else if (key.compare(L"ALT") == 0) {
+      result.modifiers |= MOD_ALT;
+    } else if (key.compare(L"WIN") == 0) {
+      result.modifiers |= MOD_WIN;
+    } else if (key.compare(L"SHIFT") == 0) {
+      result.modifiers |= MOD_SHIFT;
+    } else {
+      return Windows::ShortCut();
+    }
+  }
+
+  return result;
 }
 
 Hotkey HotkeyManager::registerHotkey(const Windows::ShortCut& keys, Callback func)
@@ -74,6 +137,21 @@ void HotkeyManager::unregisterHotkey(Hotkey& hotkey)
   hotkeys_.erase(hotkey.id_);
 }
 
+Hotkey HotkeyManager::registerHotkey(cpp::wstring_view hotkey, Callback func)
+{
+  auto shortcut = parseHotkey(hotkey);
+  if (!shortcut.isValid())
+  {
+    Windows::DebugOutputStream() << hotkey << L" is not a valid hotkey" << std::endl;
+
+    Hotkey result;
+    result.manager_ = nullptr;
+    return result;
+  }
+
+  return registerHotkey(shortcut, std::move(func));
+}
+
 LRESULT HotkeyManager::onMessage(UINT msg, WPARAM wparam,
   LPARAM lparam)
 {
@@ -83,11 +161,14 @@ LRESULT HotkeyManager::onMessage(UINT msg, WPARAM wparam,
   auto iter = hotkeys_.find(wparam);
   if (iter == hotkeys_.end())
   {
-    // TODO: log error
+    Windows::DebugOutputStream()
+      << L"internal error: hotkey with id = " << int(wparam) << " does not exists." << std::endl;
     return 0;
   }
 
   iter->second();
+
+  return 0;
 }
 
 } // namespace PowerWin
