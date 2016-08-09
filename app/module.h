@@ -10,6 +10,7 @@ namespace PowerWin {
 
 class PowerWinApp;
 class Configuration;
+class HotkeyManager;
 
 class ModuleContext
 {
@@ -17,9 +18,10 @@ public:
 
   ModuleContext(
     cpp::wstring_view name,
-    Configuration& config
+    Configuration& config,
+    HotkeyManager& hotkeys
     )
-  : name_(name), config_(config)
+  : name_(name), config_(config), hotkeys_(hotkeys)
   { }
 
   // own
@@ -29,10 +31,12 @@ public:
   // global
 
   Configuration& getConfiguration() { return config_; }
+  HotkeyManager& getHotkeyManager() { return hotkeys_; }
 
 private:
   cpp::wstring_view name_;
   Configuration& config_;
+  HotkeyManager& hotkeys_;
 };
 
 class Module : private cpp::noncopyable {
