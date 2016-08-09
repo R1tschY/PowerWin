@@ -4,11 +4,13 @@
 #include <modules/scroll/scrollplugin.h>
 
 ScrollPlugin::ScrollPlugin() :
-  hook_(std::bind(&ScrollPlugin::handle, this, std::placeholders::_1, std::placeholders::_2))
+  hook_([=](POINT pt, int steps){ return handle(pt, steps); })
 { }
 
-void ScrollPlugin::activate(PowerWin::ModuleContext& context) {
+void ScrollPlugin::activate(PowerWin::ModuleContext& context)
+{
   auto& config = context.getConfiguration();
+
   inverse_ = config.readBoolean(L"scroll", L"inverse", false);
 
   hook_.activate();
@@ -23,7 +25,7 @@ bool ScrollPlugin::handle(POINT pt, int steps) {
   // get window under cursor
   HWND window = WindowFromPoint(pt);
   if (window == NULL) {
-    OutputDebugString(L"ScrollPlugin: window == NULL\n");
+    OutputDebugStringW(L"ScrollPlugin: window == NULL\n");
     return false;
   }
 
