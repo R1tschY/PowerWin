@@ -33,16 +33,13 @@
 
 namespace PowerWin {
 
+Hotkey::Hotkey(HotkeyManager& manager)
+    : manager_(manager), id_(manager.registerHotkey())
+{ }
+
 Hotkey::~Hotkey()
 {
-  if (manager_)
-    manager_->unregisterHotkey(*this);
-}
-
-
-HotkeyManager::HotkeyManager()
-{
-  create(L"PowerWin.HotkeyManager");
+  manager_.unregisterHotkey(id_);
 }
 
 static
@@ -57,14 +54,30 @@ int get_function_key(const std::wstring& key) {
   return (fkey > 0 && fkey < 25) ? (fkey - 1 + VK_F1) : 0;
 }
 
-Windows::ShortCut HotkeyManager::parseHotkey(cpp::wstring_view hotkey)
+void Hotkey::setKey(cpp::wstring_view hotkey)
+{
+  setKey(parse(hotkey));
+}
+
+void Hotkey::setKey(const Windows::ShortCut& hotkey)
+{
+  manager_.setKey(id_, hotkey);
+}
+
+void Hotkey::setCallback(Callback callback)
+{
+  manager_.setCallback(id_, std::move(callback));
+}
+
+Windows::ShortCut Hotkey::parse(cpp::wstring_view hotkey)
 {
   Windows::ShortCut result;
 
   std::vector<std::wstring> splited;
-  boost::split(splited, hotkey, boost::is_any_of(L"+"), boost::token_compress_on);
+  boost::split(splited, hotkey, boost::is_any_of(L"+"), boost::token_compress_off);
 
   for (std::wstring& key : splited) {
+    boost::trim(key);
     boost::to_upper(key);
 
     if (key.size() == 1) {
@@ -73,9 +86,8 @@ Windows::ShortCut HotkeyManager::parseHotkey(cpp::wstring_view hotkey)
       {
         result.key = key[0];
         continue;
-      } else {
-        return Windows::ShortCut();
       }
+      return Windows::ShortCut();
     }
 
     if (key[0] == 'F') {
@@ -83,9 +95,8 @@ Windows::ShortCut HotkeyManager::parseHotkey(cpp::wstring_view hotkey)
       if (fkey != 0) {
         result.key = fkey;
         continue;
-      } else {
-        return Windows::ShortCut();
       }
+      return Windows::ShortCut();
     }
     if (key.compare(L"CTRL") == 0) {
       result.modifiers |= MOD_CONTROL;
@@ -103,53 +114,88 @@ Windows::ShortCut HotkeyManager::parseHotkey(cpp::wstring_view hotkey)
   return result;
 }
 
-Hotkey HotkeyManager::registerHotkey(const Windows::ShortCut& keys, Callback func)
+//
+// HotkeyManager
+
+HotkeyManager::HotkeyManager()
 {
-  cpp_assert(func);
-
-  win_throw_on_fail(
-    RegisterHotKey(
-        getNativeHandle(),
-        ++last_id_, keys.modifiers, keys.key)
-  );
-
-  hotkeys_[last_id_] = std::move(func);
-
-  Hotkey result;
-  result.manager_ = this;
-  result.id_ = last_id_;
-  return result;
+  create(L"PowerWin.HotkeyManager");
 }
 
-void HotkeyManager::unregisterHotkey(Hotkey& hotkey)
+int HotkeyManager::registerHotkey()
 {
-  cpp_assert(hotkey.manager_ == this);
+  last_id_++;
 
-  win_throw_on_fail(
-    UnregisterHotKey(
-      getNativeHandle(),
-      hotkey.id_
-    )
-  );
+  hotkeys_.insert(std::make_pair(last_id_, HotkeyData()));
 
-  hotkey.manager_ = nullptr;
-
-  hotkeys_.erase(hotkey.id_);
+  return last_id_;
 }
 
-Hotkey HotkeyManager::registerHotkey(cpp::wstring_view hotkey, Callback func)
+void HotkeyManager::unregisterHotkey(int id)
 {
-  auto shortcut = parseHotkey(hotkey);
-  if (!shortcut.isValid())
+  auto iter = hotkeys_.find(id);
+  if (iter == hotkeys_.end())
+    return;
+
+  if (iter->second.short_cut_.isValid())
   {
-    Windows::DebugOutputStream() << hotkey << L" is not a valid hotkey" << std::endl;
-
-    Hotkey result;
-    result.manager_ = nullptr;
-    return result;
+    win_throw_on_fail(
+      ::UnregisterHotKey(
+        getNativeHandle(),
+        id
+      )
+    );
   }
 
-  return registerHotkey(shortcut, std::move(func));
+  hotkeys_.erase(iter);
+}
+
+void HotkeyManager::setKey(int id, const Windows::ShortCut& key)
+{
+  auto iter = hotkeys_.find(id);
+  if (iter == hotkeys_.end())
+    return;
+
+  if (iter->second.short_cut_ == key)
+    return;
+
+  iter->second.short_cut_ = key;
+
+  if (key.isValid())
+  {
+    win_throw_on_fail(
+      ::RegisterHotKey(
+          getNativeHandle(),
+          id, key.modifiers, key.key)
+    );
+  }
+  else
+  {
+    win_throw_on_fail(
+      ::UnregisterHotKey(
+        getNativeHandle(),
+        id
+      )
+    );
+  }
+}
+
+Windows::ShortCut HotkeyManager::getKey(int id) const
+{
+  auto iter = hotkeys_.find(id);
+  if (iter == hotkeys_.end())
+    return Windows::ShortCut();
+
+  return iter->second.short_cut_;
+}
+
+void HotkeyManager::setCallback(int id, Hotkey::Callback func)
+{
+  auto iter = hotkeys_.find(id);
+  if (iter == hotkeys_.end())
+    return ;
+
+  iter->second.callback_ = std::move(func);
 }
 
 LRESULT HotkeyManager::onMessage(UINT msg, WPARAM wparam,
@@ -166,7 +212,8 @@ LRESULT HotkeyManager::onMessage(UINT msg, WPARAM wparam,
     return 0;
   }
 
-  iter->second();
+  if (iter->second.callback_)
+    iter->second.callback_();
 
   return 0;
 }
