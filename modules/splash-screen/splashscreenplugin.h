@@ -14,10 +14,8 @@
 
 class SplashScreenPlugin: public PowerWin::Module {
 public:
-	SplashScreenPlugin();
-	
-  void activate(PowerWin::ModuleContext& context) override;
-  void deactivate() override;
+	SplashScreenPlugin(PowerWin::ModuleContext& context);
+	~SplashScreenPlugin();
 
 private:
 	Windows::OnScreenDisplay window_;

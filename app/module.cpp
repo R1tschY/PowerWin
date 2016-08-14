@@ -3,7 +3,7 @@
 #include <algorithm>
 //#include <boost/algorithm/string.hpp>
 
-template class cpp::registry<PowerWin::Module, cpp::simple_registry_entry<PowerWin::Module, wchar_t>>;
+template class cpp::registry<PowerWin::Module, PowerWin::ModuleRegistryEntry>;
 
 namespace PowerWin {
 

@@ -42,14 +42,39 @@ private:
 class Module : private cpp::noncopyable {
 public:
   virtual ~Module() = default;
-
-  virtual void activate(ModuleContext& context) = 0;
-  virtual void deactivate() = 0;
 };
 
-using ModuleRegistry = cpp::registry<Module, cpp::simple_registry_entry<Module, wchar_t>>;
+class ModuleRegistryEntry
+{
+public:
+  using factory = std::unique_ptr<Module>(*)(ModuleContext&);
+
+  explicit ModuleRegistryEntry(
+    const wchar_t* name, const wchar_t* description, const factory factory)
+    : name_(name), description_(description), factory_(factory)
+  { }
+
+  template<typename V>
+  static ModuleRegistryEntry create(const wchar_t* name, const wchar_t* description)
+  {
+    return ModuleRegistryEntry(name, description,
+      [](ModuleContext& context) -> std::unique_ptr<Module> { return std::make_unique<V>(context); });
+  }
+
+  std::unique_ptr<Module> create(ModuleContext& context) const { return factory_(context); }
+
+  const wchar_t* name() const { return name_; }
+  const wchar_t* description() const { return description_; }
+
+private:
+  const wchar_t* name_;
+  const wchar_t* description_;
+  const factory factory_;
+};
+
+using ModuleRegistry = cpp::registry<Module, ModuleRegistryEntry>;
 
 } // namespace PowerWin
 
-extern template class cpp::registry<PowerWin::Module, cpp::simple_registry_entry<PowerWin::Module, wchar_t>>;
+extern template class cpp::registry<PowerWin::Module, PowerWin::ModuleRegistryEntry>;
 

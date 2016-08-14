@@ -34,26 +34,22 @@ class ModuleManager;
 class ManagedModule
 {
 public:
-  template<typename T>
-  ManagedModule(ModuleManager& mgr, const T& t)
-  : mgr_(mgr), module_(t.create()), name_(t.name())
+  ManagedModule(ModuleManager& mgr, const ModuleRegistryEntry& entry)
+  : mgr_(mgr), entry_(entry)
   { }
 
   void activate();
   void deactivate();
 
-  bool isOkay() { return module_ != nullptr; }
-
   Module* getModule() { return module_.get(); }
-  cpp::wstring_view getName() const { return name_; }
-  bool isActive() const { return active_; }
+  cpp::wstring_view getName() const { return entry_.name(); }
+  bool isActive() const { return bool(module_); }
 
 private:
   ModuleManager& mgr_;
+  const ModuleRegistryEntry& entry_;
 
-  std::unique_ptr<Module> module_;
-  std::wstring name_;
-  bool active_ = false;
+  std::unique_ptr<Module> module_ = {};
 };
 
 /// \brief

@@ -7,10 +7,7 @@
 #include <modules/actions/actionsplugin.h>
 
 
-ActionsPlugin::ActionsPlugin()
-{ }
-
-void ActionsPlugin::activate(PowerWin::ModuleContext& context)
+ActionsPlugin::ActionsPlugin(PowerWin::ModuleContext& context)
 {
 //  std::pair<unsigned,unsigned> hotkey;
 //  int index = 0;
@@ -30,7 +27,8 @@ void ActionsPlugin::activate(PowerWin::ModuleContext& context)
 //  }
 }
 
-void ActionsPlugin::deactivate() {
+ActionsPlugin::~ActionsPlugin()
+{
 //  for (auto& hotkey : hotkeys_)
 //    hotkey.deactivate();
 //

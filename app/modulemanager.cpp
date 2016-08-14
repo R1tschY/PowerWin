@@ -24,22 +24,21 @@
 
 #include <functional>
 #include <cpp-utils/algorithm/container.h>
+#include <lightports/core/debugstream.h>
 
 namespace PowerWin {
 
 void ManagedModule::activate()
 {
-  if (active_) return;
+  if (module_) return;
 
-  ModuleContext context(name_, mgr_.getConfiguration(), mgr_.getHotkeys());
-  module_->activate(context);
+  ModuleContext context(entry_.name(), mgr_.getConfiguration(), mgr_.getHotkeys());
+  module_ = entry_.create(context);
 }
 
 void ManagedModule::deactivate()
 {
-  if (!active_) return;
-
-  module_->deactivate();
+  module_.reset();
 }
 
 ModuleManager::ModuleManager(Configuration& configuration, HotkeyManager& hotkeys)
@@ -54,9 +53,11 @@ void ModuleManager::loadModules()
   // TODO: use a cool back_emplacer: ModuleRegistry::entries() | filter() | transform([](auto& entry){ return make_tuple(*this, entry); }) | back_emplace(modules);
   for (auto& entry : ModuleRegistry::entries())
   {
+    modules_.emplace_back(*this, entry);
+
     if (config_.readBoolean(entry.name(), L"active", true))
     {
-      modules_.emplace_back(*this, entry);
+      Windows::DebugOutputStream() << L"activated module " << entry.name();
       modules_.back().activate();
     }
   }
@@ -64,8 +65,7 @@ void ModuleManager::loadModules()
 
 void ModuleManager::unloadModules()
 {
-  // TODO: idea: fn cpp::member_call(MemFunc&f,Args...args) { std::bind(std::men_fn(f), args...) }
-  cpp::for_each(modules_, std::mem_fn(&ManagedModule::deactivate));
+  modules_.clear();
 }
 
 } // namespace PowerWin

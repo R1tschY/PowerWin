@@ -24,29 +24,63 @@
 #define HOOKLIB_HOOKMODULE_H_
 
 #include <cpp-utils/pattern/registry.h>
+#include <cpp-utils/strings/string_view.h>
 
 namespace PowerWin {
 
 class HookModuleContext
 {
+public:
+  HookModuleContext(cpp::wstring_view name)
+  : name_(name)
+  { }
 
+  // own
+
+  cpp::wstring_view getModuleName() { return name_; }
+
+private:
+  cpp::wstring_view name_;
 };
 
 struct HookModule
 {
   virtual ~HookModule() = default;
+};
 
-  virtual void init(HookModuleContext& context) = 0;
+class HookModuleRegistryEntry
+{
+public:
+  using factory = std::unique_ptr<HookModule>(*)(HookModuleContext&);
 
-  virtual void activate() = 0;
-  virtual void deactivate() = 0;
+  explicit HookModuleRegistryEntry(
+    const wchar_t* name, const wchar_t* description, const factory factory)
+    : name_(name), description_(description), factory_(factory)
+  { }
+
+  template<typename V>
+  static HookModuleRegistryEntry create(const wchar_t* name, const wchar_t* description)
+  {
+    return HookModuleRegistryEntry(name, description,
+      [](HookModuleContext& context) -> std::unique_ptr<HookModule> { return std::make_unique<V>(context); });
+  }
+
+  std::unique_ptr<HookModule> create(HookModuleContext& context) const { return factory_(context); }
+
+  const wchar_t* name() const { return name_; }
+  const wchar_t* description() const { return description_; }
+
+private:
+  const wchar_t* name_;
+  const wchar_t* description_;
+  const factory factory_;
 };
 
 
-using HookModuleRegistry = cpp::registry<HookModule, cpp::simple_registry_entry<HookModule, wchar_t>>;
+using HookModuleRegistry = cpp::registry<HookModule, HookModuleRegistryEntry>;
 
 } // namespace PowerWin
 
-extern template class cpp::registry<PowerWin::HookModule, cpp::simple_registry_entry<PowerWin::HookModule, wchar_t>>;
+extern template class cpp::registry<PowerWin::HookModule, PowerWin::HookModuleRegistryEntry>;
 
 #endif /* HOOKLIB_HOOKMODULE_H_ */

@@ -22,7 +22,7 @@
 
 #include "hookmodule.h"
 
-template class cpp::registry<PowerWin::HookModule, cpp::simple_registry_entry<PowerWin::HookModule, wchar_t>>;
+template class cpp::registry<PowerWin::HookModule, PowerWin::HookModuleRegistryEntry>;
 
 namespace PowerWin {
 

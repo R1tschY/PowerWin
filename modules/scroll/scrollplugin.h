@@ -7,10 +7,8 @@ constexpr int SHIFTED = 0x8000;
 
 class ScrollPlugin : public PowerWin::Module {
 public:
-  ScrollPlugin();
-
-  void activate(PowerWin::ModuleContext& context) override;
-  void deactivate() override;
+  ScrollPlugin(PowerWin::ModuleContext& context);
+  ~ScrollPlugin();
 
 private:
   Windows::MouseWheelHook hook_;

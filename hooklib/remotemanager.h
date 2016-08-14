@@ -31,6 +31,7 @@ public:
 private:
   std::vector<std::unique_ptr<HookModule>> modules_;
   HWND app_hwnd_ = nullptr;
+  bool activated_ = false;
 };
 
 extern "C" {

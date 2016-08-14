@@ -13,10 +13,6 @@
 
 #include <hooklib/hookmodule.h>
 
-namespace Windows {
-class IPCData;
-}
-
 class SystemMenuHook : public PowerWin::HookModule
 {
 public:
@@ -26,12 +22,8 @@ public:
   };
   };
 
-  SystemMenuHook();
-
-  void init(PowerWin::HookModuleContext& context) override;
-
-  void activate() override;
-  void deactivate() override;
+  SystemMenuHook(PowerWin::HookModuleContext& context);
+  ~SystemMenuHook();
 
 private:
   cpp::scoped_lifetime<Windows::Hook> hook_;
