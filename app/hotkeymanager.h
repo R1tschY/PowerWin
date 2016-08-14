@@ -38,37 +38,54 @@ class HotkeyManager;
 class Hotkey
 {
 public:
-  Hotkey() { }
+  using Callback = std::function<void()>;
+
+  Hotkey(HotkeyManager& manager);
   ~Hotkey();
 
-  // TODO: move operator
+  Hotkey(const Hotkey&) = delete;
+  Hotkey& operator=(const Hotkey&) = delete;
+
+  void setKey(cpp::wstring_view hotkey);
+  void setKey(const Windows::ShortCut& hotkey);
+  Windows::ShortCut getKey() const;
+
+  void setCallback(Callback callback);
+
+  HotkeyManager& getManager() const { return manager_; }
+
+  static Windows::ShortCut parse(cpp::wstring_view hotkey);
 
 private:
-  HotkeyManager* manager_ = nullptr;
-  int id_ = 0;
-
-  friend class HotkeyManager;
+  HotkeyManager& manager_;
+  int id_;
 };
 
 /// \brief
 class HotkeyManager : private Windows::MessageSink
 {
 public:
-  using Callback = std::function<void()>;
-
   HotkeyManager();
 
-  Hotkey registerHotkey(cpp::wstring_view hotkey, Callback func);
-  Hotkey registerHotkey(const Windows::ShortCut& keys, Callback func);
-  void unregisterHotkey(Hotkey& hotkey);
-
-  static Windows::ShortCut parseHotkey(cpp::wstring_view hotkey);
-
 private:
-  boost::container::flat_map<int, Callback> hotkeys_;
+  struct HotkeyData {
+    Windows::ShortCut short_cut_;
+    Hotkey::Callback callback_;
+  };
+
+  boost::container::flat_map<int, HotkeyData> hotkeys_;
   int last_id_ = 0;
 
   LRESULT onMessage(UINT msg, WPARAM wparam, LPARAM lparam) override;
+
+  int registerHotkey();
+  void unregisterHotkey(int id);
+
+  void setKey(int id, const Windows::ShortCut& key);
+  Windows::ShortCut getKey(int id) const;
+  void setCallback(int id, Hotkey::Callback func);
+
+  friend class Hotkey;
 };
 
 } // namespace PowerWin
