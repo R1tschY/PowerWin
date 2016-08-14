@@ -11,6 +11,7 @@
 // Icons
 #define POWERWIN_ICON_SMALL 107
 #define POWERWIN_ICON_LARGE 108
+#define POWERWIN_ICON_TEST  109
 
 
 #endif /* APP_RESOURCES_H_ */

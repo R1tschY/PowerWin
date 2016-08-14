@@ -22,7 +22,9 @@
 
 #include "log.h"
 
-#include <fstream>
+#include <algorithm>
+
+#include <lightports/core/debugstream.h>
 
 
 namespace PowerWin {

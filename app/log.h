@@ -24,6 +24,7 @@
 #define APP_LOG_H_
 
 #include <ostream>
+#include <memory>
 
 namespace PowerWin {
 
