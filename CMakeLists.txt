@@ -80,6 +80,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 add_subdirectory(libs/c++)
 add_subdirectory(libs/lightports)
 
+add_definitions(-DCPP_ASSERT_FAIL=CPP_ASSERT_FAIL_THROW)
+
 add_library(range-v3 INTERFACE)
 target_include_directories(range-v3 INTERFACE 
 	"${CMAKE_CURRENT_SOURCE_DIR}/libs/range/include"

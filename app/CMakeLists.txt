@@ -7,6 +7,7 @@ set(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} --output-format=coff --target=pe-i386")
 
 # Libs
 set(PowerWinApp_Libs 
+  cpp-utils
   powerwin
   lightports-base 
   lightports-extra 
@@ -24,5 +25,5 @@ set_target_properties(PowerWinApp
   COMPILE_FLAGS "-m32" 
   LINK_FLAGS "-m32"
 )
-target_link_libraries(PowerWinApp cpp-utils32 range-v3 ${PowerWinApp_Libs} ${PowerWinApp_MODULES})
+target_link_libraries(PowerWinApp range-v3 ${PowerWinApp_Libs} -Wl,--whole-archive ${PowerWinApp_MODULES} -Wl,--no-whole-archive)
 
