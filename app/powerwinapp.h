@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <lightports/controls/window.h>
+#include <lightports/controls/messagesink.h>
 #include <lightports/extra/trayicon.h>
 #include <windows.h>
 
@@ -14,7 +14,7 @@
 
 namespace PowerWin {
 
-class PowerWinApp : public Windows::Window {
+class PowerWinApp : public Windows::MessageSink {
   PowerWinApp();
   ~PowerWinApp();
 
@@ -35,6 +35,8 @@ private:
   HotkeyManager hotkeys_;
   ModuleManager modules_;
   HookLibManager hooklibs_;
+
+  Hotkey quit_shortcut_;
 
   static ATOM RegisterWinClass(HINSTANCE hInstance);
 

@@ -78,7 +78,7 @@ HookLibManager::HookLibManager()
 
 void HookLibManager::startLibs()
 {
-  runDll32(Path(Application::getExecutablePath()).getFolder() + L"\\libpowerwin32.dll", L"EnterGodModus", L"");
+  runDll32(Path(Application::getExecutablePath()).getFolder() + L"\\libpowerwin32.dll", L"EnterGodModus@16", L"");
   if (Application::is64BitWindows())
   {
     runDll64(Path(Application::getExecutablePath()).getFolder() + L"\\libpowerwin64.dll", L"EnterGodModus", L"");
