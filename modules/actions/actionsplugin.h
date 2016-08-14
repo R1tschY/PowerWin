@@ -9,20 +9,9 @@
 #include <lightports/controls/messagesink.h>
 #include "../../app/module.h"
 
-struct Action {
-  cpp::wstring_view name;
-  void (*handler)();
-};
-
 class ActionsPlugin : public PowerWin::Module {
 public:
-  ActionsPlugin();
-
-protected:
-  void activate(PowerWin::ModuleContext& context) override;
-  void deactivate() override;
-
-private:
-  static bool parseHotkey(cpp::wstring_view hotkey, std::pair<unsigned,unsigned>* result);
+  ActionsPlugin(PowerWin::ModuleContext& context);
+  ~ActionsPlugin();
 };
 

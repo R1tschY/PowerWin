@@ -4,6 +4,7 @@
 #include <lightports/extra/hook.h>
 #include <lightports/base/timeout.h>
 #include <app/module.h>
+#include <app/hotkeymanager.h>
 
 namespace PowerWin {
 
@@ -21,16 +22,16 @@ private:
 
 class WindowDebugModule : public Module {
 public:
-  WindowDebugModule();
-
-  void activate(ModuleContext& context) override;
-  void deactivate() override;
+  WindowDebugModule(ModuleContext& context);
+  ~WindowDebugModule();
 
   void showView();
   void hideView();
 
 private:
   WindowDebugView debug_view_;
+  Hotkey show_hotkey_;
+  Hotkey hide_hotkey_;
 };
 
 } // namespace PowerWin

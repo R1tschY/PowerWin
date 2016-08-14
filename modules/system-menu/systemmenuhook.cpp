@@ -13,6 +13,7 @@
 #include <lightports/extra/menu.h>
 #include <lightports/base/resources.h>
 #include <lightports/core.h>
+#include <lightports/core/debugstream.h>
 #include <hooklib/macros.h>
 #include <hooklib/resources.h>
 
@@ -175,19 +176,10 @@ LRESULT CALLBACK systemmenu_hook_proc(int code, WPARAM wParam, LPARAM lParam)
 
 }
 
-SystemMenuHook::SystemMenuHook()
+SystemMenuHook::SystemMenuHook(PowerWin::HookModuleContext& context)
 : hook_(systemmenu_hook)
-{ }
-
-void SystemMenuHook::init(PowerWin::HookModuleContext& context)
-{
-}
-
-void SystemMenuHook::activate()
 {
   hook_->create(WH_CBT, Hook::AllThreads, systemmenu_hook_proc);
-
-  print(L"%s: %s", POWERWIN_APP_NAME, __PRETTY_FUNCTION__);
 
 #if CPUBITSET == 32
   MessageBeep(MB_OK);
@@ -196,7 +188,7 @@ void SystemMenuHook::activate()
 #endif
 }
 
-void SystemMenuHook::deactivate()
+SystemMenuHook::~SystemMenuHook()
 {
 #if CPUBITSET == 32
   MessageBeep(MB_OK);

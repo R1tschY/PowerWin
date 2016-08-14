@@ -5,42 +5,63 @@
  *      Author: richard
  */
 
-#include "remotemanager.h"
-
-#include <functional>
-#include <thread>
-#include <string>
-#include <cpp-utils/preprocessor.h>
-#include <cpp-utils/algorithm/container.h>
-#include "macros.h"
-#include <lightports/core/debug.h>
-#include <lightports/base/application.h>
 #include <app/messages.h>
+#include <cpp-utils/algorithm/container.h>
+#include <cpp-utils/preprocessor.h>
+#include <hooklib/remotemanager.h>
+#include <lightports/base/application.h>
+#include <lightports/core/debug.h>
+#include <lightports/core/debugstream.h>
+#include <minwindef.h>
+#include <windef.h>
+#include <winnt.h>
+#include <winuser.h>
+#include <exception>
+#include <functional>
+#include <iostream>
+
+#include <modules/system-menu/systemmenuhook.h>
+
+using namespace Windows;
 
 namespace PowerWin {
 
 RemoteManager::RemoteManager()
 {
   create(CPP_TO_WIDESTRING(POWERWIN_APP_NAME) L"-Hooklib");
-
-  cpp::transform(
-    HookModuleRegistry::entries(),
-    modules_, [](auto& entry){ return entry.create(); });
 }
 
 void RemoteManager::activate()
 {
-  cpp::for_each(modules_, std::mem_fn(&HookModule::activate));
+  DebugOutputStream() << __PRETTY_FUNCTION__ << ':' << __LINE__;
+
+  if (activated_)
+    return;
+  activated_ = true;
+
+  cpp::transform(
+    HookModuleRegistry::entries(),
+    modules_,
+    [&](auto& entry){
+      HookModuleContext context(entry.name());
+      DebugOutputStream() << L"activated module " << entry.name();
+      return entry.create(context);
+  });
 }
 
 void RemoteManager::deactivate()
 {
-  cpp::for_each(modules_, std::mem_fn(&HookModule::deactivate));
+  DebugOutputStream() << __PRETTY_FUNCTION__ << ':' << __LINE__;
+  if (!activated_)
+    return;
+  activated_ = false;
+
+  modules_.clear();
 }
 
 void RemoteManager::onCreate()
 {
-  app_hwnd_ = MessageSink::find(L"PowerWinApp", nullptr);
+  app_hwnd_ = Control::find(nullptr, L"PowerWinApp", nullptr);
   if (app_hwnd_ != nullptr)
   {
     PostMessage(
@@ -59,7 +80,6 @@ void RemoteManager::onCreate()
 
 void RemoteManager::onDestroy()
 {
-  deactivate();
 
   // end hook lib if window is destroyed
   PostQuitMessage(0);
@@ -87,9 +107,22 @@ void CALLBACK EnterGodModus(
     LPSTR lpCmdLine,
     int nCmdShow)
 {
-  RemoteManager mgr;
-
-  Windows::Application::processMessages();
+  try
+  {
+    Windows::Application app(CPP_TO_WIDESTRING(POWERWIN_APP_NAME) L"-Hooklib", hInstance);
+    app.run([](){
+      RemoteManager mgr;
+      return Windows::Application::processMessages();
+    });
+  }
+  catch (const std::exception& e)
+  {
+    Windows::DebugOutputStream() << L"Exception catched at " << CPP_TO_WIDESTRING(POWERWIN_APP_NAME) << L": " << e.what() << std::endl;
+  }
+  catch (...)
+  {
+    Windows::DebugOutputStream() << L"Unknown exception catched at " << CPP_TO_WIDESTRING(POWERWIN_APP_NAME) << std::endl;
+  }
 }
 
 } // namespace PowerWin

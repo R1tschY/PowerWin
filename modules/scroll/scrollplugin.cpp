@@ -3,11 +3,8 @@
 #include <lightports/core.h>
 #include <modules/scroll/scrollplugin.h>
 
-ScrollPlugin::ScrollPlugin() :
+ScrollPlugin::ScrollPlugin(PowerWin::ModuleContext& context) :
   hook_([=](POINT pt, int steps){ return handle(pt, steps); })
-{ }
-
-void ScrollPlugin::activate(PowerWin::ModuleContext& context)
 {
   auto& config = context.getConfiguration();
 
@@ -16,7 +13,8 @@ void ScrollPlugin::activate(PowerWin::ModuleContext& context)
   hook_.activate();
 }
 
-void ScrollPlugin::deactivate() {
+ScrollPlugin::~ScrollPlugin()
+{
   hook_.deactivate();
 }
 

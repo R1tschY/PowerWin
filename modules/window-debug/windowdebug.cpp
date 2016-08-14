@@ -33,10 +33,8 @@ void WindowDebugView::onCreate()
 {
 }
 
-WindowDebugModule::WindowDebugModule()
-{ }
-
-void WindowDebugModule::activate(ModuleContext& context)
+WindowDebugModule::WindowDebugModule(ModuleContext& context)
+  : show_hotkey_(context.getHotkeyManager()), hide_hotkey_(context.getHotkeyManager())
 {
   auto show_shortcut_str = context
     .getConfiguration()
@@ -46,16 +44,14 @@ void WindowDebugModule::activate(ModuleContext& context)
     .getConfiguration()
     .readValue(L"window-debug", L"hide", L"Shift+Ctrl+Alt+F5");
 
-  context
-  .getHotkeyManager()
-  .registerHotkey(show_shortcut_str, [=](){ showView(); });
+  show_hotkey_.setCallback([=](){ showView(); });
+  show_hotkey_.setKey(show_shortcut_str);
 
-  context
-  .getHotkeyManager()
-  .registerHotkey(hide_shortcut_str, [=](){ hideView(); });
+  hide_hotkey_.setCallback([=](){ hideView(); });
+  hide_hotkey_.setKey(hide_shortcut_str);
 }
 
-void WindowDebugModule::deactivate()
+WindowDebugModule::~WindowDebugModule()
 {
   hideView();
 }

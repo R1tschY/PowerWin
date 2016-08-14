@@ -11,12 +11,9 @@
 #include <lightports/extra/systeminformation.h>
 #include <modules/splash-screen/splashscreenplugin.h>
 
-SplashScreenPlugin::SplashScreenPlugin() :
+SplashScreenPlugin::SplashScreenPlugin(PowerWin::ModuleContext& context) :
     window_(),
     timeout_(std::bind(&SplashScreenPlugin::onTimeout, this), 3000)
-{ }
-
-void SplashScreenPlugin::activate(PowerWin::ModuleContext& context)
 {
   auto monitor_info = Windows::Monitor::getPrimary().getInfo();
   auto monitor_rect = monitor_info.getMonitorRect();
@@ -30,7 +27,7 @@ void SplashScreenPlugin::activate(PowerWin::ModuleContext& context)
   timeout_.start();
 }
 
-void SplashScreenPlugin::deactivate()
+SplashScreenPlugin::~SplashScreenPlugin()
 {
   window_.destroy();
   timeout_.stop();
