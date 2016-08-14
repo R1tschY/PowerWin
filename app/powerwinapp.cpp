@@ -17,6 +17,7 @@
 #include <lightports/controls.h>
 #include <lightports/base/configfile.h>
 #include <lightports/controls/gdipluscontext.h>
+#include <lightports/extra/systeminformation.h>
 
 #include "resources.h"
 #include "messages.h"
@@ -26,21 +27,38 @@
 #include "../hooklib/remotemanager.h"
 #include <thread>
 
+using namespace Windows;
+
 namespace PowerWin {
 
+static
+ATOM registerWindowClass()
+{
+  return Windows::Control::registerClass(
+      L"PowerWinApp",
+      CS_HREDRAW | CS_VREDRAW,
+      0,
+      LoadCursor(nullptr, IDC_ARROW),
+      (HBRUSH)(COLOR_WINDOW+1),
+      nullptr,
+      0);
+}
+
 PowerWinApp::PowerWinApp() :
-  Window(Window::Type::Normal),
+  MessageSink(registerWindowClass()),
   tray_icon_(),
   configuration_(),
   hotkeys_(),
   modules_(configuration_, hotkeys_),
-  hooklibs_()
+  hooklibs_(),
+  quit_shortcut_(hotkeys_)
 {
 }
 
 PowerWinApp::~PowerWinApp() {  }
 
-int PowerWinApp::run() {
+int PowerWinApp::run()
+{
   //  init Comctl32.dll
   /*const INITCOMMONCONTROLSEX icce = {
     sizeof(INITCOMMONCONTROLSEX),
@@ -54,7 +72,7 @@ int PowerWinApp::run() {
 
   PowerWinApp powerwin;
 
-  powerwin.create(nullptr, wstring_literal(POWERWIN_APP_NAME));
+  powerwin.create(wstring_literal(POWERWIN_APP_NAME));
 
   print(L"%ls hwnd: %d\n", CPP_TO_WIDESTRING(POWERWIN_APP_NAME), powerwin.getNativeHandle());
 
@@ -67,22 +85,32 @@ int PowerWinApp::run() {
 
 void PowerWinApp::onCreate() {
   print(L"PowerWin::start\n");
-
-  hooklibs_.startLibs();
+  DebugOutputStream() << L"ClassName: " << getClassName(getNativeHandle());
 
   configuration_.loadIniFile(
-    Windows::Application::getExecutablePath() + L"\\config.ini"
+    Application::getExecutablePath() + L"\\config.ini"
   );
 
+  // tray icon
+  tray_icon_.setIcon(POWERWIN_ICON_SMALL);
+  tray_icon_.setToolTip(wstring_literal(POWERWIN_APP_NAME));
+  tray_icon_.add(getNativeHandle());
+
+  // hotkeys
+  auto quit_shortcut = configuration_.readValue(L"powerwin", L"quit", L"Ctrl+F12");
+  quit_shortcut_.setCallback([=](){ destroy(); });
+  quit_shortcut_.setKey(quit_shortcut);
+
+  // local modules
   modules_.loadModules();
 
-//  tray_icon_.add(getWindow(), LoadIcon(NULL, IDI_APPLICATION), wstring_literal(POWERWIN_APP_NAME));
-  tray_icon_.add(getNativeHandle(),
-    Windows::Resources::getIcon(GetModuleHandle(nullptr), POWERWIN_ICON_SMALL),
-                 wstring_literal(POWERWIN_APP_NAME));
+  // hook modules
+  hooklibs_.startLibs();
 }
 
-void PowerWinApp::onDestroy() {
+void PowerWinApp::onDestroy()
+{
+  Windows::DebugOutputStream() << L"PowerWinApp::onDestroy\n";
 
   hooklibs_.unloadLibs();
 
@@ -106,7 +134,7 @@ LRESULT PowerWinApp::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 
   }
 
-  return Window::onMessage(msg, wparam, lparam);
+  return Control::onMessage(msg, wparam, lparam);
 }
 
 } // namespace PowerWin
