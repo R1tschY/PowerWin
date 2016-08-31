@@ -42,8 +42,9 @@ void RemoteManager::activate()
   cpp::transform(
     HookModuleRegistry::entries(),
     modules_,
-    [&](auto& entry){
-      HookModuleContext context(entry.name());
+    [&](const HookModuleRegistry::entry& entry) {
+      HookModuleContext context(entry.name(), app_hwnd_);
+      // TODO: catch errors
       DebugOutputStream() << L"activated module " << entry.name();
       return entry.create(context);
   });
