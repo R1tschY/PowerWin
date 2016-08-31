@@ -16,17 +16,18 @@
 class SystemMenuHook : public PowerWin::HookModule
 {
 public:
-  struct MenuId {
-  enum : unsigned {
-    AlwaysOnTop = 0x00270,
-  };
-  };
-
   SystemMenuHook(PowerWin::HookModuleContext& context);
   ~SystemMenuHook();
 
+  void onNewWindow(HWND hwnd);
+  void onToogleTopmost(HWND hwnd);
+
 private:
   cpp::scoped_lifetime<Windows::Hook> hook_;
+
+  UINT new_window_msg_;
+  UINT set_topmost_msg_;
+  HWND powerwin_hwnd_;
 };
 
 #endif /* HOOKLIB_SYSTEMMENUHOOK_H_ */

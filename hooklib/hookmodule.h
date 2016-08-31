@@ -23,6 +23,8 @@
 #ifndef HOOKLIB_HOOKMODULE_H_
 #define HOOKLIB_HOOKMODULE_H_
 
+#include <windows.h>
+
 #include <cpp-utils/pattern/registry.h>
 #include <cpp-utils/strings/string_view.h>
 
@@ -31,16 +33,21 @@ namespace PowerWin {
 class HookModuleContext
 {
 public:
-  HookModuleContext(cpp::wstring_view name)
-  : name_(name)
+  HookModuleContext(cpp::wstring_view name, HWND powerwin_hwnd)
+  : name_(name), powerwin_hwnd_(powerwin_hwnd)
   { }
 
   // own
 
   cpp::wstring_view getModuleName() { return name_; }
 
+  // global
+
+  HWND getPowerWinWHND() const { return powerwin_hwnd_; }
+
 private:
   cpp::wstring_view name_;
+  HWND powerwin_hwnd_;
 };
 
 struct HookModule
