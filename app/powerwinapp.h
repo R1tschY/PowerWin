@@ -11,6 +11,7 @@
 #include "hotkeymanager.h"
 #include "configuration.h"
 #include "hooklibmanager.h"
+#include "globalevents.h"
 
 namespace PowerWin {
 
@@ -33,6 +34,8 @@ private:
 
   Configuration configuration_;
   HotkeyManager hotkeys_;
+  GlobalEvents global_events_;
+
   ModuleManager modules_;
   HookLibManager hooklibs_;
 

@@ -11,7 +11,10 @@ namespace PowerWin {
 class PowerWinApp;
 class Configuration;
 class HotkeyManager;
+class GlobalEvents;
 
+/// \brief context for PowerWin module
+/// \details api for modules
 class ModuleContext
 {
 public:
@@ -19,9 +22,11 @@ public:
   ModuleContext(
     cpp::wstring_view name,
     Configuration& config,
-    HotkeyManager& hotkeys
+    HotkeyManager& hotkeys,
+    GlobalEvents& global_events
     )
-  : name_(name), config_(config), hotkeys_(hotkeys)
+  : name_(name), config_(config), hotkeys_(hotkeys),
+    global_events_(global_events)
   { }
 
   // own
@@ -32,18 +37,22 @@ public:
 
   Configuration& getConfiguration() { return config_; }
   HotkeyManager& getHotkeyManager() { return hotkeys_; }
+  GlobalEvents& getGlobalEventsManager() { return global_events_; }
 
 private:
   cpp::wstring_view name_;
   Configuration& config_;
   HotkeyManager& hotkeys_;
+  GlobalEvents& global_events_;
 };
 
+/// \brief a PowerWin module
 class Module : private cpp::noncopyable {
 public:
   virtual ~Module() = default;
 };
 
+/// \brief entry in PowerWin module registry
 class ModuleRegistryEntry
 {
 public:
@@ -72,6 +81,7 @@ private:
   const factory factory_;
 };
 
+/// \brief PowerWin module registry
 using ModuleRegistry = cpp::registry<Module, ModuleRegistryEntry>;
 
 } // namespace PowerWin

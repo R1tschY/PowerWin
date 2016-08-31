@@ -32,7 +32,8 @@ void ManagedModule::activate()
 {
   if (module_) return;
 
-  ModuleContext context(entry_.name(), mgr_.getConfiguration(), mgr_.getHotkeys());
+  ModuleContext context(entry_.name(), mgr_.getConfiguration(),
+      mgr_.getHotkeys(), mgr_.getGlobalEvents());
   module_ = entry_.create(context);
 }
 
@@ -41,8 +42,9 @@ void ManagedModule::deactivate()
   module_.reset();
 }
 
-ModuleManager::ModuleManager(Configuration& configuration, HotkeyManager& hotkeys)
-: config_(configuration), hotkeys_(hotkeys)
+ModuleManager::ModuleManager(Configuration& configuration,
+    HotkeyManager& hotkeys, GlobalEvents& global_events)
+: config_(configuration), hotkeys_(hotkeys), global_events_(global_events)
 { }
 
 ModuleManager::~ModuleManager()
