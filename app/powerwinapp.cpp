@@ -49,7 +49,8 @@ PowerWinApp::PowerWinApp() :
   tray_icon_(),
   configuration_(),
   hotkeys_(),
-  modules_(configuration_, hotkeys_),
+  global_events_(),
+  modules_(configuration_, hotkeys_, global_events_),
   hooklibs_(),
   quit_shortcut_(hotkeys_)
 {
@@ -128,13 +129,27 @@ LRESULT PowerWinApp::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 {
   switch (msg)
   {
+  // internal management messages
   case Messages::RegisterHooklib:
     hooklibs_.registerHookLib(reinterpret_cast<HWND>(wparam));
     return 0;
 
+  // internal messages
+  case WM_NCCREATE:
+  case WM_CREATE:
+  case WM_DESTROY:
+  case WM_NCDESTROY:
+    return Control::onMessage(msg, wparam, lparam);
+
+  // filter meaningless messages
+  case WM_MOVE:
+  case WM_SIZE:
+    return ::DefWindowProc(getHWND(), msg, wparam, lparam);
   }
 
-  return Control::onMessage(msg, wparam, lparam);
+  // pass message to modules
+  auto result = global_events_.handleWindowsMessage(msg, wparam, lparam);
+  return result ? result.value() : Control::onMessage(msg, wparam, lparam);
 }
 
 } // namespace PowerWin

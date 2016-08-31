@@ -30,6 +30,7 @@ namespace PowerWin {
 class PowerWinApp;
 class Configuration;
 class ModuleManager;
+class GlobalEvents;
 
 class ManagedModule
 {
@@ -56,11 +57,13 @@ private:
 class ModuleManager
 {
 public:
-  ModuleManager(Configuration& configuration, HotkeyManager& hotkeys);
+  ModuleManager(Configuration& configuration, HotkeyManager& hotkeys,
+      GlobalEvents& global_events);
   ~ModuleManager();
 
   Configuration& getConfiguration() { return config_; }
   HotkeyManager& getHotkeys() { return hotkeys_; }
+  GlobalEvents& getGlobalEvents() { return global_events_; }
 
   void loadModules();
   void unloadModules();
@@ -69,6 +72,7 @@ private:
   std::vector<ManagedModule> modules_;
   Configuration& config_;
   HotkeyManager& hotkeys_;
+  GlobalEvents& global_events_;
 };
 
 } // namespace PowerWin
