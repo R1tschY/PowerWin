@@ -1,6 +1,6 @@
 ## System
 
-* i16n with boost
+* i18n with boost::local
 * Action backend: powerwin.exit(), windows.start("cmd.exe"), ... with lua
 * LuaBrigde
 * class HotkeyManager { registerFunction(module, hotkey, name. desciption, lua_code); };
@@ -12,7 +12,6 @@
   * powerwin.osd.show(system.date.format('%Y.%m.%d')..' '..system.time.format('%H:%M:%S'), 'position: center; width:200px; height:200px')
   
 * KeepTheCarRunning -> PatchWindows
-* new TrayIcon icon
 * tray-icon menu with interface for modules
 * http://msdn.microsoft.com/en-us/library/windows/desktop/ms632599%28v=vs.85%29.aspx#destruction
 * AnimateWindow (http://msdn.microsoft.com/en-us/library/windows/desktop/ms632669%28v=vs.85%29.aspx)
@@ -27,6 +26,10 @@
 ### system-menu
 
 * Dead-Lock in cv::namedWindow from OpenCV
+
+### scroll
+
+* no scrolling on left monitor of main monitor
  
 ## Modules
 
@@ -34,6 +37,7 @@
 
 * always on top (implemented)
 * Windows 10: move to other viewport (idea)
+* eliminate flicker in system menu -> activate double buffering (idea)
 
 ### wkill (idea)
 

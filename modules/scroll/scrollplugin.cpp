@@ -50,8 +50,8 @@ bool ScrollPlugin::handle(POINT pt, int steps) {
       ((GetKeyState(VK_SHIFT) & SHIFTED) != 0) << 2
     | ((GetKeyState(VK_CONTROL) & SHIFTED) != 0) << 3;
 
-  PostMessage(window, WM_MOUSEWHEEL, Windows::dword(steps, vkeys),
-    Windows::dword(pt.y, pt.x));
+  PostMessage(window, WM_MOUSEWHEEL, MAKELONG(vkeys, steps),
+      MAKELONG(pt.x, pt.y));
 
   return true;
 }

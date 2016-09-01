@@ -75,7 +75,7 @@ int PowerWinApp::run()
 
   powerwin.create(wstring_literal(POWERWIN_APP_NAME));
 
-  print(L"%ls hwnd: %d\n", CPP_TO_WIDESTRING(POWERWIN_APP_NAME), powerwin.getNativeHandle());
+  DebugOutputStream() << CPP_TO_WIDESTRING(POWERWIN_APP_NAME) << std::hex << L": " << powerwin.getNativeHandle();
 
   Windows::Application::processMessages();
 
