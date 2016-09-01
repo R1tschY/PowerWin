@@ -81,20 +81,8 @@ BOOL CALLBACK systemmenu_upgrade_window(HWND hwnd, LPARAM lParam)
           ? MenuEntryFlags::Checked : MenuEntryFlags::Unchecked);
 
         // seperator
-        menu.insertSeperatorBefore(SC_CLOSE);
+        menu.insertSeperatorBefore(SC_CLOSE, SystemMenu::AlwaysOnTop);
       }
-      else
-      {
-        DebugOutputStream()
-            << menu.getHMENU() << " == " << GetSystemMenu(hwnd, FALSE) << L" "
-            << ::GetMenuState(menu.getHMENU(), SC_CLOSE, MF_BYCOMMAND) << L" has SC_CLOSE" << std::endl;
-      }
-    }
-    else
-    {
-      DebugOutputStream()
-          << menu.getHMENU() << " == " << GetSystemMenu(hwnd, FALSE) << L" "
-          << ::GetMenuState(menu.getHMENU(), SC_CLOSE, MF_BYCOMMAND) << L" has no menu" << std::endl;
     }
   }
   catch (...)
@@ -113,7 +101,8 @@ BOOL CALLBACK downgradeWindow(HWND hwnd, LPARAM lParam)
     MenuView menu = getSystemMenu(hwnd);
     if (menu) {
       // remove existing menu
-      if (menu.existsEntry(SystemMenu::AlwaysOnTop))
+      int i = 2;
+      while (menu.existsEntry(SystemMenu::AlwaysOnTop) && i--)
         menu.deleteEntry(SystemMenu::AlwaysOnTop);
     }
   }
@@ -142,12 +131,10 @@ SystemMenuModule::SystemMenuModule(ModuleContext& context)
   MessageBeep(MB_OK);
   EnumWindows(downgradeWindow, 0);
   EnumWindows(systemmenu_upgrade_window, 0);
-  DebugOutputStream() << L"SystemMenuModule" << std::endl;
 }
 
 SystemMenuModule::~SystemMenuModule()
 {
-  DebugOutputStream() << L"~SystemMenuModule" << std::endl;
   MessageBeep(MB_OK);
   EnumWindows(downgradeWindow, 0);
 }
@@ -168,13 +155,11 @@ void SystemMenuModule::onGlobalMessage(WindowsMessageEvent& e)
 
 void SystemMenuModule::onNewWindow(HWND hwnd)
 {
-  DebugOutputStream() << L"SystemMenuModule::onNewWindow" << std::endl;
   systemmenu_upgrade_window(hwnd, 0);
 }
 
 void SystemMenuModule::onToogleTopmost(HWND hwnd)
 {
-  DebugOutputStream() << L"SystemMenuModule::onToogleTopmost" << std::endl;
   ::MessageBeep(MB_ICONINFORMATION);
   bool state = IsWindowAlwaysOnTop(hwnd);
   SetWindowAlwaysOnTop(hwnd, !state);

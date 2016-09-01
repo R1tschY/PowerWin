@@ -20,8 +20,6 @@
 #include <functional>
 #include <iostream>
 
-#include <modules/system-menu/systemmenuhook.h>
-
 using namespace Windows;
 
 namespace PowerWin {
@@ -33,8 +31,6 @@ RemoteManager::RemoteManager()
 
 void RemoteManager::activate()
 {
-  DebugOutputStream() << __PRETTY_FUNCTION__ << ':' << __LINE__;
-
   if (activated_)
     return;
   activated_ = true;
@@ -52,7 +48,6 @@ void RemoteManager::activate()
 
 void RemoteManager::deactivate()
 {
-  DebugOutputStream() << __PRETTY_FUNCTION__ << ':' << __LINE__;
   if (!activated_)
     return;
   activated_ = false;
@@ -73,7 +68,7 @@ void RemoteManager::onCreate()
   }
   else
   {
-    print(L"cannot find PowerWinApp window.");
+    ::OutputDebugStringW(L"cannot find PowerWinApp window.");
   }
 
   activate();
@@ -81,7 +76,6 @@ void RemoteManager::onCreate()
 
 void RemoteManager::onDestroy()
 {
-
   // end hook lib if window is destroyed
   PostQuitMessage(0);
 }
@@ -122,7 +116,7 @@ void CALLBACK EnterGodModus(
   }
   catch (...)
   {
-    Windows::DebugOutputStream() << L"Unknown exception catched at " << CPP_TO_WIDESTRING(POWERWIN_APP_NAME) << std::endl;
+    ::OutputDebugStringW(L"Unknown exception catched at " CPP_TO_WIDESTRING(POWERWIN_APP_NAME));
   }
 }
 
