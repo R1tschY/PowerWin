@@ -7,6 +7,7 @@
 #include <cstring>
 #include <iostream>
 
+#include <cpp-utils/preprocessor.h>
 #include <cpp-utils/strings/string_literal.h>
 #include <lightports/core.h>
 #include <lightports/controls/utilwindow.h>
@@ -18,6 +19,8 @@
 #include <lightports/base/configfile.h>
 #include <lightports/controls/gdipluscontext.h>
 #include <lightports/extra/systeminformation.h>
+#include <lightports/extra/cursor.h>
+#include <lightports/extra/autostart.h>
 
 #include "resources.h"
 #include "messages.h"
@@ -73,7 +76,7 @@ int PowerWinApp::run()
 
   PowerWinApp powerwin;
 
-  powerwin.create(wstring_literal(POWERWIN_APP_NAME));
+  powerwin.create(CPP_TO_WIDESTRING(POWERWIN_APP_NAME));
 
   DebugOutputStream() << CPP_TO_WIDESTRING(POWERWIN_APP_NAME) << std::hex << L": " << powerwin.getNativeHandle();
 
@@ -94,8 +97,20 @@ void PowerWinApp::onCreate() {
 
   // tray icon
   tray_icon_.setIcon(POWERWIN_ICON_SMALL);
-  tray_icon_.setToolTip(wstring_literal(POWERWIN_APP_NAME));
+  tray_icon_.setToolTip(CPP_TO_WIDESTRING(POWERWIN_APP_NAME));
   tray_icon_.add(getNativeHandle());
+
+  // popup menu
+  popup_menu_ = createPopupMenu();
+
+  popup_menu_.addEntry(InfoEntry, L"PowerWin 0.1", MenuEntryFlags::Disabled);
+  popup_menu_.addEntry(InfoEntry, L"© by R1tschY 2016", MenuEntryFlags::Disabled);
+
+  popup_menu_.addSeperator();
+  popup_menu_.addEntry(AutostartEntry, L"Start with Windows");
+  popup_menu_.check(AutostartEntry, isProgramInAutostart());
+  popup_menu_.addSeperator();
+  popup_menu_.addEntry(QuitEntry, L"Quit");
 
   // hotkeys
   auto quit_shortcut = configuration_.readValue(L"powerwin", L"quit", L"Ctrl+F12");
@@ -145,11 +160,58 @@ LRESULT PowerWinApp::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
   case WM_MOVE:
   case WM_SIZE:
     return ::DefWindowProc(getHWND(), msg, wparam, lparam);
+
+  // trayicon
+  case TrayIcon::MessageId:
+    return tray_icon_.handleMessage(wparam, lparam, [=](UINT ti_msg, Point pt)
+    {
+      pt = getCursorPosition();
+
+      switch (ti_msg)
+      {
+      case WM_LBUTTONDOWN:
+      case WM_RBUTTONDOWN:
+      case WM_CONTEXTMENU:
+        onContextMenu(pt);
+        return 1;
+      }
+      return 0;
+    });
+
+  // Messages des PopupMenus
+  case WM_COMMAND: {
+    int id    = LOWORD(wparam);
+    int event = HIWORD(wparam);
+    // Menüauswahl bearbeiten:
+    switch (id)
+    {
+    case AutostartEntry:
+      onAutostartSet(!popup_menu_.isEntryChecked(AutostartEntry));
+      return 0;
+
+    case QuitEntry:
+      destroy();
+      return 0;
+    }
+    return 0;
+  }
   }
 
   // pass message to modules
   auto result = global_events_.handleWindowsMessage(msg, wparam, lparam);
   return result ? result.value() : Control::onMessage(msg, wparam, lparam);
+}
+
+void PowerWinApp::onContextMenu(Windows::Point pt)
+{
+  ::SetForegroundWindow(getNativeHandle());
+  openPopupMenu(popup_menu_, pt, getNativeHandle());
+}
+
+void PowerWinApp::onAutostartSet(bool value)
+{
+  popup_menu_.check(AutostartEntry, value);
+  setProgramToAutostart(value);
 }
 
 } // namespace PowerWin
@@ -160,7 +222,7 @@ int APIENTRY wWinMain(
   PWSTR pCmdLine,
   int nCmdShow)
 {
-  Windows::Application app(wstring_literal(POWERWIN_APP_NAME), hInstance);
+  Windows::Application app(CPP_TO_WIDESTRING(POWERWIN_APP_NAME), hInstance);
   return app.run(PowerWin::PowerWinApp::run);
 }
 
