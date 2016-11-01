@@ -128,14 +128,12 @@ SystemMenuModule::SystemMenuModule(ModuleContext& context)
       events.getWindowsMessageSignal(),
       [=](WindowsMessageEvent& e) { onGlobalMessage(e); });
 
-  MessageBeep(MB_OK);
   EnumWindows(downgradeWindow, 0);
   EnumWindows(systemmenu_upgrade_window, 0);
 }
 
 SystemMenuModule::~SystemMenuModule()
 {
-  MessageBeep(MB_OK);
   EnumWindows(downgradeWindow, 0);
 }
 
@@ -160,7 +158,6 @@ void SystemMenuModule::onNewWindow(HWND hwnd)
 
 void SystemMenuModule::onToogleTopmost(HWND hwnd)
 {
-  ::MessageBeep(MB_ICONINFORMATION);
   bool state = IsWindowAlwaysOnTop(hwnd);
   SetWindowAlwaysOnTop(hwnd, !state);
   updateSystemMenu(hwnd, !state);
