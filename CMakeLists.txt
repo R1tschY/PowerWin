@@ -9,7 +9,7 @@ cmake_policy(VERSION 3.2)
 cmake_policy(SET CMP0048 NEW)
 
 # project
-project(PowerWin VERSION 0.2)
+project(PowerWin VERSION 0.3)
 
 # include util modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)

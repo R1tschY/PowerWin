@@ -103,7 +103,7 @@ void PowerWinApp::onCreate() {
   // popup menu
   popup_menu_ = createPopupMenu();
 
-  popup_menu_.addEntry(InfoEntry, L"PowerWin 0.1", MenuEntryFlags::Disabled);
+  popup_menu_.addEntry(InfoEntry, L"PowerWin 0.3alpha", MenuEntryFlags::Disabled);
   popup_menu_.addEntry(InfoEntry, L"© by R1tschY 2016", MenuEntryFlags::Disabled);
 
   popup_menu_.addSeperator();

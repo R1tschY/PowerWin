@@ -8,6 +8,7 @@
 * add copyright to all files
 * context menu with Link to github and GPL
 * fix system-menu
+* config.h with program version
  
 * KeepTheCarRunning -> PatchWindows
 * http://msdn.microsoft.com/en-us/library/windows/desktop/ms632599%28v=vs.85%29.aspx#destruction
