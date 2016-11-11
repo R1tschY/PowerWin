@@ -27,3 +27,8 @@ set_target_properties(PowerWinApp
 )
 target_link_libraries(PowerWinApp range-v3 ${PowerWinApp_Libs} -Wl,--whole-archive ${PowerWinApp_MODULES} -Wl,--no-whole-archive)
 
+
+add_custom_command(TARGET PowerWinApp
+                   POST_BUILD
+                   COMMAND size -t "..\\bin\\*.exe" "..\\bin\\*.dll"
+                   COMMENT "Sizes:")

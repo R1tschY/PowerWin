@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstring>
 #include <iostream>
+#include <thread>
 
 #include <cpp-utils/preprocessor.h>
 #include <cpp-utils/strings/string_literal.h>
@@ -28,7 +29,7 @@
 #include "../hooklib/macros.h"
 
 #include "../hooklib/remotemanager.h"
-#include <thread>
+#include <powerwin-config.h>
 
 using namespace Windows;
 
@@ -97,13 +98,13 @@ void PowerWinApp::onCreate() {
 
   // tray icon
   tray_icon_.setIcon(POWERWIN_ICON_SMALL);
-  tray_icon_.setToolTip(CPP_TO_WIDESTRING(POWERWIN_APP_NAME));
+  tray_icon_.setToolTip(POWERWIN_PACKAGE_NAME);
   tray_icon_.add(getNativeHandle());
 
   // popup menu
   popup_menu_ = createPopupMenu();
 
-  popup_menu_.addEntry(InfoEntry, L"PowerWin 0.3alpha", MenuEntryFlags::Disabled);
+  popup_menu_.addEntry(InfoEntry, POWERWIN_PACKAGE_NAME POWERWIN_PACKAGE_VERSION, MenuEntryFlags::Disabled);
   popup_menu_.addEntry(InfoEntry, L"© by R1tschY 2016", MenuEntryFlags::Disabled);
 
   popup_menu_.addSeperator();
@@ -222,7 +223,7 @@ int APIENTRY wWinMain(
   PWSTR pCmdLine,
   int nCmdShow)
 {
-  Windows::Application app(CPP_TO_WIDESTRING(POWERWIN_APP_NAME), hInstance);
+  Windows::Application app(POWERWIN_PACKAGE_NAME, hInstance);
   return app.run(PowerWin::PowerWinApp::run);
 }
 
