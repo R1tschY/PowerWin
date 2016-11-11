@@ -10,6 +10,12 @@ cmake_policy(SET CMP0048 NEW)
 
 # project
 project(PowerWin VERSION 0.3)
+set(PowerWin_VERSION ${PowerWin_VERSION}alpha)
+
+set(PowerWin_AUTHOR "Richard Liebscher")
+set(PowerWin_DESCRIPTION "extents Windows with some cool features")
+set(PowerWin_COPYRIGHT "Copyright (C) 2016 Richard Liebscher <r1tschy@yahoo.de>")
+set(PowerWin_URL "https://github.com/R1tschY/PowerWin")
 
 # include util modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
@@ -87,8 +93,13 @@ target_include_directories(range-v3 INTERFACE
 	"${CMAKE_CURRENT_SOURCE_DIR}/libs/range/include"
 )
 
+# config
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/powerwin-config.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/powerwin-config.h)
+
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 # modules
 add_subdirectory(modules)
