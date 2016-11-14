@@ -26,7 +26,7 @@ set_target_properties(PowerWinApp
   LINK_FLAGS "-m32"
 )
 target_link_libraries(PowerWinApp range-v3 ${PowerWinApp_Libs} -Wl,--whole-archive ${PowerWinApp_MODULES} -Wl,--no-whole-archive)
-
+add_windows_versioninfo(TARGET PowerWinApp ${PowerWin_VERSIONINFO_ARGS})
 
 add_custom_command(TARGET PowerWinApp
                    POST_BUILD

@@ -10,12 +10,25 @@ cmake_policy(SET CMP0048 NEW)
 
 # project
 project(PowerWin VERSION 0.3)
-set(PowerWin_VERSION ${PowerWin_VERSION}alpha)
+set(PowerWin_VERSION_EXT "alpha")
 
 set(PowerWin_AUTHOR "Richard Liebscher")
 set(PowerWin_DESCRIPTION "extents Windows with some cool features")
 set(PowerWin_COPYRIGHT "Copyright (C) 2016 Richard Liebscher <r1tschy@yahoo.de>")
 set(PowerWin_URL "https://github.com/R1tschY/PowerWin")
+
+set(PowerWin_VERSIONINFO_ARGS 
+  COMPANY "${PowerWin_AUTHOR}"
+  FILE_DESCRIPTION "${PowerWin_DESCRIPTION} (${PowerWin_URL})"
+  LEGAL_COPYRIGHT "${PowerWin_COPYRIGHT}"
+)
+if (PowerWin_VERSION_EXT)
+  list(APPEND PowerWin_VERSIONINFO_ARGS PRERELEASE)
+  set(PowerWin_VERSION "${PowerWin_VERSION}${PowerWin_VERSION_EXT}")
+endif()
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  list(APPEND PowerWin_VERSIONINFO_ARGS DEBUG)
+endif()
 
 # include util modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)

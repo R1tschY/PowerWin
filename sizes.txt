@@ -1,0 +1,7 @@
+
+0.3alpha (Release)
+   text	   data	    bss	    dec	    hex	filename
+1001464	  23284	   4800	1029548	  fb5ac	..\bin\PowerWinApp.exe
+ 929285	  11836	   4160	 945281	  e6c81	..\bin\libpowerwin32.dll
+ 944254	  18872	   5952	 969078	  ec976	..\bin\libpowerwin64.dll
+2875003	  53992	  14912	2943907	 2ceba3	(TOTALS)
