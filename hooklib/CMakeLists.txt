@@ -29,6 +29,8 @@ add_windows_versioninfo(
   RC_FILE libpowerwin32_VERSIONINFO_RC)
 set_source_files_properties(${libpowerwin32_VERSIONINFO_RC} PROPERTIES COMPILE_FLAGS "--output-format=coff --target=pe-i386")
 
+install(TARGETS powerwin32 RUNTIME DESTINATION ".")
+
 # libpowerwin64
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
   set_source_files_properties(powerwin64.rc PROPERTIES COMPILE_FLAGS "--output-format=coff")
@@ -40,6 +42,8 @@ if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     ${PowerWin_VERSIONINFO_ARGS} 
     RC_FILE libpowerwin64_VERSIONINFO_RC)
   set_source_files_properties(${libpowerwin64_VERSIONINFO_RC} PROPERTIES COMPILE_FLAGS "--output-format=coff")
+  
+  install(TARGETS powerwin64 RUNTIME DESTINATION ".")
 endif()
 
 

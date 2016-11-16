@@ -31,6 +31,7 @@ add_windows_manifest(
   TARGET PowerWinApp 
   TEMPLATE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/powerwin.manifest.in"
   ASSEMBLY_VERSION "${PowerWin_VERSION_NOEXT}")
+install(TARGETS PowerWinApp RUNTIME DESTINATION ".")
 
 if (COMPILER_PREFIX)
   set(CMAKE_SIZE "${COMPILER_PREFIX}-size")
