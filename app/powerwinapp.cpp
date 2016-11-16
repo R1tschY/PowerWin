@@ -78,13 +78,13 @@ int PowerWinApp::run()
 
   PowerWinApp powerwin;
 
-  powerwin.create(CPP_TO_WIDESTRING(POWERWIN_APP_NAME));
+  powerwin.create(POWERWIN_PACKAGE_NAME);
 
-  log(Info) << CPP_TO_WIDESTRING(POWERWIN_APP_NAME) << std::hex << L": " << powerwin.getNativeHandle();
+  log(Info) << POWERWIN_PACKAGE_NAME << std::hex << L": " << powerwin.getNativeHandle();
 
   Windows::Application::processMessages();
 
-  log(Info) << CPP_TO_WIDESTRING(POWERWIN_APP_NAME) L": The end" << std::endl;
+  log(Info) << POWERWIN_PACKAGE_NAME L": The end" << std::endl;
 
   return 0;
 }
@@ -105,8 +105,11 @@ void PowerWinApp::onCreate() {
   // popup menu
   popup_menu_ = createPopupMenu();
 
-  popup_menu_.addEntry(InfoEntry, POWERWIN_PACKAGE_NAME POWERWIN_PACKAGE_VERSION, MenuEntryFlags::Disabled);
-  popup_menu_.addEntry(InfoEntry, L"© by R1tschY 2016", MenuEntryFlags::Disabled);
+  info_menu_ = createPopupMenu();
+  info_menu_.addEntry(InfoEntry, POWERWIN_PACKAGE_NAME POWERWIN_PACKAGE_VERSION);
+  info_menu_.addEntry(InfoEntry, L"Copyright © 2014-2016 R1tschY");
+  info_menu_.addEntry(InfoLicence, L"Licenced under GPL v3");
+  popup_menu_.addMenu(L"Info", info_menu_);
 
   popup_menu_.addSeperator();
   popup_menu_.addEntry(AutostartEntry, L"Start with Windows");
@@ -190,6 +193,14 @@ LRESULT PowerWinApp::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
     // Menüauswahl bearbeiten:
     switch (id)
     {
+    case InfoEntry:
+      openProjectWebsite();
+      return 0;
+
+    case InfoLicence:
+      openLicence();
+      return 0;
+
     case AutostartEntry:
       onAutostartSet(!popup_menu_.isEntryChecked(AutostartEntry));
       return 0;
@@ -217,6 +228,32 @@ void PowerWinApp::onAutostartSet(bool value)
 {
   popup_menu_.check(AutostartEntry, value);
   setProgramToAutostart(value);
+}
+
+void PowerWinApp::openProjectWebsite()
+{
+  ::ShellExecuteW(getHWND(), L"open", POWERWIN_URL, nullptr, nullptr, SW_SHOW);
+}
+
+void PowerWinApp::openLicence()
+{
+  auto exe_dir = Windows::Path(Windows::Application::getExecutablePath())
+                 .getFolder();
+  auto licence_path = exe_dir + L"\\" POWERWIN_LICENCE_PATH;
+  if (Windows::Path::exists(licence_path))
+  {
+    ::ShellExecuteW(
+      getHWND(),
+      L"open", licence_path.c_str(), nullptr, nullptr,
+      SW_SHOW);
+  }
+  else
+  {
+    ::ShellExecuteW(
+      getHWND(),
+      L"open", POWERWIN_LICENCE_URL, nullptr, nullptr,
+      SW_SHOW);
+  }
 }
 
 } // namespace PowerWin
