@@ -15,6 +15,8 @@ set(PowerWin_VERSION_EXT "alpha")
 set(PowerWin_AUTHOR "Richard Liebscher")
 set(PowerWin_COPYRIGHT "Copyright (C) 2016 Richard Liebscher <r1tschy@yahoo.de>")
 set(PowerWin_URL "https://github.com/R1tschY/PowerWin")
+set(PowerWin_LICENCE_URL "https://www.gnu.org/licenses/gpl-3.0.html")
+set(PowerWin_LICENCE_PATH "GPL.txt")
 set(PowerWin_DESCRIPTION_EN "Extents Windows with some cool features")
 set(PowerWin_DESCRIPTION_DE "Erweitert Windows um ein paar coole Fähigkeiten")
 
@@ -123,6 +125,7 @@ add_subdirectory(app)
 add_custom_target(update COMMAND cmake .)
 
 # cpack support
+install(FILES "${PowerWin_LICENCE_PATH}" DESTINATION ".")
 set(CPACK_GENERATOR "ZIP")
 set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")
 include(CPack)

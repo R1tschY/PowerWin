@@ -2,14 +2,12 @@
 
 ### 1.0
 
-* i18n with boost::local or getext
+* i18n with boost::local or gettext
 * Log-Backend and log-frontend module
 * convert all sources to UTF-8
 * add copyright to all files
-* context menu with Link to github and GPL
 * fix system-menu
 * use mingw-w64 in windows
-* gcc-size -> xls
  
 * KeepTheCarRunning -> PatchWindows
 * http://msdn.microsoft.com/en-us/library/windows/desktop/ms632599%28v=vs.85%29.aspx#destruction

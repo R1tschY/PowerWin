@@ -32,6 +32,7 @@ private:
   {
     InfoMenu,
     InfoEntry,
+    InfoLicence,
 
     AutostartEntry,
     QuitEntry
@@ -50,14 +51,15 @@ private:
 
   Hotkey quit_shortcut_;
 
-  static ATOM RegisterWinClass(HINSTANCE hInstance);
-
   LRESULT onMessage(UINT msg, WPARAM wparam, LPARAM lparam) override;
   void onCreate() override;
   void onDestroy() override;
 
   void onContextMenu(Windows::Point pt);
   void onAutostartSet(bool value);
+
+  void openProjectWebsite();
+  void openLicence();
 };
 
 } // namespace PowerWin
