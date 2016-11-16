@@ -7,12 +7,11 @@ Features
 --------
 
 * scroll in inactive windows.
-* move window to topmost (by the system memu of the window).
-* don't start screensaver or go to sleep when a fullscreen window exist.
+* move window to topmost (by the system menu of the window).
 
 * configure with ini file.
 * use as portable application.
-* support for 64-Bit (for WoW64 and native applications) and 32-Bit Windows.
+* support for 64-Bit and 32-Bit Windows.
 
 Future features
 ---------------

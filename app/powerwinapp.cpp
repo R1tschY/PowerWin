@@ -25,6 +25,7 @@
 
 #include "resources.h"
 #include "messages.h"
+#include "log.h"
 
 #include "../hooklib/macros.h"
 
@@ -79,18 +80,18 @@ int PowerWinApp::run()
 
   powerwin.create(CPP_TO_WIDESTRING(POWERWIN_APP_NAME));
 
-  DebugOutputStream() << CPP_TO_WIDESTRING(POWERWIN_APP_NAME) << std::hex << L": " << powerwin.getNativeHandle();
+  log(Info) << CPP_TO_WIDESTRING(POWERWIN_APP_NAME) << std::hex << L": " << powerwin.getNativeHandle();
 
   Windows::Application::processMessages();
 
-  print(L"%ls: The end\n", CPP_TO_WIDESTRING(POWERWIN_APP_NAME));
+  log(Info) << CPP_TO_WIDESTRING(POWERWIN_APP_NAME) L": The end" << std::endl;
 
   return 0;
 }
 
 void PowerWinApp::onCreate() {
   print(L"PowerWin::start\n");
-  DebugOutputStream() << L"ClassName: " << getClassName(getNativeHandle());
+  log(Info) << L"ClassName: " << getClassName(getNativeHandle());
 
   configuration_.loadIniFile(
     Application::getExecutablePath() + L"\\config.ini"
@@ -127,7 +128,7 @@ void PowerWinApp::onCreate() {
 
 void PowerWinApp::onDestroy()
 {
-  Windows::DebugOutputStream() << L"PowerWinApp::onDestroy\n";
+  log(Info) << L"PowerWinApp::onDestroy\n";
 
   hooklibs_.unloadLibs();
 
@@ -170,6 +171,9 @@ LRESULT PowerWinApp::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 
       switch (ti_msg)
       {
+      case NIN_POPUPOPEN:
+      case NIN_SELECT:
+      case NIN_KEYSELECT:
       case WM_LBUTTONDOWN:
       case WM_RBUTTONDOWN:
       case WM_CONTEXTMENU:

@@ -13,18 +13,21 @@ project(PowerWin VERSION 0.3)
 set(PowerWin_VERSION_EXT "alpha")
 
 set(PowerWin_AUTHOR "Richard Liebscher")
-set(PowerWin_DESCRIPTION "extents Windows with some cool features")
 set(PowerWin_COPYRIGHT "Copyright (C) 2016 Richard Liebscher <r1tschy@yahoo.de>")
 set(PowerWin_URL "https://github.com/R1tschY/PowerWin")
+set(PowerWin_DESCRIPTION_EN "Extents Windows with some cool features")
+set(PowerWin_DESCRIPTION_DE "Erweitert Windows um ein paar coole Fähigkeiten")
 
-set(PowerWin_VERSIONINFO_ARGS 
-  COMPANY "${PowerWin_AUTHOR}"
-  FILE_DESCRIPTION "${PowerWin_DESCRIPTION} (${PowerWin_URL})"
+set(PowerWin_VERSIONINFO_ARGS
+  RC_FILE_TEMPLATE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/versioninfo.rc.in"
+  COMPANY_NAME "${PowerWin_AUTHOR}"
   LEGAL_COPYRIGHT "${PowerWin_COPYRIGHT}"
 )
+set(PowerWin_VERSION_NOEXT "${PowerWin_VERSION}")
 if (PowerWin_VERSION_EXT)
   list(APPEND PowerWin_VERSIONINFO_ARGS PRERELEASE)
-  set(PowerWin_VERSION "${PowerWin_VERSION}${PowerWin_VERSION_EXT}")
+  set(PowerWin_VERSION "${PowerWin_VERSION_NOEXT}${PowerWin_VERSION_EXT}")
+  set(PROJECT_VERSION "${PowerWin_VERSION_NOEXT}${PowerWin_VERSION_EXT}")
 endif()
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   list(APPEND PowerWin_VERSIONINFO_ARGS DEBUG)
@@ -100,11 +103,6 @@ add_subdirectory(libs/c++)
 add_subdirectory(libs/lightports)
 
 add_definitions(-DCPP_ASSERT_FAIL=CPP_ASSERT_FAIL_THROW)
-
-add_library(range-v3 INTERFACE)
-target_include_directories(range-v3 INTERFACE 
-	"${CMAKE_CURRENT_SOURCE_DIR}/libs/range/include"
-)
 
 # config
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/powerwin-config.h.in

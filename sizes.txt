@@ -1,7 +1,13 @@
 
-0.3alpha (Release)
+0.3alpha (Release / TDM-GCC 5.1.0)
    text	   data	    bss	    dec	    hex	filename
 1001464	  23284	   4800	1029548	  fb5ac	..\bin\PowerWinApp.exe
  929285	  11836	   4160	 945281	  e6c81	..\bin\libpowerwin32.dll
  944254	  18872	   5952	 969078	  ec976	..\bin\libpowerwin64.dll
 2875003	  53992	  14912	2943907	 2ceba3	(TOTALS)
+
+0.3alpha+ (Release / Mingw64 5.3.1)
+   text    data     bss     dec     hex filename
+1017828   24260    4096 1046184   ff6a8 ../bin/PowerWinApp.exe
+ 902297   12876    3904  919077   e0625 ../bin/libpowerwin32.dll
+1920125   37136    8000 1965261  1dfccd (TOTALS)
