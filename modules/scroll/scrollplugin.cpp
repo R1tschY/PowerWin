@@ -3,54 +3,61 @@
 #include <lightports/core.h>
 #include <modules/scroll/scrollplugin.h>
 
-ScrollPlugin::ScrollPlugin(PowerWin::ModuleContext& context) :
-  hook_([=](POINT pt, int steps){ return handle(pt, steps); })
-{
-  auto& config = context.getConfiguration();
+static ScrollPlugin* instance = nullptr;
 
+ScrollPlugin::ScrollPlugin(PowerWin::ModuleContext& context)
+{
+  cpp_assert(instance == nullptr);
+
+  auto& config = context.getConfiguration();
   inverse_ = config.readBoolean(L"scroll", L"inverse", false);
 
-  hook_.activate();
+  instance = this;
+  hook_.create(WH_MOUSE_LL, Windows::Hook::AllThreads, &ScrollPlugin::hookProc);
 }
 
 ScrollPlugin::~ScrollPlugin()
 {
-  hook_.deactivate();
+  instance = nullptr;
 }
 
 __attribute__((hot))
-bool ScrollPlugin::handle(POINT pt, int steps) {
+LRESULT CALLBACK ScrollPlugin::hookProc(int code, WPARAM wparam, LPARAM lparam)
+{
+  if (code != HC_ACTION) {
+    return instance->hook_.callNext(code, wparam, lparam);
+  }
+
+  MSLLHOOKSTRUCT* data = reinterpret_cast<MSLLHOOKSTRUCT*>(lparam);
+  bool processed = instance->handle(data->pt, HIWORD(data->mouseData));
+  if (!processed) {
+    return instance->hook_.callNext(code, wparam, lparam);
+  } else {
+    return 1;
+  }
+}
+
+__attribute__((hot))
+bool ScrollPlugin::handle(POINT pt, int steps)
+{
   // get window under cursor
-  HWND window = WindowFromPoint(pt);
-  if (window == NULL) {
-    OutputDebugStringW(L"ScrollPlugin: window == NULL\n");
+  HWND window = ::WindowFromPoint(pt);
+  if (window == NULL)
+  {
+    ::OutputDebugStringW(L"ScrollPlugin: window == NULL\n");
     return false;
   }
 
-  /*
-    // get window class name
-    wchar_t class_name[255];
-    GetClassNameW(window, class_name, sizeof(class_name);
-    
-    // get window text
-    wchar_t window_text[255];
-    GetWindowTextW(window, window_text, sizeof(window_text));
-    
-    // get window class name
-    wchar_t class_name_active[255];
-    GetClassNameW(GetForegroundWindow(), class_name_active, sizeof(class_name_active));
-    */
-
-  if (inverse_) {
+  if (inverse_)
+  {
     steps = -steps;
   }
     
-  // vkeys in WM_MOUSEWHEEL from no application used.
   int vkeys = 
-      ((GetKeyState(VK_SHIFT) & SHIFTED) != 0) << 2
-    | ((GetKeyState(VK_CONTROL) & SHIFTED) != 0) << 3;
+      ((::GetKeyState(VK_SHIFT) & SHIFTED) != 0) << 2
+    | ((::GetKeyState(VK_CONTROL) & SHIFTED) != 0) << 3;
 
-  PostMessage(window, WM_MOUSEWHEEL, MAKELONG(vkeys, steps),
+  ::PostMessageW(window, WM_MOUSEWHEEL, MAKELONG(vkeys, steps),
       MAKELONG(pt.x, pt.y));
 
   return true;

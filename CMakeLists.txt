@@ -67,8 +67,8 @@ compile_for_windows(UNICODE STRICT VERSION Vista)
 # Debug mode
 add_config(
   Debug 
-  CXX_FLAGS "-Og -DDEBUG" 
-  LINKER_FLAGS "-Og"
+  CXX_FLAGS "-Og -g -DDEBUG -D_DEBUG" 
+  LINKER_FLAGS "-Og -g"
 )
 
 # Release mode
