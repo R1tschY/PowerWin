@@ -91,8 +91,6 @@ add_cxx_flag_checked("-Wzero-as-null-pointer-constant")
 add_cxx_flag_checked("-Wnull-dereference") # gcc 6
 add_cxx_flag_checked("-Wduplicated-cond") # gcc 6
 add_cxx_flag_checked("-Wshift-negative-value") # gcc 6
-#add_cxx_flag_checked("-Wsuggest-final-methods")
-#add_cxx_flag_checked("-Wsuggest-final-types")
 
 # Output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
@@ -123,3 +121,8 @@ add_subdirectory(app)
 
 # utils
 add_custom_target(update COMMAND cmake .)
+
+# cpack support
+set(CPACK_GENERATOR "ZIP")
+set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")
+include(CPack)
