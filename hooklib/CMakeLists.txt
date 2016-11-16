@@ -18,8 +18,7 @@ set(libpowerwin_Libs
 
 # libpowerwin32
 set_source_files_properties(powerwin32.rc PROPERTIES COMPILE_FLAGS "--output-format=coff --target=pe-i386")
-add_library(powerwin32 SHARED ${libpowerwin_SOURCES} powerwin32.rc)
-set_target_properties(powerwin32 PROPERTIES COMPILE_OPTIONS "-m32" LINK_FLAGS "-m32")
+add_library(powerwin32 SHARED ${libpowerwin_SOURCES})
 
 listx_append_suffix(libpowerwin_Libs32 32 ${libpowerwin_Libs})
 target_link_libraries(powerwin32 cpp-utils32 ${libpowerwin_Libs32} -Wl,--whole-archive ${libpowerwin32_MODULES} -Wl,--no-whole-archive)
@@ -33,8 +32,7 @@ install(TARGETS powerwin32 RUNTIME DESTINATION ".")
 
 # libpowerwin64
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set_source_files_properties(powerwin64.rc PROPERTIES COMPILE_FLAGS "--output-format=coff")
-  add_library(powerwin64 SHARED ${libpowerwin_SOURCES} powerwin64.rc)
+  add_library(powerwin64 SHARED ${libpowerwin_SOURCES})
   listx_append_suffix(libpowerwin_Libs64 64 ${libpowerwin_Libs})
   target_link_libraries(powerwin64 cpp-utils64 ${libpowerwin_Libs64} -Wl,--whole-archive ${libpowerwin64_MODULES} -Wl,--no-whole-archive)
   add_windows_versioninfo(

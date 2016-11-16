@@ -8,6 +8,6 @@
 
 0.3alpha+ (Release / Mingw64 5.3.1)
    text    data     bss     dec     hex filename
-1017828   24260    4096 1046184   ff6a8 ../bin/PowerWinApp.exe
- 902297   12876    3904  919077   e0625 ../bin/libpowerwin32.dll
-1920125   37136    8000 1965261  1dfccd (TOTALS)
+1016672   24304    4064 1045040   ff230 ../bin/PowerWinApp.exe
+ 900121   12628    3872  916621   dfc8d ../bin/libpowerwin32.dll
+1916793   36932    7936 1961661  1deebd (TOTALS)

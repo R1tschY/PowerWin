@@ -26,6 +26,7 @@
 #include "resources.h"
 #include "messages.h"
 #include "log.h"
+#include "i18n.h"
 
 #include "../hooklib/macros.h"
 
@@ -107,15 +108,15 @@ void PowerWinApp::onCreate() {
 
   info_menu_ = createPopupMenu();
   info_menu_.addEntry(InfoEntry, POWERWIN_PACKAGE_NAME POWERWIN_PACKAGE_VERSION);
-  info_menu_.addEntry(InfoEntry, L"Copyright © 2014-2016 R1tschY");
-  info_menu_.addEntry(InfoLicence, L"Licenced under GPL v3");
+  info_menu_.addEntry(InfoEntry, _("Copyright © 2014-2016 R1tschY"));
+  info_menu_.addEntry(InfoLicence, _("Licenced under GPL v3"));
   popup_menu_.addMenu(L"Info", info_menu_);
 
   popup_menu_.addSeperator();
-  popup_menu_.addEntry(AutostartEntry, L"Start with Windows");
+  popup_menu_.addEntry(AutostartEntry, _("Start with Windows"));
   popup_menu_.check(AutostartEntry, isProgramInAutostart());
   popup_menu_.addSeperator();
-  popup_menu_.addEntry(QuitEntry, L"Quit");
+  popup_menu_.addEntry(QuitEntry, _("Quit"));
 
   // hotkeys
   auto quit_shortcut = configuration_.readValue(L"powerwin", L"quit", L"Ctrl+F12");
