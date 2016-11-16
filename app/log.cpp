@@ -23,63 +23,103 @@
 #include "log.h"
 
 #include <algorithm>
+#include <thread>
 
+#include <cpp-utils/assert.h>
+#include <cpp-utils/algorithm/length.h>
 #include <lightports/core/debugstream.h>
-
 
 namespace PowerWin {
 
-void Log::setDevice(std::wstreambuf* buffer)
+namespace {
+
+struct Log
 {
-  this->set_rdbuf(buffer);
+public:
+  constexpr Log() : owning_ref(), ptr() { }
+
+  ~Log()
+  {
+    ptr = nullptr;
+  }
+
+  void set(std::shared_ptr<std::wostream>& stream)
+  {
+    owning_ref = stream;
+    ptr = owning_ref.get();
+  }
+
+  void set(std::wostream* stream)
+  {
+    owning_ref = nullptr;
+    ptr = stream;
+  }
+
+  std::wostream* get() const { return ptr; }
+
+private:
+  std::shared_ptr<std::wostream> owning_ref;
+  std::wostream* ptr = nullptr;
+};
+
+static Log logs[LogLevel_Max] = {};
+
+static const wchar_t* prefixes[] = {
+  L"INFO: ",
+  L"WARNING: ",
+  L"ERROR: "
+};
+static_assert(cpp::length(prefixes) == LogLevel_Max, "update prefixes array");
+
+void setFallback()
+{
+  // init shared fallback
+  std::shared_ptr<std::wostream> fallback =
+    std::make_shared<Windows::DebugOutputStream>();
+  for (std::size_t i = 0; i < LogLevel_Max; i++)
+  {
+    if (logs[i].get())
+      continue;
+
+    logs[i].set(fallback);
+  }
 }
 
-void Log::setDevice(std::unique_ptr<std::wstreambuf> buffer)
-{
-  buffer_ = std::move(buffer);
+} // namespace
 
-  this->rdbuf(buffer_.get());
+std::wostream& log(LogLevel level)
+{
+  cpp_assert(level > 0 && level < LogLevel_Max);
+
+  if (!logs[level].get())
+  {
+    setFallback();
+  }
+
+  return *logs[level].get() << prefixes[level];
 }
 
-void Log::initGlobalChannels()
+void setLogStream(LogLevel level, std::shared_ptr<std::wostream> stream)
 {
-  // init all logs
-  getInfoLog();
-  getWarningsLog();
-  getCriticalLog();
+  logs[level].set(stream);
+
+  if (!stream)
+  {
+    setFallback();
+  }
 }
 
-std::wostream& Log::info()
+void setLogStreams(std::shared_ptr<std::wostream> stream)
 {
-  return getInfoLog() << L"INFO: ";
-}
+  for (std::size_t i = 0; i < LogLevel_Max; i++)
+  {
+    logs[i].set(stream);
+  }
 
-std::wostream& Log::warning()
-{
-  return getWarningsLog() << L"WARNING: ";
-}
-
-std::wostream& Log::critical()
-{
-  return getCriticalLog() << L"CRITICAL: ";
-}
-
-Log& Log::getInfoLog()
-{
-  static Log instance{new Windows::DebugOutputBuffer()};
-  return instance;
-}
-
-Log& Log::getWarningsLog()
-{
-  static Log instance{new Windows::DebugOutputBuffer()};
-  return instance;
-}
-
-Log& Log::getCriticalLog()
-{
-  static Log instance{new Windows::DebugOutputBuffer()};
-  return instance;
+  if (!stream)
+  {
+    setFallback();
+  }
 }
 
 } // namespace PowerWin

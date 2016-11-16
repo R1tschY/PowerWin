@@ -3,7 +3,6 @@
 
 #include <windows.h>
 
-#include <boost/signals2/signal.hpp>
 #include <cpp-utils/optional.h>
 
 #include "signal.h"
@@ -36,7 +35,7 @@ private:
 class GlobalEvents
 {
 public:
-  typedef boost::signals2::signal<void(WindowsMessageEvent&)> WindowsMessageSignal;
+  using WindowsMessageSignal = Signal<void(WindowsMessageEvent&)>;
 
   GlobalEvents();
   ~GlobalEvents();

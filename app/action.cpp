@@ -20,27 +20,8 @@
 /// IN THE SOFTWARE.
 ///
 
-#ifndef APP_LOG_H_
-#define APP_LOG_H_
-
-#include <ostream>
-#include <memory>
+#include <app/action.h>
 
 namespace PowerWin {
 
-enum LogLevel {
-  Info,
-  Warning,
-  Error,
-
-  LogLevel_Max
-};
-
-std::wostream& log(LogLevel level);
-
-void setLogStream(LogLevel level, std::shared_ptr<std::wostream> stream);
-void setLogStreams(std::shared_ptr<std::wostream> stream);
-
 } // namespace PowerWin
-
-#endif /* APP_LOG_H_ */

@@ -20,27 +20,31 @@
 /// IN THE SOFTWARE.
 ///
 
-#ifndef APP_LOG_H_
-#define APP_LOG_H_
+#pragma once
 
-#include <ostream>
-#include <memory>
+#include <string>
+#include <lightports/extra/shortcut.h>
+
+#include "signal.h"
 
 namespace PowerWin {
 
-enum LogLevel {
-  Info,
-  Warning,
-  Error,
+/// \brief
+class Action
+{
+public:
+  using ActivateSignal = Signal<void()>;
 
-  LogLevel_Max
+  Action(std::wstring description, Windows::ShortCut shortcut)
+  : description_(description), shortcut_(shortcut)
+  {   }
+
+  SignalRegisterInterface<ActivateSignal> activated() { return signal_; }
+
+private:
+  std::wstring description_;
+  Windows::ShortCut shortcut_;
+  ActivateSignal signal_ = {};
 };
 
-std::wostream& log(LogLevel level);
-
-void setLogStream(LogLevel level, std::shared_ptr<std::wostream> stream);
-void setLogStreams(std::shared_ptr<std::wostream> stream);
-
 } // namespace PowerWin
-
-#endif /* APP_LOG_H_ */

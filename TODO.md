@@ -2,17 +2,17 @@
 
 ### 1.0
 
-* i18n with boost::local
+* i18n with boost::local or getext
 * Log-Backend and log-frontend module
 * convert all sources to UTF-8
 * add copyright to all files
 * context menu with Link to github and GPL
 * fix system-menu
-* config.h with program version
+* use mingw-w64 in windows
+* gcc-size -> xls
  
 * KeepTheCarRunning -> PatchWindows
 * http://msdn.microsoft.com/en-us/library/windows/desktop/ms632599%28v=vs.85%29.aspx#destruction
-* AnimateWindow (http://msdn.microsoft.com/en-us/library/windows/desktop/ms632669%28v=vs.85%29.aspx)
 * RegisterClass: Background = GetStockObject(HOLLOW_BRUSH);
 
 ### 2.0
@@ -25,6 +25,8 @@
   * powerwin.exit() (idea)
   * system.execute(cmdln) (idea)
   * powerwin.osd.show(system.date.format('%Y.%m.%d')..' '..system.time.format('%H:%M:%S'), 'position: center; width:200px; height:200px')
+  
+* AnimateWindow (http://msdn.microsoft.com/en-us/library/windows/desktop/ms632669%28v=vs.85%29.aspx)
 
 ### simular software
 * http://www.xtrabuttons.com/
@@ -49,6 +51,8 @@
 * always on top (implemented)
 * Windows 10: move to other viewport (idea)
 * eliminate flicker in system menu -> activate double buffering (idea)
+* roll-window like in same linux display-managers (idea)
+* to background (idea)
 
 ### wkill (idea)
 
@@ -76,13 +80,6 @@
 ### actions (implemented)
 
 * add user-defined user commands (idea)
-
-### log (idea)
-
-### roll-window (idea)
-
-* roll-window like in same linux display-managers
-* add system-menu if module is loaded
 
 ### window-debug (idea)
 
