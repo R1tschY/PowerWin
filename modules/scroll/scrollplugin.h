@@ -11,9 +11,10 @@ public:
   ~ScrollPlugin();
 
 private:
-  Windows::MouseWheelHook hook_;
+  Windows::Hook hook_;
   bool inverse_;
 
+  static LRESULT CALLBACK hookProc(int code, WPARAM wparam, LPARAM lparam);
   bool handle(POINT pt, int steps);
 };
 
