@@ -14,6 +14,7 @@ namespace {
 
 static
 const wchar_t* getTopMostString() {
+  // TODO
   static std::wstring topmost_string = L"Immer im Vordergrund";
   return topmost_string.c_str();
 }
