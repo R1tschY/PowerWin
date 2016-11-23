@@ -2,46 +2,33 @@
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_DLL") # TODO
   
 # Packages
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIRS}) # XXX
 
 # Sources
 file(GLOB_RECURSE libpowerwin_SOURCES "*.cpp")
 
 # Includes / Libs
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-set(libpowerwin_Libs 
-  lightports-base
-  lightports-extra
-  lightports-controls
-  lightports-dll
-)
 
-# libpowerwin32
-set_source_files_properties(powerwin32.rc PROPERTIES COMPILE_FLAGS "--output-format=coff --target=pe-i386")
-add_library(powerwin32 SHARED ${libpowerwin_SOURCES})
-
-listx_append_suffix(libpowerwin_Libs32 32 ${libpowerwin_Libs})
-target_link_libraries(powerwin32 cpp-utils32 ${libpowerwin_Libs32} -Wl,--whole-archive ${libpowerwin32_MODULES} -Wl,--no-whole-archive)
-add_windows_versioninfo(
-  TARGET powerwin32 
-  ${PowerWin_VERSIONINFO_ARGS} 
-  RC_FILE libpowerwin32_VERSIONINFO_RC)
-set_source_files_properties(${libpowerwin32_VERSIONINFO_RC} PROPERTIES COMPILE_FLAGS "--output-format=coff --target=pe-i386")
-
-install(TARGETS powerwin32 RUNTIME DESTINATION ".")
-
-# libpowerwin64
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-  add_library(powerwin64 SHARED ${libpowerwin_SOURCES})
-  listx_append_suffix(libpowerwin_Libs64 64 ${libpowerwin_Libs})
-  target_link_libraries(powerwin64 cpp-utils64 ${libpowerwin_Libs64} -Wl,--whole-archive ${libpowerwin64_MODULES} -Wl,--no-whole-archive)
-  add_windows_versioninfo(
-    TARGET powerwin64
-    ${PowerWin_VERSIONINFO_ARGS} 
-    RC_FILE libpowerwin64_VERSIONINFO_RC)
-  set_source_files_properties(${libpowerwin64_VERSIONINFO_RC} PROPERTIES COMPILE_FLAGS "--output-format=coff")
-  
-  install(TARGETS powerwin64 RUNTIME DESTINATION ".")
+  set(_target "powerwin64")
+else()
+  set(_target "powerwin32")
 endif()
+
+# libpowerwin??
+add_library(${_target} SHARED ${libpowerwin_SOURCES})
+
+target_link_libraries(
+    ${_target} 
+    cpp-utils 
+    lightports-base lightports-extra lightports-controls lightports-dll
+    -Wl,--whole-archive ${libpowerwin_MODULES} -Wl,--no-whole-archive)
+    
+add_windows_versioninfo(
+  TARGET ${_target} 
+  ${PowerWin_VERSIONINFO_ARGS})
+
+#install(TARGETS powerwin32 RUNTIME DESTINATION ".")
 
 

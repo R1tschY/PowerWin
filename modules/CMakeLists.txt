@@ -14,10 +14,9 @@ macro(powerwin_module)
   message(STATUS "Found module: ${${prefix}_NAME}")
   
   # main modules
-  if (${prefix}_SOURCES)
+  if (${prefix}_SOURCES AND CMAKE_SIZEOF_VOID_P EQUAL 4)
     add_library("powerwin-${${prefix}_NAME}" STATIC ${${prefix}_SOURCES})
-    set_target_properties("powerwin-${${prefix}_NAME}" PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
-    target_link_libraries("powerwin-${${prefix}_NAME}" cpp-utils32 lightports-base32 ${${prefix}_DEPS})
+    target_link_libraries("powerwin-${${prefix}_NAME}" cpp-utils lightports-base ${${prefix}_DEPS})
     
     list(APPEND PowerWinApp_MODULES "powerwin-${${prefix}_NAME}")
     move_to_parent(PowerWinApp_MODULES)
@@ -25,20 +24,11 @@ macro(powerwin_module)
   
   # hook modules
   if (${prefix}_HOOKSOURCES)
-    # 32bit module
-    add_library("powerwin-${${prefix}_NAME}32" STATIC ${${prefix}_HOOKSOURCES})
-    set_target_properties("powerwin-${${prefix}_NAME}32" PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
-    target_link_libraries("powerwin-${${prefix}_NAME}32" cpp-utils32 lightports-base32 ${${prefix}_DEPS})
-    list(APPEND libpowerwin32_MODULES "powerwin-${${prefix}_NAME}32")  
-    move_to_parent(libpowerwin32_MODULES)
-  
-    # 64bit module
-    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-      add_library("powerwin-${${prefix}_NAME}64" STATIC ${${prefix}_HOOKSOURCES})
-      target_link_libraries("powerwin-${${prefix}_NAME}64" cpp-utils64 lightports-base64 ${${prefix}_DEPS})
-      list(APPEND libpowerwin64_MODULES "powerwin-${${prefix}_NAME}64")
-      move_to_parent(libpowerwin64_MODULES)
-    endif()
+    set(_module_lib_name "powerwin-hook-${${prefix}_NAME}")
+    add_library("${_module_lib_name}" STATIC ${${prefix}_HOOKSOURCES})
+    target_link_libraries("${_module_lib_name}" cpp-utils lightports-base ${${prefix}_DEPS})
+    list(APPEND libpowerwin_MODULES "${_module_lib_name}")
+    move_to_parent(libpowerwin_MODULES)
   endif()
   
 endmacro()
@@ -56,5 +46,4 @@ foreach(_subdir ${_subdirs})
 endforeach()
 
 move_to_parent(PowerWinApp_MODULES)
-move_to_parent(libpowerwin32_MODULES)
-move_to_parent(libpowerwin64_MODULES)
+move_to_parent(libpowerwin_MODULES)
