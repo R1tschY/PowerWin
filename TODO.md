@@ -2,12 +2,11 @@
 
 ### 1.0
 
-* i18n with boost::local or gettext
+* i18n with gettext
 * Log-Backend and log-frontend module
-* convert all sources to UTF-8
 * add copyright to all files
-* fix system-menu
-* use mingw-w64 in windows
+* use mingw-w64 in windows (TODOs: update README, tidy up cpp-utils and lightports)
+* use `git describe --tags --match 'v*'` as PowerWin_VERSION
  
 * KeepTheCarRunning -> PatchWindows
 * http://msdn.microsoft.com/en-us/library/windows/desktop/ms632599%28v=vs.85%29.aspx#destruction
@@ -38,7 +37,6 @@
 
 ### scroll
 
-* no scrolling on left monitor of main monitor
 * no scrolling under cursor in Visual Studio
 * no scrolling under cursor if Top level window is foreground window
  
@@ -65,7 +63,7 @@
 
 * Move windows with Alt + Button1
 * system menu with Alt + Button2
-* Resize windows with Alt + Button3
+* Resize windows with Alt + Button3 (divided in 8 regions)
   
 ### opacity (idea)
 
@@ -74,6 +72,7 @@
 ### SheetCheat (idea)
 
 * list of all hotkeys in a overlay screen
+* list standard windows hotkeys (Win+L, ...)
 
 ### actions (implemented)
 

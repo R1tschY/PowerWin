@@ -35,17 +35,92 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   list(APPEND PowerWin_VERSIONINFO_ARGS DEBUG)
 endif()
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+include(IsolatedProject)
+
+if (NOT PowerWin_ArchBuild)
+
+  message(STATUS "    ____                         _       ___      ")     
+  message(STATUS "   / __ \\____ _      _____  ____| |     / (_)___  ")
+  message(STATUS "  / /_/ / __ \\ | /| / / _ \\/ ___/ | /| / / / __ \\ ")
+  message(STATUS " / ____/ /_/ / |/ |/ /  __/ /   | |/ |/ / / / / / ")
+  message(STATUS "/_/    \\____/|__/|__/\\___/_/    |__/|__/_/_/ /_/  ")
+  message(STATUS "                                                  ")
+
+  add_isolated_project(
+    TARGET PowerWin_i686 ADD_TO_ALL
+    DIR "${PROJECT_BINARY_DIR}/i686"
+    
+    PASSTHROUGH 
+    "CMAKE_BUILD_TYPE"
+    "CMAKE_TOOLCHAIN_FILE"
+    
+    NEW
+    "PowerWin_ArchBuild=i686" 
+    "COMPILER_PREFIX=i686-w64-mingw32"
+    
+    COMMENT "Build i686 targets" 
+  )
+
+  add_isolated_project(
+    TARGET PowerWin_x86_64 ADD_TO_ALL
+    DIR "${PROJECT_BINARY_DIR}/x86_64"
+    
+    PASSTHROUGH 
+    "CMAKE_BUILD_TYPE"
+    "CMAKE_TOOLCHAIN_FILE"
+    
+    NEW
+    "PowerWin_ArchBuild=x86_64" 
+    "COMPILER_PREFIX=x86_64-w64-mingw32"
+    
+    COMMENT "Build x86_64 targets"                              
+  )
+  
+  # cpack support
+  install(
+    FILES 
+    "${CMAKE_CURRENT_SOURCE_DIR}/${PowerWin_LICENCE_PATH}"
+    "${PROJECT_BINARY_DIR}/i686/bin/PowerWinApp.exe"
+    "${PROJECT_BINARY_DIR}/i686/bin/libpowerwin32.dll"
+    "${PROJECT_BINARY_DIR}/x86_64/bin/libpowerwin64.dll"
+    
+    DESTINATION ".")
+     
+  set(CPACK_GENERATOR "ZIP")
+  set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")
+  include(CPack)
+    
+  return()
+endif()
+
 # include util modules
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 include(Listx)
 include(AddCXXFlags)
 include(AddConfig)
 include(LTO)
 include(CompileForWindows)
 
-if (NOT(CMAKE_SIZEOF_VOID_P EQUAL 8))
-  message(WARNING "You need a 64bit enviroment to compile the 64bit hook library.")
-endif()
+if (CMAKE_SIZEOF_VOID_P EQUAL 4)
+  message(STATUS "   ________   __    _ __     ")
+  message(STATUS "  |__  /__ \\ / /_  (_) /_   ")
+  message(STATUS "   /_ <__/ // __ \\/ / __/   ")
+  message(STATUS " ___/ / __// /_/ / / /_      ")
+  message(STATUS "/____/____/_.___/_/\\__/     ")
+  message(STATUS "                             ")
+else()
+  message(STATUS "   _____ __ __  __    _ __   ")
+  message(STATUS "  / ___// // / / /_  (_) /_  ") 
+  message(STATUS " / __ \\/ // /_/ __ \\/ / __/")
+  message(STATUS "/ /_/ /__  __/ /_/ / / /_    ")
+  message(STATUS "\\____/  /_/ /_.___/_/\\__/  ")
+  message(STATUS "                             ")
+endif()                       
+
+color_message(red "Build for ${PowerWin_ArchBuild}")
+color_message(red "C++ Compiler: ${CMAKE_CXX_COMPILER}")
+color_message(red "RC Compiler: ${CMAKE_RC_COMPILER}")
+color_message(red "=====")
 
 # Boost
 set(Boost_USE_STATIC_LIBS ON) 
@@ -119,13 +194,6 @@ add_subdirectory(modules)
 add_subdirectory(hooklib)
 
 # app
-add_subdirectory(app)
-
-# utils
-add_custom_target(update COMMAND cmake .)
-
-# cpack support
-install(FILES "${PowerWin_LICENCE_PATH}" DESTINATION ".")
-set(CPACK_GENERATOR "ZIP")
-set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")
-include(CPack)
+if (CMAKE_SIZEOF_VOID_P EQUAL 4)
+  add_subdirectory(app)
+endif()
