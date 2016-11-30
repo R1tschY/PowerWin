@@ -22,6 +22,8 @@
 
 #include "hotkeymanager.h"
 
+#include <vector>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/range/algorithm/equal.hpp>
 #include <boost/lexical_cast.hpp>
