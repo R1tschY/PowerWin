@@ -2,9 +2,6 @@
 file(GLOB_RECURSE PowerWinApp_SOURCES "*.cpp")
 file(GLOB_RECURSE PowerWinApp_RESOURCES "*.rc")
 
-# Resource compiler
-set(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} --output-format=coff --target=pe-i386")
-
 # Libs
 set(PowerWinApp_Libs 
   cpp-utils
@@ -20,11 +17,6 @@ listx_append_suffix(PowerWinApp_Libs 32 ${PowerWinApp_Libs})
 
 # Target
 add_executable(PowerWinApp ${PowerWinApp_SOURCES} ${PowerWinApp_MODULE_SOURCES} ${PowerWinApp_RESOURCES})
-set_target_properties(PowerWinApp 
-  PROPERTIES 
-  COMPILE_FLAGS "-m32" 
-  LINK_FLAGS "-m32"
-)
 target_link_libraries(PowerWinApp ${PowerWinApp_Libs} -Wl,--whole-archive ${PowerWinApp_MODULES} -Wl,--no-whole-archive)
 add_windows_versioninfo(TARGET PowerWinApp ${PowerWin_VERSIONINFO_ARGS})
 add_windows_manifest(

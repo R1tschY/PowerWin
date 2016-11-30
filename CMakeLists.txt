@@ -1,6 +1,12 @@
 # detect non-Windows and use cross-mingw64
 if (NOT WIN32 AND NOT CMAKE_TOOLCHAIN_FILE)
   set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Toolchain-cross-mingw.cmake")
+else()
+  if (PowerWin_ArchBuild)
+    set(CMAKE_RC_COMPILER ${COMPILER_PREFIX}-windres)
+    set(CMAKE_C_COMPILER ${COMPILER_PREFIX}-gcc)
+    set(CMAKE_CXX_COMPILER ${COMPILER_PREFIX}-g++)
+  endif()
 endif()
 
 # cmake version
@@ -53,7 +59,6 @@ if (NOT PowerWin_ArchBuild)
     
     PASSTHROUGH 
     "CMAKE_BUILD_TYPE"
-    "CMAKE_TOOLCHAIN_FILE"
     
     NEW
     "PowerWin_ArchBuild=i686" 
@@ -62,20 +67,21 @@ if (NOT PowerWin_ArchBuild)
     COMMENT "Build i686 targets" 
   )
 
-  add_isolated_project(
-    TARGET PowerWin_x86_64 ADD_TO_ALL
-    DIR "${PROJECT_BINARY_DIR}/x86_64"
+  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    add_isolated_project(
+      TARGET PowerWin_x86_64 ADD_TO_ALL
+      DIR "${PROJECT_BINARY_DIR}/x86_64"
     
-    PASSTHROUGH 
-    "CMAKE_BUILD_TYPE"
-    "CMAKE_TOOLCHAIN_FILE"
+      PASSTHROUGH 
+      "CMAKE_BUILD_TYPE"
     
-    NEW
-    "PowerWin_ArchBuild=x86_64" 
-    "COMPILER_PREFIX=x86_64-w64-mingw32"
+      NEW
+      "PowerWin_ArchBuild=x86_64" 
+      "COMPILER_PREFIX=x86_64-w64-mingw32"
     
-    COMMENT "Build x86_64 targets"                              
-  )
+      COMMENT "Build x86_64 targets"                              
+    )
+  endif()
   
   # cpack support
   install(
