@@ -4,6 +4,7 @@
 #include <lightports/core/debug.h>
 #include <lightports/controls.h>
 #include <lightports/extra/menu.h>
+#include <app/i18n.h>
 
 #include "common.h"
 
@@ -11,13 +12,6 @@ using namespace PowerWin;
 using namespace Windows;
 
 namespace {
-
-static
-const wchar_t* getTopMostString() {
-  // TODO
-  static std::wstring topmost_string = L"Immer im Vordergrund";
-  return topmost_string.c_str();
-}
 
 static
 bool IsWindowAlwaysOnTop(HWND hwnd) {
@@ -32,7 +26,7 @@ void updateSystemMenu(HWND hwnd, bool new_state)
   {
     menu.modifyEntry(
       SystemMenu::AlwaysOnTop,
-      getTopMostString(),
+      _("Always on top"),
       new_state ? MenuEntryFlags::Checked : MenuEntryFlags::Unchecked);
   }
 }
@@ -77,7 +71,7 @@ BOOL CALLBACK systemmenu_upgrade_window(HWND hwnd, LPARAM lParam)
         menu.insertEntryBefore(
           SC_CLOSE,
           SystemMenu::AlwaysOnTop,
-          getTopMostString(),
+          _("Always on top"),
           IsWindowAlwaysOnTop(hwnd)
           ? MenuEntryFlags::Checked : MenuEntryFlags::Unchecked);
 

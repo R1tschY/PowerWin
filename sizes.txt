@@ -11,3 +11,9 @@
 1016672   24304    4064 1045040   ff230 ../bin/PowerWinApp.exe
  900121   12628    3872  916621   dfc8d ../bin/libpowerwin32.dll
 1916793   36932    7936 1961661  1deebd (TOTALS)
+
+0.3alpha+IsolatedProject (Release / Mingw64 5.3.1)
+   text    data     bss     dec     hex filename
+1015664   24304    4064 1044032   fee40 ../bin/PowerWinApp.exe
+ 900125   12628    3872  916625   dfc91 ../bin/libpowerwin32.dll
+1915789   36932    7936 1960657  1dead1 (TOTALS)

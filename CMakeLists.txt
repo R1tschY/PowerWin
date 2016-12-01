@@ -59,6 +59,9 @@ if (NOT PowerWin_ArchBuild)
     
     PASSTHROUGH 
     "CMAKE_BUILD_TYPE"
+    "CMAKE_TOOLCHAIN_FILE"
+    "BOOST_ROOT"
+    "POWERWIN_I18N"
     
     NEW
     "PowerWin_ArchBuild=i686" 
@@ -74,6 +77,9 @@ if (NOT PowerWin_ArchBuild)
     
       PASSTHROUGH 
       "CMAKE_BUILD_TYPE"
+      "CMAKE_TOOLCHAIN_FILE"
+      "BOOST_ROOT"
+      "POWERWIN_I18N"
     
       NEW
       "PowerWin_ArchBuild=x86_64" 
@@ -131,9 +137,11 @@ color_message(red "=====")
 # Boost
 set(Boost_USE_STATIC_LIBS ON) 
 set(Boost_USE_MULTITHREADED ON) 
-find_package(Boost REQUIRED)
-#add_library(boost INTERFACE)
-#target_include_directories(boost INTERFACE ${Boost_INCLUDE_DIRS})
+if (POWERWIN_I18N)
+  find_package(Boost REQUIRED COMPONENTS locale)
+else()
+  find_package(Boost REQUIRED)    
+endif()
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 # C++14

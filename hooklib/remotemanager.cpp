@@ -12,13 +12,9 @@
 #include <lightports/base/application.h>
 #include <lightports/core/debug.h>
 #include <lightports/core/debugstream.h>
-#include <minwindef.h>
-#include <windef.h>
-#include <winnt.h>
-#include <winuser.h>
+#include <windows.h>
 #include <exception>
 #include <functional>
-#include <iostream>
 
 using namespace Windows;
 
