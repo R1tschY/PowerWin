@@ -7,6 +7,7 @@
 #include <cstring>
 #include <iostream>
 #include <thread>
+#include <boost/locale/generator.hpp>
 
 #include <cpp-utils/preprocessor.h>
 #include <cpp-utils/strings/string_literal.h>
@@ -15,6 +16,7 @@
 #include <lightports/base/path.h>
 #include <lightports/base/application.h>
 #include <lightports/base/resources.h>
+#include <lightports/base/charcodecs.h>
 #include <lightports/extra/trayicon.h>
 #include <lightports/controls.h>
 #include <lightports/base/configfile.h>
@@ -36,6 +38,21 @@
 using namespace Windows;
 
 namespace PowerWin {
+
+void init_i18n()
+{
+  auto local_path = Windows::to_string(
+    Windows::Path(Windows::Application::getExecutablePath()).getFolder()
+    + L"\\locale"
+  );
+
+#if POWERWIN_I18N
+  generator gen;
+  gen.add_messages_path(local_path);
+  gen.add_messages_domain(POWERWIN_PACKAGE_NAME_ASCII);
+  std::locale::global(gen(""));
+#endif
+}
 
 static
 ATOM registerWindowClass()
@@ -76,6 +93,8 @@ int PowerWinApp::run()
   }*/
 
   Windows::GdiplusContext gdi;
+
+
 
   PowerWinApp powerwin;
 

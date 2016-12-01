@@ -5,15 +5,14 @@ file(GLOB_RECURSE PowerWinApp_RESOURCES "*.rc")
 # Libs
 set(PowerWinApp_Libs 
   cpp-utils
-  powerwin
   lightports-base 
   lightports-extra 
   lightports-shell 
   lightports-com 
   lightports-controls
   lightports-gdi-controls
+  ${Boost_LIBRARIES}
 )
-listx_append_suffix(PowerWinApp_Libs 32 ${PowerWinApp_Libs})
 
 # Target
 add_executable(PowerWinApp ${PowerWinApp_SOURCES} ${PowerWinApp_MODULE_SOURCES} ${PowerWinApp_RESOURCES})

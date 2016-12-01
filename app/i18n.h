@@ -20,11 +20,22 @@
 /// IN THE SOFTWARE.
 ///
 
-
 #pragma once
 
 #include <cpp-utils/preprocessor.h>
+#include "powerwin-config.h"
 
-#define _(x) (CPP_TO_WIDESTRING(x))
+#if POWERWIN_I18N
+# include <boost/locale/message.hpp>
+# define _(x) ::boost::locale::gettext(CPP_TO_WIDESTRING(x))
+# define N_(...) ::boost::locale::ngettext(CPP_TO_WIDESTRING(s), CPP_TO_WIDESTRING(p), n)
+# define P_(c, id) ::boost::locale::pgettext(CPP_TO_WIDESTRING(c), CPP_TO_WIDESTRING(id))
+# define NP_(c, s, p, n) ::boost::locale::npgettext(CPP_TO_WIDESTRING(c), CPP_TO_WIDESTRING(s), CPP_TO_WIDESTRING(p), n)
+#else
+# define _(x) (CPP_TO_WIDESTRING(x))
+# define N_(...) (CPP_TO_WIDESTRING(s), CPP_TO_WIDESTRING(p), n)
+# define P_(c, id) (CPP_TO_WIDESTRING(c), CPP_TO_WIDESTRING(id))
+# define NP_(c, s, p, n) (CPP_TO_WIDESTRING(c), CPP_TO_WIDESTRING(s), CPP_TO_WIDESTRING(p), n)
+#endif
 
 
