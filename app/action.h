@@ -23,7 +23,7 @@
 #pragma once
 
 #include <string>
-#include <lightports/extra/shortcut.h>
+#include <lightports/user/shortcut.h>
 
 #include "signal.h"
 

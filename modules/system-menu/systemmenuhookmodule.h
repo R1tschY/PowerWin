@@ -9,7 +9,7 @@
 #define HOOKLIB_SYSTEMMENUHOOK_H_
 
 #include <cpp-utils/storage/uninitized.h>
-#include <lightports/extra/hook.h>
+#include <lightports/user/hook.h>
 
 #include <hooklib/hookmodule.h>
 
@@ -43,7 +43,6 @@ class SystemMenuHookModule : public PowerWin::HookModule
 {
 public:
   SystemMenuHookModule(PowerWin::HookModuleContext& context);
-  ~SystemMenuHookModule();
 
 private:
   cpp::scoped_lifetime<SystemMenuHook> hook_;

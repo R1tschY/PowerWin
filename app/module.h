@@ -12,6 +12,7 @@ class PowerWinApp;
 class Configuration;
 class HotkeyManager;
 class GlobalEvents;
+class MouseHook;
 
 /// \brief context for PowerWin module
 /// \details api for modules
@@ -23,10 +24,11 @@ public:
     cpp::wstring_view name,
     Configuration& config,
     HotkeyManager& hotkeys,
-    GlobalEvents& global_events
+    GlobalEvents& global_events,
+    MouseHook& mouse_hook
     )
   : name_(name), config_(config), hotkeys_(hotkeys),
-    global_events_(global_events)
+    global_events_(global_events), mouse_hook_(mouse_hook)
   { }
 
   // own
@@ -38,12 +40,14 @@ public:
   Configuration& getConfiguration() { return config_; }
   HotkeyManager& getHotkeyManager() { return hotkeys_; }
   GlobalEvents& getGlobalEventsManager() { return global_events_; }
+  MouseHook& getMouseHook() { return mouse_hook_; }
 
 private:
   cpp::wstring_view name_;
   Configuration& config_;
   HotkeyManager& hotkeys_;
   GlobalEvents& global_events_;
+  MouseHook& mouse_hook_;
 };
 
 /// \brief a PowerWin module

@@ -22,7 +22,7 @@ add_library(${_target} SHARED ${libpowerwin_SOURCES})
 target_link_libraries(
     ${_target} 
     cpp-utils 
-    lightports-base lightports-extra lightports-controls lightports-dll
+    lightports-core lightports-controls lightports-user lightports-dll
     -Wl,--whole-archive ${libpowerwin_MODULES} -Wl,--no-whole-archive)
     
 add_windows_versioninfo(

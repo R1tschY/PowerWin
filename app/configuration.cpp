@@ -25,7 +25,7 @@
 #include <cpp-utils/assert.h>
 #include <cpp-utils/strings/string_literal.h>
 #include <boost/algorithm/string.hpp>
-#include <lightports/base/configfile.h>
+#include <lightports/extra/configfile.h>
 
 namespace PowerWin {
 

@@ -17,3 +17,9 @@
 1015664   24304    4064 1044032   fee40 ../bin/PowerWinApp.exe
  900125   12628    3872  916625   dfc91 ../bin/libpowerwin32.dll
 1915789   36932    7936 1960657  1dead1 (TOTALS)
+
+0.3alpha+TidyUp (Release / Mingw64 5.3.1 / Linux / -I18N)
+   text    data     bss     dec     hex filename
+1121740   16832    4160 1142732  116fcc ../bin/PowerWinApp.exe
+ 961360   12628    3872  977860   eebc4 ../bin/libpowerwin32.dll
+2083100   29460    8032 2120592  205b90 (TOTALS)

@@ -143,7 +143,7 @@ void HotkeyManager::unregisterHotkey(int id)
   {
     win_throw_on_fail(
       ::UnregisterHotKey(
-        getNativeHandle(),
+        getHWND(),
         id
       )
     );
@@ -167,7 +167,7 @@ void HotkeyManager::setKey(int id, const Windows::ShortCut& key)
   {
     win_throw_on_fail(
       ::RegisterHotKey(
-          getNativeHandle(),
+          getHWND(),
           id, key.modifiers, key.key)
     );
   }
@@ -175,7 +175,7 @@ void HotkeyManager::setKey(int id, const Windows::ShortCut& key)
   {
     win_throw_on_fail(
       ::UnregisterHotKey(
-        getNativeHandle(),
+        getHWND(),
         id
       )
     );

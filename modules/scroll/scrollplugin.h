@@ -1,20 +1,19 @@
 #pragma once
 
-#include <lightports/extra/hook.h>
+#include <lightports/user/hook.h>
 #include <app/module.h>
+#include <app/helper/observermixin.h>
 
 constexpr int SHIFTED = 0x8000;
 
-class ScrollPlugin : public PowerWin::Module {
+class ScrollPlugin : public PowerWin::Module, PowerWin::ObserverMixin
+{
 public:
   ScrollPlugin(PowerWin::ModuleContext& context);
-  ~ScrollPlugin();
 
 private:
-  Windows::Hook hook_;
   bool inverse_;
 
-  static LRESULT CALLBACK hookProc(int code, WPARAM wparam, LPARAM lparam);
-  bool handle(POINT pt, int steps);
+  bool handle(POINT pt, int steps, DWORD time);
 };
 

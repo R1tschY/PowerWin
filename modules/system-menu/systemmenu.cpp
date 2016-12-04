@@ -3,7 +3,7 @@
 #include <lightports/core/debugstream.h>
 #include <lightports/core/debug.h>
 #include <lightports/controls.h>
-#include <lightports/extra/menu.h>
+#include <lightports/user/menu.h>
 #include <app/i18n.h>
 
 #include "common.h"

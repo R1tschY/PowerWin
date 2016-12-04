@@ -5,7 +5,7 @@
 
 #include <cpp-utils/strings/string_view.h>
 
-#include <lightports/extra/hotkey.h>
+#include <lightports/user/hotkey.h>
 #include <lightports/controls/messagesink.h>
 #include "../../app/module.h"
 

@@ -25,8 +25,8 @@
 
 #include <functional>
 
-#include <lightports/extra/hotkey.h>
-#include <lightports/extra/shortcut.h>
+#include <lightports/user/hotkey.h>
+#include <lightports/user/shortcut.h>
 #include <lightports/controls/messagesink.h>
 #include <boost/container/flat_map.hpp>
 #include <boost/optional.hpp>

@@ -3,12 +3,11 @@
 #include <windows.h>
 #include <cpp-utils/storage/uninitized.h>
 #include <lightports/dll/dll.h>
-#include <lightports/extra/menu.h>
-#include <lightports/base/resources.h>
+#include <lightports/user/menu.h>
+#include <lightports/user/resources.h>
 #include <lightports/core.h>
 #include <lightports/core/debugstream.h>
 #include <hooklib/macros.h>
-#include <hooklib/resources.h>
 
 #include "common.h"
 
@@ -28,7 +27,7 @@ SystemMenuHook::SystemMenuHook(HookModuleContext& context)
       ::RegisterWindowMessageW(SystemMenu::SetTopmostMessage));
   powerwin_hwnd_ = context.getPowerWinWHND();
 
-  hook_.create(WH_CBT, Hook::AllThreads, &SystemMenuHook::onHookMessage);
+  hook_.create(Dll::getHINSTANCE(), WH_CBT, Hook::AllThreads, &SystemMenuHook::onHookMessage);
 }
 
 SystemMenuHook::~SystemMenuHook()
@@ -94,8 +93,6 @@ LRESULT CALLBACK SystemMenuHook::onHookMessage(int code, WPARAM wParam,
 SystemMenuHookModule::SystemMenuHookModule(HookModuleContext& context)
 : hook_(hook, context)
 { }
-
-SystemMenuHookModule::~SystemMenuHookModule() = default;
 
 HookModuleRegistry::element<SystemMenuHookModule> XSystemMenuHookModule(
   L"system-menu", L"adds extra system menu items to all windows"

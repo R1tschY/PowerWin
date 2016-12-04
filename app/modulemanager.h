@@ -64,6 +64,7 @@ public:
   Configuration& getConfiguration() { return config_; }
   HotkeyManager& getHotkeys() { return hotkeys_; }
   GlobalEvents& getGlobalEvents() { return global_events_; }
+  MouseHook& getMouseHook() { return mouse_hook_; }
 
   void loadModules();
   void unloadModules();
@@ -73,6 +74,7 @@ private:
   Configuration& config_;
   HotkeyManager& hotkeys_;
   GlobalEvents& global_events_;
+  MouseHook& mouse_hook_;
 };
 
 } // namespace PowerWin

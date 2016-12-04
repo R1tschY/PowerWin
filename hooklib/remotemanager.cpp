@@ -9,7 +9,7 @@
 #include <cpp-utils/algorithm/container.h>
 #include <cpp-utils/preprocessor.h>
 #include <hooklib/remotemanager.h>
-#include <lightports/base/application.h>
+#include <lightports/user/application.h>
 #include <lightports/core/debug.h>
 #include <lightports/core/debugstream.h>
 #include <windows.h>
@@ -35,7 +35,7 @@ void RemoteManager::activate()
     HookModuleRegistry::entries(),
     modules_,
     [&](const HookModuleRegistry::entry& entry) {
-      HookModuleContext context(entry.name(), app_hwnd_);
+      HookModuleContext context(entry.name(), app_hwnd_.getHWND());
       // TODO: catch errors
       DebugOutputStream() << L"activated module " << entry.name();
       return entry.create(context);
@@ -53,13 +53,13 @@ void RemoteManager::deactivate()
 
 void RemoteManager::onCreate()
 {
-  app_hwnd_ = Control::find(nullptr, L"PowerWinApp", nullptr);
+  app_hwnd_ = Window::find(L"PowerWinApp", nullptr);
   if (app_hwnd_ != nullptr)
   {
     PostMessage(
-      app_hwnd_,
+      app_hwnd_.getHWND(),
       Messages::RegisterHooklib,
-      reinterpret_cast<WPARAM>(getNativeHandle()),
+      reinterpret_cast<WPARAM>(getHWND()),
       0);
   }
   else
@@ -92,7 +92,7 @@ LRESULT RemoteManager::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 }
 
 extern "C"
-void CALLBACK EnterGodModus(
+void CALLBACK PatchWindows(
     HINSTANCE hInstance,
     HINSTANCE hPrevInstance,
     LPSTR lpCmdLine,

@@ -3,8 +3,8 @@
 #include <vector>
 
 #include <lightports/controls/messagesink.h>
-#include <lightports/extra/trayicon.h>
-#include <lightports/extra/menu.h>
+#include <lightports/shell/trayicon.h>
+#include <lightports/user/menu.h>
 #include <windows.h>
 
 #include "module.h"
@@ -24,7 +24,7 @@ public:
   static int run();
 
   HWND getWindow() {
-    return getNativeHandle();
+    return getHWND();
   }
 
 private:

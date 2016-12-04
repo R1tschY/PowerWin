@@ -25,9 +25,9 @@
 #include <cpp-utils/strings/string_view.h>
 #include <cpp-utils/strings/string_builder.h>
 #include <cpp-utils/algorithm/container.h>
-#include <lightports/extra/process.h>
+#include <lightports/os/process.h>
 #include <lightports/core/debug.h>
-#include <lightports/base/application.h>
+#include <lightports/user/application.h>
 
 #include "messages.h"
 
@@ -78,10 +78,10 @@ HookLibManager::HookLibManager()
 
 void HookLibManager::startLibs()
 {
-  runDll32(Path(Application::getExecutablePath()).getFolder() + L"\\libpowerwin32.dll", L"EnterGodModus@16", L"");
+  runDll32(Path(Application::getExecutablePath()).getFolder() + L"\\libpowerwin32.dll", L"PatchWindows@16", L"");
   if (Application::is64BitWindows())
   {
-    runDll64(Path(Application::getExecutablePath()).getFolder() + L"\\libpowerwin64.dll", L"EnterGodModus", L"");
+    runDll64(Path(Application::getExecutablePath()).getFolder() + L"\\libpowerwin64.dll", L"PatchWindows", L"");
   }
 }
 

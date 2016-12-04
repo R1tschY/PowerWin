@@ -12,6 +12,7 @@ template<typename Signatur>
 using Slot = typename boost::signals2::signal<Signatur>::slot_type;
 
 using SignalConnection = boost::signals2::connection;
+using ScopedSignalConnection = boost::signals2::scoped_connection;
 
 template<typename Signal>
 class SignalRegisterInterface
@@ -24,7 +25,7 @@ public:
   : signal_(&signal)
   { }
 
-  SignalConnection connect(const Slot& subscriber)
+  ScopedSignalConnection connect(const Slot& subscriber)
   {
     return signal_->connect(subscriber);
   }

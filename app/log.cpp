@@ -65,9 +65,9 @@ private:
 static Log logs[LogLevel_Max] = {};
 
 static const wchar_t* prefixes[] = {
-  L"INFO: ",
-  L"WARNING: ",
-  L"ERROR: "
+  L"[INFO] ",
+  L"[WARN] ",
+  L"[ERR ] "
 };
 static_assert(cpp::length(prefixes) == LogLevel_Max, "update prefixes array");
 

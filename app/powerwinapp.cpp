@@ -13,16 +13,16 @@
 #include <cpp-utils/strings/string_literal.h>
 #include <lightports/core.h>
 #include <lightports/controls/utilwindow.h>
-#include <lightports/base/path.h>
-#include <lightports/base/application.h>
-#include <lightports/base/resources.h>
-#include <lightports/base/charcodecs.h>
-#include <lightports/extra/trayicon.h>
+#include <lightports/os/path.h>
+#include <lightports/user/application.h>
+#include <lightports/user/resources.h>
+#include <lightports/extra/charcodecs.h>
+#include <lightports/shell/trayicon.h>
 #include <lightports/controls.h>
-#include <lightports/base/configfile.h>
+#include <lightports/extra/configfile.h>
 #include <lightports/controls/gdipluscontext.h>
-#include <lightports/extra/systeminformation.h>
-#include <lightports/extra/cursor.h>
+#include <lightports/user/systeminformation.h>
+#include <lightports/user/cursor.h>
 #include <lightports/extra/autostart.h>
 
 #include "resources.h"
@@ -100,7 +100,7 @@ int PowerWinApp::run()
 
   powerwin.create(POWERWIN_PACKAGE_NAME);
 
-  log(Info) << POWERWIN_PACKAGE_NAME << std::hex << L": " << powerwin.getNativeHandle();
+  log(Info) << POWERWIN_PACKAGE_NAME << std::hex << L": " << powerwin.getHWND();
 
   Windows::Application::processMessages();
 
@@ -111,7 +111,7 @@ int PowerWinApp::run()
 
 void PowerWinApp::onCreate() {
   print(L"PowerWin::start\n");
-  log(Info) << L"ClassName: " << getClassName(getNativeHandle());
+  log(Info) << L"ClassName: " << getClassName();
 
   configuration_.loadIniFile(
     Application::getExecutablePath() + L"\\config.ini"
@@ -120,7 +120,7 @@ void PowerWinApp::onCreate() {
   // tray icon
   tray_icon_.setIcon(POWERWIN_ICON_SMALL);
   tray_icon_.setToolTip(POWERWIN_PACKAGE_NAME);
-  tray_icon_.add(getNativeHandle());
+  tray_icon_.add(getHWND());
 
   // popup menu
   popup_menu_ = createPopupMenu();
@@ -240,8 +240,8 @@ LRESULT PowerWinApp::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 
 void PowerWinApp::onContextMenu(Windows::Point pt)
 {
-  ::SetForegroundWindow(getNativeHandle());
-  openPopupMenu(popup_menu_, pt, getNativeHandle());
+  ::SetForegroundWindow(getHWND());
+  openPopupMenu(popup_menu_, pt, getHWND());
 }
 
 void PowerWinApp::onAutostartSet(bool value)

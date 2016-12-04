@@ -5,7 +5,9 @@ file(GLOB_RECURSE PowerWinApp_RESOURCES "*.rc")
 # Libs
 set(PowerWinApp_Libs 
   cpp-utils
-  lightports-base 
+  lightports-core
+  lightports-user
+  lightports-os
   lightports-extra 
   lightports-shell 
   lightports-com 

@@ -17,14 +17,16 @@ class ObserverMixin
 public:
   ObserverMixin();
 
-  template<typename Signatur>
-  SignalConnection& connect(SignalRegisterInterface<Signal<Signatur>> signal, const Slot<Signatur>& slot)
+  template<typename Signal>
+  SignalConnection& connect(
+    SignalRegisterInterface<Signal> signal,
+    const typename SignalRegisterInterface<Signal>::Slot& slot)
   {
     return addConnection(signal.connect(slot));
   }
 
 private:
-  std::vector<SignalConnection> connections_;
+  std::vector<ScopedSignalConnection> connections_;
 
   SignalConnection& addConnection(SignalConnection&& connection);
 };

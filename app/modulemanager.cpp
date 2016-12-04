@@ -26,6 +26,8 @@
 #include <cpp-utils/algorithm/container.h>
 #include <lightports/core/debugstream.h>
 
+#include "mousehook.h"
+
 namespace PowerWin {
 
 void ManagedModule::activate()
@@ -33,7 +35,7 @@ void ManagedModule::activate()
   if (module_) return;
 
   ModuleContext context(entry_.name(), mgr_.getConfiguration(),
-      mgr_.getHotkeys(), mgr_.getGlobalEvents());
+      mgr_.getHotkeys(), mgr_.getGlobalEvents(), mgr_.getMouseHook());
   module_ = entry_.create(context);
 }
 
@@ -44,7 +46,8 @@ void ManagedModule::deactivate()
 
 ModuleManager::ModuleManager(Configuration& configuration,
     HotkeyManager& hotkeys, GlobalEvents& global_events)
-: config_(configuration), hotkeys_(hotkeys), global_events_(global_events)
+: config_(configuration), hotkeys_(hotkeys), global_events_(global_events),
+  mouse_hook_(MouseHook::getInstance())
 { }
 
 ModuleManager::~ModuleManager()
@@ -63,10 +66,12 @@ void ModuleManager::loadModules()
       modules_.back().activate();
     }
   }
+  mouse_hook_.activate();
 }
 
 void ModuleManager::unloadModules()
 {
+  mouse_hook_.deactivate();
   modules_.clear();
 }
 
