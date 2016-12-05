@@ -22,9 +22,6 @@
 
 #include "log.h"
 
-#include <algorithm>
-#include <thread>
-
 #include <cpp-utils/assert.h>
 #include <cpp-utils/algorithm/length.h>
 #include <lightports/core/debugstream.h>
@@ -89,7 +86,7 @@ void setFallback()
 
 std::wostream& log(LogLevel level)
 {
-  cpp_assert(level > 0 && level < LogLevel_Max);
+  cpp_assert(level >= 0 && level < LogLevel_Max);
 
   if (!logs[level].get())
   {

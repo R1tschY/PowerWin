@@ -31,8 +31,3 @@ if (COMPILER_PREFIX)
 else()
   set(CMAKE_SIZE "size")
 endif()
-
-add_custom_command(TARGET PowerWinApp
-                   POST_BUILD
-                   COMMAND ${CMAKE_SIZE} -t "../bin/*.exe" "../bin/*.dll"
-                   COMMENT "Sizes:")

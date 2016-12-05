@@ -33,16 +33,17 @@ Known Issues
 Compile
 -------
 
-For compilation a MSYS2 enviroment is needed:
+For compilation a *MSYS2* enviroment is needed:
 
 https://sourceforge.net/projects/msys2/
 
-Install requirements in MSYS:
+In the **MSYS2 MinGW 64-Bit enviroment** do:
+
+Install requirements:
 
     pacman -S mingw32/mingw-w64-i686-gcc mingw64/mingw-w64-x86_64-gcc \
       mingw32/mingw-w64-i686-boost mingw64/mingw-w64-x86_64-boost \
       mingw64/mingw-w64-x86_64-cmake msys/git
-
 
 Checkout the sources:
 
@@ -56,6 +57,7 @@ Create a build directory:
 Configure the project with CMake:
     
     cd build
+    export PATH=/opt/bin:$PATH
     cmake -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ..
     
 Build project:

@@ -100,7 +100,7 @@ int PowerWinApp::run()
 
   powerwin.create(POWERWIN_PACKAGE_NAME);
 
-  log(Info) << POWERWIN_PACKAGE_NAME << std::hex << L": " << powerwin.getHWND();
+  log(Info) << POWERWIN_PACKAGE_NAME << std::hex << L": " << powerwin.getHWND() << std::endl;
 
   Windows::Application::processMessages();
 
@@ -111,7 +111,7 @@ int PowerWinApp::run()
 
 void PowerWinApp::onCreate() {
   print(L"PowerWin::start\n");
-  log(Info) << L"ClassName: " << getClassName();
+  log(Info) << L"ClassName: " << getClassName() << std::endl;
 
   configuration_.loadIniFile(
     Application::getExecutablePath() + L"\\config.ini"
@@ -151,7 +151,7 @@ void PowerWinApp::onCreate() {
 
 void PowerWinApp::onDestroy()
 {
-  log(Info) << L"PowerWinApp::onDestroy\n";
+  log(Info) << L"PowerWinApp::onDestroy" << std::endl;
 
   hooklibs_.unloadLibs();
 
@@ -194,7 +194,7 @@ LRESULT PowerWinApp::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 
       switch (ti_msg)
       {
-      case NIN_POPUPOPEN:
+//      case NIN_POPUPOPEN:
       case NIN_SELECT:
       case NIN_KEYSELECT:
       case WM_LBUTTONDOWN:

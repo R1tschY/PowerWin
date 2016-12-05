@@ -33,6 +33,8 @@
 #include <cpp-utils/assert.h>
 #include <windows.h>
 
+#include "log.h"
+
 namespace PowerWin {
 
 Hotkey::Hotkey(HotkeyManager& manager)
@@ -116,6 +118,43 @@ Windows::ShortCut Hotkey::parse(cpp::wstring_view hotkey)
   return result;
 }
 
+std::wstring to_string(Windows::ShortCut shortcut)
+{
+  std::wstring result;
+
+  if (shortcut.modifiers & MOD_CONTROL)
+  {
+    result += L"CTRL+";
+  }
+  if (shortcut.modifiers & MOD_ALT)
+  {
+    result += L"ALT+";
+  }
+  if (shortcut.modifiers & MOD_WIN)
+  {
+    result += L"WIN+";
+  }
+  if (shortcut.modifiers & MOD_SHIFT)
+  {
+    result += L"SHIFT+";
+  }
+
+  wchar_t buffer[32];
+  int chars = ::ToUnicode(shortcut.key, 0, nullptr, buffer, cpp::length(buffer), 0);
+  if (chars <= 0)
+  {
+    if (std::isprint(shortcut.key))
+      buffer[0] = shortcut.key;
+    else
+      buffer[0] = L'?';
+    chars = 1;
+  }
+
+  result.append(buffer, buffer + chars);
+  return result;
+}
+
+
 //
 // HotkeyManager
 
@@ -165,6 +204,7 @@ void HotkeyManager::setKey(int id, const Windows::ShortCut& key)
 
   if (key.isValid())
   {
+    log(Info) << L"HotkeyManager: added " << to_string(key) << " with id " << id << std::endl;
     win_throw_on_fail(
       ::RegisterHotKey(
           getHWND(),
@@ -173,6 +213,7 @@ void HotkeyManager::setKey(int id, const Windows::ShortCut& key)
   }
   else
   {
+    log(Info) << L"HotkeyManager: removed " << to_string(key) << " with id " << id << std::endl;
     win_throw_on_fail(
       ::UnregisterHotKey(
         getHWND(),
@@ -209,7 +250,7 @@ LRESULT HotkeyManager::onMessage(UINT msg, WPARAM wparam,
   auto iter = hotkeys_.find(wparam);
   if (iter == hotkeys_.end())
   {
-    Windows::DebugOutputStream()
+    log(Error)
       << L"internal error: hotkey with id = " << int(wparam) << " does not exists." << std::endl;
     return 0;
   }

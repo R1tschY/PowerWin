@@ -97,7 +97,7 @@ if (NOT PowerWin_ArchBuild)
     "${PROJECT_BINARY_DIR}/i686/bin/libpowerwin32.dll"
     "${PROJECT_BINARY_DIR}/x86_64/bin/libpowerwin64.dll"
     
-    DESTINATION ".")
+    DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/install")
      
   set(CPACK_GENERATOR "ZIP")
   set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")
