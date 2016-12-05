@@ -22,6 +22,7 @@
 
 #include <app/configuration.h>
 #include <app/hotkeymanager.h>
+#include <app/log.h>
 #include <lightports/os/process.h>
 #include <lightports/user/cursor.h>
 #include <modules/wkill/wkill.h>
@@ -34,7 +35,8 @@ namespace PowerWin {
 
 WKill::WKill(ModuleContext& context)
 : mouse_hook_(context.getMouseHook()),
-  hotkey_(context.getHotkeyManager())
+  hotkey_(context.getHotkeyManager()),
+  state_(State::Idle)
 {
   hotkey_.setCallback([=](){ onHotkey(); });
   hotkey_.setKey(context
@@ -47,7 +49,23 @@ void WKill::onHotkey()
   if (state_ != State::Idle)
     return;
 
+  log(Info) << L"wkill: choose window!" << std::endl;
+
   state_ = State::Choose;
+
+  CursorView cross = loadCursor(StockCursor::Cross);
+
+  for (DWORD cursorId : {OCR_APPSTARTING, OCR_NORMAL, OCR_CROSS, OCR_HAND,
+    OCR_HELP, OCR_IBEAM, OCR_NO, OCR_SIZEALL, OCR_SIZENESW, OCR_SIZENS,
+    OCR_SIZENWSE, OCR_SIZEWE, OCR_UP, OCR_WAIT})
+  {
+    CursorHandle cross_copy = cross.copy();
+    win_print_on_fail(SetSystemCursor(cross_copy.release(), cursorId));
+  }
+
+  //log(Info) << L"LoadCursor " << cursor << std::endl;
+  //log(Info) << L"SetCursor " << ::SetCursor(cursor) << std::endl;
+
   setCursor(loadCursor(StockCursor::Cross));
 
   hook_connection_ = mouse_hook_.mouseButtonDown().connect(
@@ -57,27 +75,32 @@ void WKill::onHotkey()
 
 bool WKill::onClick(Point pt, int button, DWORD time)
 {
-  if (button != 0)
-    return false;
-
   if (state_ != State::Choose)
     return false;
 
   // TODO: load old cursor?
-  setCursor(loadCursor(StockCursor::Normal));
+  SystemParametersInfo(SPI_SETCURSORS, 0, NULL, 0);
 
-  // kill process of clicked window
-  try
+  if (button == 0)
   {
-    auto hwnd = Window::at(pt);
-    auto process = Process::open(
-      Process::AccessRights::Terminate,
-      hwnd.getProcessId());
-    process.terminate(1);
+    // kill process of clicked window
+    try
+    {
+      auto hwnd = Window::at(pt);
+      auto pid = hwnd.getProcessId();
+      auto process = Process::open(Process::AccessRights::Terminate, pid);
+
+      log(Info) << L"wkill: terminate HWND: " << hwnd.getHWND() << L" PID: " << std::dec << pid << std::endl;
+      process.terminate(1);
+    }
+    catch(const Exception& exp)
+    {
+      log(Error) << L"wkill: Terminate process failed: " << exp.what() << std::endl;
+    }
   }
-  catch(const Exception& exp)
+  else
   {
-    DebugOutputStream() << L"WKill: Terminate process failed: " << exp.what() << std::endl;
+    log(Info) << L"wkill: canceled" << std::endl;
   }
 
   state_ = State::Idle;

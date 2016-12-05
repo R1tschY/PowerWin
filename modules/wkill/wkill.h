@@ -28,8 +28,6 @@
 #include <app/signal.h>
 #include <lightports/user/geometry.h>
 
-#include </usr/share/mingw-w64/include/minwindef.h>
-
 namespace PowerWin {
 
 /// \brief
