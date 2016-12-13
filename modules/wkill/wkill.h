@@ -45,11 +45,13 @@ private:
   MouseHook& mouse_hook_;
   Hotkey hotkey_;
   ScopedSignalConnection hook_connection_;
+  ScopedSignalConnection hook_connection2_;
 
   State state_;
 
   void onHotkey();
   bool onClick(Windows::Point pt, int button, DWORD time);
+  bool onMove(Windows::Point pt, DWORD time);
 };
 
 } // namespace PowerWin

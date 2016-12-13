@@ -46,6 +46,7 @@
 * Move windows with Alt + Button1
 * system menu with Alt + Button2
 * Resize windows with Alt + Button3 (divided in 8 regions)
+* Alt + Shift: move window to one of the four edges while moving the mouse
   
 ### opacity (idea)
 

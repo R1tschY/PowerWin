@@ -55,22 +55,34 @@ void WKill::onHotkey()
 
   CursorView cross = loadCursor(StockCursor::Cross);
 
-  for (DWORD cursorId : {OCR_APPSTARTING, OCR_NORMAL, OCR_CROSS, OCR_HAND,
-    OCR_HELP, OCR_IBEAM, OCR_NO, OCR_SIZEALL, OCR_SIZENESW, OCR_SIZENS,
-    OCR_SIZENWSE, OCR_SIZEWE, OCR_UP, OCR_WAIT})
-  {
-    CursorHandle cross_copy = cross.copy();
-    win_print_on_fail(SetSystemCursor(cross_copy.release(), cursorId));
-  }
+//  for (DWORD cursorId : {OCR_APPSTARTING, OCR_NORMAL, OCR_CROSS, OCR_HAND,
+//    OCR_HELP, OCR_IBEAM, OCR_NO, OCR_SIZEALL, OCR_SIZENESW, OCR_SIZENS,
+//    OCR_SIZENWSE, OCR_SIZEWE, OCR_UP, OCR_WAIT})
+//  {
+//    CursorHandle cross_copy = cross.copy();
+//    win_print_on_fail(SetSystemCursor(cross_copy.release(), cursorId));
+//  }
 
   //log(Info) << L"LoadCursor " << cursor << std::endl;
   //log(Info) << L"SetCursor " << ::SetCursor(cursor) << std::endl;
 
-  setCursor(loadCursor(StockCursor::Cross));
+  setCursor(cross);
 
-  hook_connection_ = mouse_hook_.mouseButtonDown().connect(
+  hook_connection_ = mouse_hook_.mouseButtonUp().connect(
     [=](Point pt, int button, DWORD time){ return onClick(pt, button, time); }
   );
+  hook_connection2_ = mouse_hook_.mouseMove().connect(
+    [=](Point pt, DWORD time){ return onMove(pt, time); }
+  );
+}
+
+bool WKill::onMove(Point pt, DWORD time)
+{
+  // set cursor
+  setCursor(loadCursor(StockCursor::Cross));
+
+  // do not pass move events to the apps
+  return true;
 }
 
 bool WKill::onClick(Point pt, int button, DWORD time)
@@ -78,8 +90,12 @@ bool WKill::onClick(Point pt, int button, DWORD time)
   if (state_ != State::Choose)
     return false;
 
+  state_ = State::Idle;
+  hook_connection_.disconnect();
+  hook_connection2_.disconnect();
+
   // TODO: load old cursor?
-  SystemParametersInfo(SPI_SETCURSORS, 0, NULL, 0);
+//  SystemParametersInfo(SPI_SETCURSORS, 0, NULL, 0);
 
   if (button == 0)
   {
@@ -102,9 +118,6 @@ bool WKill::onClick(Point pt, int button, DWORD time)
   {
     log(Info) << L"wkill: canceled" << std::endl;
   }
-
-  state_ = State::Idle;
-  hook_connection_.disconnect();
 
   return true;
 }

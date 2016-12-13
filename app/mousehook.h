@@ -47,12 +47,14 @@ private:
 public:
   using MouseButtonSignal = boost::signals2::signal<bool(Windows::Point, int, DWORD), ChainOfResponsibility>;
   using MouseWheelSignal = boost::signals2::signal<bool(Windows::Point, int, DWORD), ChainOfResponsibility>;
+  using MouseMoveSignal = boost::signals2::signal<bool(Windows::Point, DWORD), ChainOfResponsibility>;
 
   static MouseHook& getInstance();
 
   void activate();
   void deactivate();
 
+  SignalRegisterInterface<MouseButtonSignal> mouseMove() { return mouse_move_; }
   SignalRegisterInterface<MouseButtonSignal> mouseButtonUp() { return mouse_button_up_; }
   SignalRegisterInterface<MouseButtonSignal> mouseButtonDown() { return mouse_button_down_; }
   SignalRegisterInterface<MouseWheelSignal> mouseWheel() { return mouse_wheel_; }
@@ -64,6 +66,7 @@ private:
   MouseButtonSignal mouse_button_down_;
   MouseButtonSignal mouse_button_up_;
   MouseWheelSignal mouse_wheel_;
+  MouseWheelSignal mouse_move_;
 
   MouseHook();
 
@@ -72,6 +75,7 @@ private:
   bool handleMouseWheel(const MSLLHOOKSTRUCT& data);
   bool handleButtonUp(const MSLLHOOKSTRUCT& data, int button);
   bool handleButtonDown(const MSLLHOOKSTRUCT& data, int button);
+  bool handleMouseMove(const MSLLHOOKSTRUCT& data);
 };
 
 } // namespace PowerWin

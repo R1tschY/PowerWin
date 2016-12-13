@@ -50,6 +50,9 @@ bool MouseHook::handle(DWORD msg, const MSLLHOOKSTRUCT& data)
 {
   switch(msg)
   {
+  case WM_MOUSEMOVE:
+    return handleMouseMove(data);
+
   case WM_MOUSEWHEEL:
     return handleMouseWheel(data);
 
@@ -94,6 +97,11 @@ bool MouseHook::handleButtonDown(const MSLLHOOKSTRUCT& data, int button)
 bool MouseHook::handleMouseWheel(const MSLLHOOKSTRUCT& data)
 {
   return mouse_wheel_(data.pt, high_word(data.mouseData), data.time);
+}
+
+bool MouseHook::handleMouseMove(const MSLLHOOKSTRUCT& data)
+{
+  return mouse_move_(data.pt, data.time);
 }
 
 MouseHook& MouseHook::getInstance()
