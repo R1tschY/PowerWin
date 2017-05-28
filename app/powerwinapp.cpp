@@ -95,8 +95,8 @@ PowerWinApp::PowerWinApp() :
   configuration_(),
   hotkeys_(),
   global_events_(),
-  modules_(configuration_, hotkeys_, global_events_),
   hooklibs_(),
+  modules_(configuration_, hotkeys_, global_events_, hooklibs_),
   quit_shortcut_(hotkeys_)
 {
 }

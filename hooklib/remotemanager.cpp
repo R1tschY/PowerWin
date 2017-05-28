@@ -93,6 +93,14 @@ void RemoteManager::onDestroy()
 
 LRESULT RemoteManager::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 {
+  cpp::optional<LRESULT> result;
+  for (auto& module : modules_)
+  {
+    result = module->processMessage(msg, wparam, lparam);
+    if (result)
+      return result.value();
+  }
+
   switch (msg)
   {
   case WM_CLOSE:

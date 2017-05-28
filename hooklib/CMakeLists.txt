@@ -23,7 +23,8 @@ target_link_libraries(
     ${_target} 
     cpp-utils 
     lightports-core lightports-controls lightports-user lightports-dll
-    -Wl,--whole-archive ${libpowerwin_MODULES} -Wl,--no-whole-archive)
+    -Wl,--whole-archive ${libpowerwin_MODULES} -Wl,--no-whole-archive
+     -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic)
     
 add_windows_versioninfo(
   TARGET ${_target} 

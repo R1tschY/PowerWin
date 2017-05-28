@@ -35,6 +35,7 @@ class Configuration;
 class HotkeyManager;
 class GlobalEvents;
 class MouseHook;
+class HookLibManager;
 
 /// \brief context for PowerWin module
 /// \details api for modules
@@ -47,10 +48,12 @@ public:
     Configuration& config,
     HotkeyManager& hotkeys,
     GlobalEvents& global_events,
-    MouseHook& mouse_hook
+    MouseHook& mouse_hook,
+    HookLibManager& hook_libs
     )
   : name_(name), config_(config), hotkeys_(hotkeys),
-    global_events_(global_events), mouse_hook_(mouse_hook)
+    global_events_(global_events), mouse_hook_(mouse_hook),
+    hook_libs_(hook_libs)
   { }
 
   // own
@@ -63,6 +66,7 @@ public:
   HotkeyManager& getHotkeyManager() { return hotkeys_; }
   GlobalEvents& getGlobalEventsManager() { return global_events_; }
   MouseHook& getMouseHook() { return mouse_hook_; }
+  HookLibManager& getHookLibs() { return hook_libs_; }
 
 private:
   cpp::wstring_view name_;
@@ -70,6 +74,7 @@ private:
   HotkeyManager& hotkeys_;
   GlobalEvents& global_events_;
   MouseHook& mouse_hook_;
+  HookLibManager& hook_libs_;
 };
 
 /// \brief a PowerWin module

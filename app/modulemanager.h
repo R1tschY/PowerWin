@@ -58,13 +58,14 @@ class ModuleManager
 {
 public:
   ModuleManager(Configuration& configuration, HotkeyManager& hotkeys,
-      GlobalEvents& global_events);
+      GlobalEvents& global_events, HookLibManager& hook_libs);
   ~ModuleManager();
 
   Configuration& getConfiguration() { return config_; }
   HotkeyManager& getHotkeys() { return hotkeys_; }
   GlobalEvents& getGlobalEvents() { return global_events_; }
   MouseHook& getMouseHook() { return mouse_hook_; }
+  HookLibManager& getHookLibs() { return hook_libs_; }
 
   void loadModules();
   void unloadModules();
@@ -75,6 +76,7 @@ private:
   HotkeyManager& hotkeys_;
   GlobalEvents& global_events_;
   MouseHook& mouse_hook_;
+  HookLibManager& hook_libs_;
 };
 
 } // namespace PowerWin

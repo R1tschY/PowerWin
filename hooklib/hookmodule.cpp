@@ -26,7 +26,10 @@ template class cpp::registry<PowerWin::HookModule, PowerWin::HookModuleRegistryE
 
 namespace PowerWin {
 
-
+cpp::optional<LRESULT> HookModule::processMessage(UINT msg, WPARAM wparam, LPARAM lparam)
+{
+  return cpp::optional<LRESULT>();
+}
 
 } // namespace PowerWin
 

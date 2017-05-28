@@ -54,7 +54,7 @@ public:
   void activate();
   void deactivate();
 
-  SignalRegisterInterface<MouseButtonSignal> mouseMove() { return mouse_move_; }
+  SignalRegisterInterface<MouseMoveSignal> mouseMove() { return mouse_move_; }
   SignalRegisterInterface<MouseButtonSignal> mouseButtonUp() { return mouse_button_up_; }
   SignalRegisterInterface<MouseButtonSignal> mouseButtonDown() { return mouse_button_down_; }
   SignalRegisterInterface<MouseWheelSignal> mouseWheel() { return mouse_wheel_; }
@@ -66,7 +66,7 @@ private:
   MouseButtonSignal mouse_button_down_;
   MouseButtonSignal mouse_button_up_;
   MouseWheelSignal mouse_wheel_;
-  MouseWheelSignal mouse_move_;
+  MouseMoveSignal mouse_move_;
 
   MouseHook();
 

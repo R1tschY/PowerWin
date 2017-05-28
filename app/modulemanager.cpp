@@ -35,7 +35,8 @@ void ManagedModule::activate()
   if (module_) return;
 
   ModuleContext context(entry_.name(), mgr_.getConfiguration(),
-      mgr_.getHotkeys(), mgr_.getGlobalEvents(), mgr_.getMouseHook());
+      mgr_.getHotkeys(), mgr_.getGlobalEvents(), mgr_.getMouseHook(),
+      mgr_.getHookLibs());
   module_ = entry_.create(context);
 }
 
@@ -45,9 +46,9 @@ void ManagedModule::deactivate()
 }
 
 ModuleManager::ModuleManager(Configuration& configuration,
-    HotkeyManager& hotkeys, GlobalEvents& global_events)
+    HotkeyManager& hotkeys, GlobalEvents& global_events, HookLibManager& hook_libs)
 : config_(configuration), hotkeys_(hotkeys), global_events_(global_events),
-  mouse_hook_(MouseHook::getInstance())
+  mouse_hook_(MouseHook::getInstance()), hook_libs_(hook_libs)
 { }
 
 ModuleManager::~ModuleManager()

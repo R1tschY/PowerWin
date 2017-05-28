@@ -27,6 +27,7 @@
 
 #include <cpp-utils/pattern/registry.h>
 #include <cpp-utils/strings/string_view.h>
+#include <cpp-utils/optional.h>
 
 namespace PowerWin {
 
@@ -53,6 +54,8 @@ private:
 struct HookModule
 {
   virtual ~HookModule() = default;
+
+  virtual cpp::optional<LRESULT> processMessage(UINT msg, WPARAM wparam, LPARAM lparam);
 };
 
 class HookModuleRegistryEntry
