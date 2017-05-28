@@ -22,40 +22,54 @@
 
 #pragma once
 
-#include <app/hotkeymanager.h>
-#include <app/module.h>
-#include <app/mousehook.h>
-#include <app/signal.h>
+#include <cstddef>
+
+#include <cpp-utils/storage/uninitized.h>
 #include <lightports/user/geometry.h>
+#include <lightports/user/cursor.h>
+#include <lightports/user/hook.h>
+#include <hooklib/hookmodule.h>
+#include <hooklib/macros.h>
 
 namespace PowerWin {
 
-/// \brief
-class WKill : public Module
+class WKillHook
 {
 public:
-
-  WKill(ModuleContext& context);
-
-private:
-  enum class State {
-    Idle, Choose
+  enum {
+    AliveTag = 0x12345678,
+    DeadTag = 0xDEADDEAD
   };
 
-  MouseHook& mouse_hook_;
-  Hotkey hotkey_;
-  ScopedSignalConnection hook_connection_;
+  WKillHook();
+  ~WKillHook();
+
+  static LRESULT onHookMessage(Windows::Hook& hook, int code, WPARAM wParam, LPARAM lParam);
+  static Windows::Hook& getHook();
+
+  bool isAlive() const { return alive_ == AliveTag; }
+
+private:
+  std::uint32_t alive_;
+  Windows::Hook hook_;
+  Windows::CursorHandle cursor32_;
+  Windows::CursorHandle cursor64_;
+  int count_ = 0;
+  int count2_ = 0;
+
+  friend class WKillHookModule;
+};
+
+class WKillHookModule : public PowerWin::HookModule
+{
+public:
+  WKillHookModule(HookModuleContext& context);
+
+  cpp::optional<LRESULT> processMessage(UINT msg, WPARAM wparam, LPARAM lparam) override;
+
+private:
+  std::unique_ptr<cpp::scoped_lifetime<WKillHook>> hook_;
   UINT mouse_control_msg_ = 0;
-  HookLibManager& hook_libs_;
-
-  State state_;
-
-  void onHotkey();
-  bool onClick(Windows::Point pt, int button, DWORD time);
-  bool onMove(Windows::Point pt, DWORD time);
-
-  void startCursorControl();
-  void stopCursorControl();
 };
 
 } // namespace PowerWin

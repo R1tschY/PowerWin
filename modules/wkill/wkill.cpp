@@ -20,12 +20,16 @@
 /// IN THE SOFTWARE.
 ///
 
+#include "wkill.h"
+
 #include <app/configuration.h>
 #include <app/hotkeymanager.h>
 #include <app/log.h>
+#include <app/hooklibmanager.h>
 #include <lightports/os/process.h>
 #include <lightports/user/cursor.h>
-#include <modules/wkill/wkill.h>
+
+#include "common.h"
 
 using namespace Windows;
 
@@ -36,12 +40,15 @@ namespace PowerWin {
 WKill::WKill(ModuleContext& context)
 : mouse_hook_(context.getMouseHook()),
   hotkey_(context.getHotkeyManager()),
-  state_(State::Idle)
+  state_(State::Idle), hook_libs_(context.getHookLibs())
 {
   hotkey_.setCallback([=](){ onHotkey(); });
   hotkey_.setKey(context
     .getConfiguration()
     .readValue(L"wkill", L"hotkey", L"Ctrl+Alt+X"));
+
+  mouse_control_msg_ = win_throw_on_fail(
+      ::RegisterWindowMessageW(WKillMouseControl));
 }
 
 void WKill::onHotkey()
@@ -52,8 +59,9 @@ void WKill::onHotkey()
   log(Info) << L"wkill: choose window!" << std::endl;
 
   state_ = State::Choose;
+  startCursorControl();
 
-  CursorView cross = loadCursor(StockCursor::Cross);
+//  CursorView cross = loadCursor(StockCursor::Cross);
 
 //  for (DWORD cursorId : {OCR_APPSTARTING, OCR_NORMAL, OCR_CROSS, OCR_HAND,
 //    OCR_HELP, OCR_IBEAM, OCR_NO, OCR_SIZEALL, OCR_SIZENESW, OCR_SIZENS,
@@ -66,13 +74,10 @@ void WKill::onHotkey()
   //log(Info) << L"LoadCursor " << cursor << std::endl;
   //log(Info) << L"SetCursor " << ::SetCursor(cursor) << std::endl;
 
-  setCursor(cross);
+//  setCursor(cross);
 
   hook_connection_ = mouse_hook_.mouseButtonUp().connect(
     [=](Point pt, int button, DWORD time){ return onClick(pt, button, time); }
-  );
-  hook_connection2_ = mouse_hook_.mouseMove().connect(
-    [=](Point pt, DWORD time){ return onMove(pt, time); }
   );
 }
 
@@ -82,7 +87,7 @@ bool WKill::onMove(Point pt, DWORD time)
   setCursor(loadCursor(StockCursor::Cross));
 
   // do not pass move events to the apps
-  return true;
+  return false;
 }
 
 bool WKill::onClick(Point pt, int button, DWORD time)
@@ -92,7 +97,7 @@ bool WKill::onClick(Point pt, int button, DWORD time)
 
   state_ = State::Idle;
   hook_connection_.disconnect();
-  hook_connection2_.disconnect();
+  stopCursorControl();
 
   // TODO: load old cursor?
 //  SystemParametersInfo(SPI_SETCURSORS, 0, NULL, 0);
@@ -120,6 +125,18 @@ bool WKill::onClick(Point pt, int button, DWORD time)
   }
 
   return true;
+}
+
+void WKill::startCursorControl()
+{
+  hook_libs_.postMessage(mouse_control_msg_,
+      reinterpret_cast<WPARAM>((unsigned)WKillMouseControlMsg::Start), 0);
+}
+
+void WKill::stopCursorControl()
+{
+  hook_libs_.postMessage(mouse_control_msg_,
+      reinterpret_cast<WPARAM>((unsigned)WKillMouseControlMsg::Stop), 0);
 }
 
 ModuleRegistry::element<WKill> XWKill(
