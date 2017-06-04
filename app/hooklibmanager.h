@@ -25,6 +25,10 @@
 
 #include <windows.h>
 #include <vector>
+#include <memory>
+
+class QProcess;
+class QString;
 
 namespace PowerWin {
 
@@ -33,6 +37,7 @@ class HookLibManager
 {
 public:
   HookLibManager();
+  ~HookLibManager();
 
   void startLibs();
   void unloadLibs();
@@ -44,6 +49,9 @@ public:
 
 private:
   std::vector<HWND> hooklibs_;
+  std::vector<std::unique_ptr<QProcess>> processes_;
+
+  void runDll(int bitness, const QString& dll, const QString& entry);
 };
 
 } // namespace PowerWin

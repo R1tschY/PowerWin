@@ -22,13 +22,15 @@
 
 #pragma once
 
+#include <app/signals.h>
 #include <algorithm>
 #include <lightports/user/hook.h>
 #include <lightports/user/geometry.h>
 
-#include "signal.h"
 
 namespace PowerWin {
+
+// TODO: use Qt signals
 
 /// \brief
 class MouseHook

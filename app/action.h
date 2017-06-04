@@ -22,10 +22,10 @@
 
 #pragma once
 
+#include <app/signals.h>
 #include <string>
 #include <lightports/user/shortcut.h>
 
-#include "signal.h"
 
 namespace PowerWin {
 

@@ -23,7 +23,7 @@
 #ifndef APP_HELPER_OBSERVERMIXIN_H_
 #define APP_HELPER_OBSERVERMIXIN_H_
 
-#include "../signal.h"
+#include <app/signals.h>
 
 namespace PowerWin {
 

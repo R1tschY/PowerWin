@@ -30,6 +30,8 @@
 
 namespace PowerWin {
 
+// TODO: use QString
+
 class PowerWinApp;
 class Configuration;
 class HotkeyManager;

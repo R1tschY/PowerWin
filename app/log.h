@@ -28,6 +28,8 @@
 
 namespace PowerWin {
 
+// TODO: use QDebug
+
 enum LogLevel {
   Info,
   Warning,

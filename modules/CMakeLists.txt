@@ -1,3 +1,7 @@
+# Find includes in corresponding build directories
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
 
 # TODO. add options: INCLUDES LIBRARIES DEFINITIONS
 macro(powerwin_module)
@@ -6,7 +10,7 @@ macro(powerwin_module)
   
   set(options )
   set(oneValueArgs NAME)
-  set(multiValueArgs SOURCES HOOKSOURCES DEPS)
+  set(multiValueArgs SOURCES HOOKSOURCES DEPS HOOKDEPS)
   set(prefix powerwin_module)
   cmake_parse_arguments(${prefix} "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
   
@@ -26,7 +30,7 @@ macro(powerwin_module)
   if (${prefix}_HOOKSOURCES)
     set(_module_lib_name "powerwin-hook-${${prefix}_NAME}")
     add_library("${_module_lib_name}" STATIC ${${prefix}_HOOKSOURCES})
-    target_link_libraries("${_module_lib_name}" cpp-utils lightports-core ${${prefix}_DEPS})
+    target_link_libraries("${_module_lib_name}" cpp-utils lightports-core ${${prefix}_HOOKDEPS})
     list(APPEND libpowerwin_MODULES "${_module_lib_name}")
     move_to_parent(libpowerwin_MODULES)
   endif()

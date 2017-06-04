@@ -20,12 +20,14 @@
 /// IN THE SOFTWARE.
 ///
 
-#ifndef APP_SIGNAL_H_
-#define APP_SIGNAL_H_
+#ifndef APP_SIGNALS_H_
+#define APP_SIGNALS_H_
 
 #include <boost/signals2/signal.hpp>
 
 namespace PowerWin {
+
+// TODO: remove
 
 template<typename Signatur>
 using Signal = boost::signals2::signal<Signatur>;
@@ -58,4 +60,4 @@ private:
 
 } /* namespace PowerWin */
 
-#endif /* APP_SIGNAL_H_ */
+#endif /* APP_SIGNALS_H_ */

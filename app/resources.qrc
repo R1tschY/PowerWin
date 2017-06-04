@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/powerwin">
+        <file>img/powerwin16.png</file>
+        <file>img/powerwin32.png</file>
+    </qresource>
+</RCC>

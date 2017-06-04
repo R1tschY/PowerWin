@@ -1,13 +1,7 @@
 # detect non-Windows and use cross-mingw64
-if (NOT WIN32 AND NOT CMAKE_TOOLCHAIN_FILE)
-  set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Toolchain-cross-mingw.cmake")
-else()
-  if (PowerWin_ArchBuild)
-    set(CMAKE_RC_COMPILER ${COMPILER_PREFIX}-windres)
-    set(CMAKE_C_COMPILER ${COMPILER_PREFIX}-gcc)
-    set(CMAKE_CXX_COMPILER ${COMPILER_PREFIX}-g++)
-  endif()
-endif()
+#if (NOT WIN32 AND NOT MSYS AND NOT CMAKE_TOOLCHAIN_FILE)
+#  set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Toolchain-cross-mingw.cmake")
+#endif()
 
 # cmake version
 cmake_minimum_required (VERSION 3.0)
@@ -15,11 +9,11 @@ cmake_policy(VERSION 3.2)
 cmake_policy(SET CMP0048 NEW)
 
 # project
-project(PowerWin VERSION 0.3)
+project(PowerWin VERSION 0.4)
 set(PowerWin_VERSION_EXT "alpha")
 
 set(PowerWin_AUTHOR "Richard Liebscher")
-set(PowerWin_COPYRIGHT "Copyright (C) 2016 Richard Liebscher <r1tschy@yahoo.de>")
+set(PowerWin_COPYRIGHT "Copyright (C) 2017 Richard Liebscher <r1tschy@yahoo.de>")
 set(PowerWin_URL "https://github.com/R1tschY/PowerWin")
 set(PowerWin_LICENCE_URL "https://www.gnu.org/licenses/gpl-3.0.html")
 set(PowerWin_LICENCE_PATH "GPL.txt")
@@ -44,6 +38,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 include(IsolatedProject)
 
+message(STATUS "$ENV{PATH}")
 if (NOT PowerWin_ArchBuild)
 
   message(STATUS "    ____                         _       ___      ")     
@@ -54,36 +49,42 @@ if (NOT PowerWin_ArchBuild)
   message(STATUS "                                                  ")
 
   add_isolated_project(
+    CMAKE "${CMAKE_SOURCE_DIR}/cmake/msys2-mingw32-cmake.sh"
+    GENERATOR "MSYS Makefiles"
     TARGET PowerWin_i686 ADD_TO_ALL
     DIR "${PROJECT_BINARY_DIR}/i686"
     
     PASSTHROUGH 
     "CMAKE_BUILD_TYPE"
-    "CMAKE_TOOLCHAIN_FILE"
     "BOOST_ROOT"
     "POWERWIN_I18N"
     
     NEW
     "PowerWin_ArchBuild=i686" 
     "COMPILER_PREFIX=i686-w64-mingw32"
+    "CPP_UTILS_NO_TESTS=ON"
+    "CMAKE_TOOLCHAIN_FILE=${CMAKE_SOURCE_DIR}/cmake/Toolchain-MSYS2-MinGW32.cmake"
     
     COMMENT "Build i686 targets" 
   )
 
   if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     add_isolated_project(
+      CMAKE "${CMAKE_SOURCE_DIR}/cmake/msys2-mingw64-cmake.sh"
+      GENERATOR "MSYS Makefiles"
       TARGET PowerWin_x86_64 ADD_TO_ALL
       DIR "${PROJECT_BINARY_DIR}/x86_64"
     
       PASSTHROUGH 
       "CMAKE_BUILD_TYPE"
-      "CMAKE_TOOLCHAIN_FILE"
       "BOOST_ROOT"
       "POWERWIN_I18N"
     
       NEW
       "PowerWin_ArchBuild=x86_64" 
       "COMPILER_PREFIX=x86_64-w64-mingw32"
+      "CPP_UTILS_NO_TESTS=ON"
+      "CMAKE_TOOLCHAIN_FILE=${CMAKE_SOURCE_DIR}/cmake/Toolchain-MSYS2-MinGW64.cmake"
     
       COMMENT "Build x86_64 targets"                              
     )
@@ -144,16 +145,23 @@ else()
 endif()
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
-# C++14
-#set_property(GLOBAL PROPERTY CXX_STANDARD 14)
-#set_property(GLOBAL PROPERTY CXX_STANDARD_REQUIRED ON)
-add_flags(CXX "-std=gnu++14")
+# Qt
+if (CMAKE_SIZEOF_VOID_P EQUAL 4)
+    add_definitions(
+     -DQT_DEPRECATED_WARNINGS
+     -DQT_DISABLE_DEPRECATED_BEFORE=0x050500
+     -DQT_USE_QSTRINGBUILDER)
+    
+    # Find the QtWidgets library
+    find_package(Qt5Widgets REQUIRED)
+endif()
 
-# stdlibs
-add_flags(LD "-static-libgcc -static-libstdc++")
+# C++14
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Windows
-compile_for_windows(UNICODE STRICT VERSION Vista)
+compile_for_windows(UNICODE STRICT VERSION 7)
 
 # Debug mode
 add_config(

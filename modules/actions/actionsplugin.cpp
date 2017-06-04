@@ -25,7 +25,6 @@
 #include <cpp-utils/strings/string_literal.h>
 #include <cpp-utils/algorithm/length.h>
 #include <lightports/core/debug.h>
-#include <app/powerwinapp.h>
 #include <modules/actions/actionsplugin.h>
 
 

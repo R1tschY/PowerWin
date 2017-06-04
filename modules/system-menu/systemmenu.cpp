@@ -26,7 +26,7 @@
 #include <lightports/core/debug.h>
 #include <lightports/controls.h>
 #include <lightports/user/menu.h>
-#include <app/i18n.h>
+#include <app/helper/toqt.h>
 
 #include "common.h"
 
@@ -48,7 +48,7 @@ void updateSystemMenu(HWND hwnd, bool new_state)
   {
     menu.modifyEntry(
       SystemMenu::AlwaysOnTop,
-      _("Always on top"),
+      to<cpp::wstring_view>(SystemMenuModule::tr("Always on top")),
       new_state ? MenuEntryFlags::Checked : MenuEntryFlags::Unchecked);
   }
 }
@@ -93,7 +93,7 @@ BOOL CALLBACK systemmenu_upgrade_window(HWND hwnd, LPARAM lParam)
         menu.insertEntryBefore(
           SC_CLOSE,
           SystemMenu::AlwaysOnTop,
-          _("Always on top"),
+          to<cpp::wstring_view>(SystemMenuModule::tr("Always on top")),
           IsWindowAlwaysOnTop(hwnd)
           ? MenuEntryFlags::Checked : MenuEntryFlags::Unchecked);
 
@@ -141,7 +141,7 @@ SystemMenuModule::SystemMenuModule(ModuleContext& context)
       ::RegisterWindowMessageW(SystemMenu::SetTopmostMessage));
 
   auto& events = context.getGlobalEventsManager();
-  connect(
+  ObserverMixin::connect(
       events.getWindowsMessageSignal(),
       [=](WindowsMessageEvent& e) { onGlobalMessage(e); });
 

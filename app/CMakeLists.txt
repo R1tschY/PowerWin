@@ -1,18 +1,19 @@
 # Sources
 file(GLOB_RECURSE PowerWinApp_SOURCES "*.cpp")
-file(GLOB_RECURSE PowerWinApp_RESOURCES "*.rc")
+file(GLOB_RECURSE PowerWinApp_RESOURCES "*.qrc")
+
+# Find includes in corresponding build directories
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
 
 # Libs
 set(PowerWinApp_Libs 
   cpp-utils
+  Qt5::Widgets
   lightports-core
   lightports-user
-  lightports-os
-  lightports-extra 
-  lightports-shell 
-  lightports-com 
   lightports-controls
-  lightports-gdi-controls
   ${Boost_LIBRARIES}
 )
 
@@ -25,6 +26,10 @@ add_windows_manifest(
   TEMPLATE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/powerwin.manifest.in"
   ASSEMBLY_VERSION "${PowerWin_VERSION_NOEXT}")
 install(TARGETS PowerWinApp RUNTIME DESTINATION ".")
+set_property(TARGET PowerWinApp PROPERTY CXX_STANDARD 14)
+set_property(TARGET PowerWinApp PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET PowerWinApp PROPERTY AUTORCC ON) # for *.qrc files
+
 
 if (COMPILER_PREFIX)
   set(CMAKE_SIZE "${COMPILER_PREFIX}-size")

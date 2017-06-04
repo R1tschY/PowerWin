@@ -24,8 +24,12 @@
 
 #include <cpp-utils/assert.h>
 #include <cpp-utils/strings/string_literal.h>
+#include <cpp-utils/scope.h>
 #include <boost/algorithm/string.hpp>
 #include <lightports/extra/configfile.h>
+
+#include <QSettings>
+#include <QString>
 
 namespace PowerWin {
 
@@ -63,42 +67,73 @@ struct NullConfigurationBackend : public ConfigurationBackend
 
 // IniConfigurationBackend
 
+// TODO: Convert Framework
+template<typename T>
+T to(cpp::wstring_view);
+
+template<>
+QString to<QString>(cpp::wstring_view str)
+{
+  return QString::fromWCharArray(str.data(), str.size());
+}
+
+// Always use QSettings
 class IniConfigurationBackend : public ConfigurationBackend
 {
 public:
   IniConfigurationBackend(cpp::wstring_view filename)
-  {
-    ini_file_.loadFromFile(filename);
-  }
+  : ini_file_(to<QString>(filename), QSettings::IniFormat)
+  { }
 
   bool existsSection(cpp::wstring_view section) override
   {
-    return false; // TODO: add support
+    return ini_file_.contains(to<QString>(section));
   }
 
   bool existsKey(cpp::wstring_view section, cpp::wstring_view key) override
   {
-    return ini_file_.existsKey(section, key);
+    ini_file_.beginGroup(to<QString>(section));
+    auto guard = cpp::make_guard([&](){ ini_file_.endGroup(); });
+    return ini_file_.contains(to<QString>(key));
   }
 
   std::wstring readValue(cpp::wstring_view section, cpp::wstring_view key,
     cpp::wstring_view standard) override
   {
-    return ini_file_.getString(section, key, standard);
+    ini_file_.beginGroup(to<QString>(section));
+    auto guard = cpp::make_guard([&](){ ini_file_.endGroup(); });
+    return ini_file_.value(
+        to<QString>(key),
+        to<QString>(standard)
+    ).toString().toStdWString();
   }
 
   std::vector<std::wstring> listKeys(cpp::wstring_view section) override
   {
-    return ini_file_.getKeys(section);
+    ini_file_.beginGroup(to<QString>(section));
+    auto guard = cpp::make_guard([&](){ ini_file_.endGroup(); });
+    const auto keys = ini_file_.childKeys();
+
+    std::vector<std::wstring> result;
+    result.reserve(keys.size());
+    for (auto& key : keys)
+      result.push_back(key.toStdWString());
+    return result;
   }
 
   std::vector<std::wstring> listSections() override
   {
-    return ini_file_.getSections();
+    const auto groups = ini_file_.childGroups();
+
+    std::vector<std::wstring> result;
+    result.reserve(groups.size());
+    for (auto& group : groups)
+      result.push_back(group.toStdWString());
+    return result;
   }
 
 private:
-  Windows::ConfigFile ini_file_;
+  QSettings ini_file_;
 };
 }
 

@@ -22,13 +22,32 @@
 
 #pragma once
 
+#include <QWidget>
+
 #include <app/hotkeymanager.h>
 #include <app/module.h>
 #include <app/mousehook.h>
-#include <app/signal.h>
+#include <app/signals.h>
 #include <lightports/user/geometry.h>
 
+class QLabel;
+class QMouseEvent;
+
 namespace PowerWin {
+
+class WKillWindow : public QWidget
+{
+  Q_OBJECT
+public:
+  WKillWindow();
+
+private:
+  QLabel* activateButton_;
+  bool choosing_ = false;
+
+  void mousePressEvent(QMouseEvent *event) override;
+  void mouseReleaseEvent(QMouseEvent *event) override;
+};
 
 /// \brief
 class WKill : public Module
@@ -38,24 +57,11 @@ public:
   WKill(ModuleContext& context);
 
 private:
-  enum class State {
-    Idle, Choose
-  };
-
-  MouseHook& mouse_hook_;
   Hotkey hotkey_;
-  ScopedSignalConnection hook_connection_;
-  UINT mouse_control_msg_ = 0;
-  HookLibManager& hook_libs_;
-
-  State state_;
+  WKillWindow window_;
+  QWidget window;
 
   void onHotkey();
-  bool onClick(Windows::Point pt, int button, DWORD time);
-  bool onMove(Windows::Point pt, DWORD time);
-
-  void startCursorControl();
-  void stopCursorControl();
 };
 
 } // namespace PowerWin

@@ -22,6 +22,12 @@
 
 #include "wkill.h"
 
+#include <windows.h>
+#include <QLabel>
+#include <QHBoxLayout>
+#include <QDebug>
+#include <QMouseEvent>
+
 #include <app/configuration.h>
 #include <app/hotkeymanager.h>
 #include <app/log.h>
@@ -29,114 +35,83 @@
 #include <lightports/os/process.h>
 #include <lightports/user/cursor.h>
 
-#include "common.h"
-
 using namespace Windows;
 
 namespace PowerWin {
 
-// TODO: add chance to exit
+WKillWindow::WKillWindow()
+{
+  auto* layout = new QHBoxLayout();
+  setLayout(layout);
+
+  activateButton_ = new QLabel(tr("Drag on Window"), this);
+  layout->addWidget(activateButton_);
+
+  resize(150, 300);
+}
+
+void WKillWindow::mousePressEvent(QMouseEvent* event)
+{
+  if (event->buttons() != Qt::LeftButton)
+  {
+    // exit through other mouse click
+    choosing_ = false;
+    setCursor(Qt::ArrowCursor);
+    return;
+  }
+
+  setCursor(Qt::PointingHandCursor);
+  choosing_ = true;
+}
+
+void WKillWindow::mouseReleaseEvent(QMouseEvent* event)
+{
+  if (!choosing_)
+    return;
+
+  hide();
+  setCursor(Qt::ArrowCursor);
+  choosing_ = false;
+
+  try
+  {
+    // kill process of clicked window
+    auto hwnd = Window::at(Point(event->globalX(), event->globalY()));
+    if (!hwnd)
+    {
+      qCritical() << "wkill: no window at "
+          << event->globalX() << "/" << event->globalY();
+      return;
+    }
+
+    auto pid = hwnd.getProcessId();
+    auto process = Process::open(Process::AccessRights::Terminate, pid);
+
+    qInfo() << "wkill: terminate HWND:" << hwnd.getHWND() << "PID:" << pid;
+
+    // TODO: do not kill own process, desktop process, ...
+    //process.terminate(1);
+  }
+  catch(const Exception& exp)
+  {
+    qCritical() << "wkill: Terminate process failed:" << exp.what();
+  }
+}
 
 WKill::WKill(ModuleContext& context)
-: mouse_hook_(context.getMouseHook()),
-  hotkey_(context.getHotkeyManager()),
-  state_(State::Idle), hook_libs_(context.getHookLibs())
+: hotkey_(context.getHotkeyManager())
 {
   hotkey_.setCallback([=](){ onHotkey(); });
   hotkey_.setKey(context
     .getConfiguration()
     .readValue(L"wkill", L"hotkey", L"Ctrl+Alt+X"));
-
-  mouse_control_msg_ = win_throw_on_fail(
-      ::RegisterWindowMessageW(WKillMouseControl));
 }
 
 void WKill::onHotkey()
 {
-  if (state_ != State::Idle)
-    return;
-
-  log(Info) << L"wkill: choose window!" << std::endl;
-
-  state_ = State::Choose;
-  startCursorControl();
-
-//  CursorView cross = loadCursor(StockCursor::Cross);
-
-//  for (DWORD cursorId : {OCR_APPSTARTING, OCR_NORMAL, OCR_CROSS, OCR_HAND,
-//    OCR_HELP, OCR_IBEAM, OCR_NO, OCR_SIZEALL, OCR_SIZENESW, OCR_SIZENS,
-//    OCR_SIZENWSE, OCR_SIZEWE, OCR_UP, OCR_WAIT})
-//  {
-//    CursorHandle cross_copy = cross.copy();
-//    win_print_on_fail(SetSystemCursor(cross_copy.release(), cursorId));
-//  }
-
-  //log(Info) << L"LoadCursor " << cursor << std::endl;
-  //log(Info) << L"SetCursor " << ::SetCursor(cursor) << std::endl;
-
-//  setCursor(cross);
-
-  hook_connection_ = mouse_hook_.mouseButtonUp().connect(
-    [=](Point pt, int button, DWORD time){ return onClick(pt, button, time); }
-  );
-}
-
-bool WKill::onMove(Point pt, DWORD time)
-{
-  // set cursor
-  setCursor(loadCursor(StockCursor::Cross));
-
-  // do not pass move events to the apps
-  return false;
-}
-
-bool WKill::onClick(Point pt, int button, DWORD time)
-{
-  if (state_ != State::Choose)
-    return false;
-
-  state_ = State::Idle;
-  hook_connection_.disconnect();
-  stopCursorControl();
-
-  // TODO: load old cursor?
-//  SystemParametersInfo(SPI_SETCURSORS, 0, NULL, 0);
-
-  if (button == 0)
-  {
-    // kill process of clicked window
-    try
-    {
-      auto hwnd = Window::at(pt);
-      auto pid = hwnd.getProcessId();
-      auto process = Process::open(Process::AccessRights::Terminate, pid);
-
-      log(Info) << L"wkill: terminate HWND: " << hwnd.getHWND() << L" PID: " << std::dec << pid << std::endl;
-      process.terminate(1);
-    }
-    catch(const Exception& exp)
-    {
-      log(Error) << L"wkill: Terminate process failed: " << exp.what() << std::endl;
-    }
-  }
-  else
-  {
-    log(Info) << L"wkill: canceled" << std::endl;
-  }
-
-  return true;
-}
-
-void WKill::startCursorControl()
-{
-  hook_libs_.postMessage(mouse_control_msg_,
-      reinterpret_cast<WPARAM>((unsigned)WKillMouseControlMsg::Start), 0);
-}
-
-void WKill::stopCursorControl()
-{
-  hook_libs_.postMessage(mouse_control_msg_,
-      reinterpret_cast<WPARAM>((unsigned)WKillMouseControlMsg::Stop), 0);
+  window_.show();
+  window_.activateWindow();
+  window_.raise();
 }
 
 ModuleRegistry::element<WKill> XWKill(

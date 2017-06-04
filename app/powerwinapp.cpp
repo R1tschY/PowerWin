@@ -28,8 +28,6 @@
 #include <vector>
 #include <cstring>
 #include <iostream>
-#include <thread>
-#include <boost/locale/generator.hpp>
 
 #include <cpp-utils/preprocessor.h>
 #include <cpp-utils/strings/string_literal.h>
@@ -38,7 +36,7 @@
 #include <lightports/os/path.h>
 #include <lightports/user/application.h>
 #include <lightports/user/resources.h>
-#include <lightports/extra/charcodecs.h>
+#include <lightports/core/charcodecs.h>
 #include <lightports/shell/trayicon.h>
 #include <lightports/controls.h>
 #include <lightports/extra/configfile.h>
@@ -47,10 +45,19 @@
 #include <lightports/user/cursor.h>
 #include <lightports/extra/autostart.h>
 
-#include "resources.h"
+#include <QApplication>
+#include <QDebug>
+#include <QSettings>
+#include <QSystemTrayIcon>
+#include <QMenu>
+#include <QAction>
+#include <QDesktopServices>
+#include <QDir>
+#include <QUrl>
+#include <QEvent>
+
 #include "messages.h"
 #include "log.h"
-#include "i18n.h"
 
 #include "../hooklib/macros.h"
 
@@ -60,21 +67,6 @@
 using namespace Windows;
 
 namespace PowerWin {
-
-void init_i18n()
-{
-  auto local_path = Windows::to_string(
-    Windows::Path(Windows::Application::getExecutablePath()).getFolder()
-    + L"\\locale"
-  );
-
-#if POWERWIN_I18N
-  generator gen;
-  gen.add_messages_path(local_path);
-  gen.add_messages_domain(POWERWIN_PACKAGE_NAME_ASCII);
-  std::locale::global(gen(""));
-#endif
-}
 
 static
 ATOM registerWindowClass()
@@ -90,78 +82,39 @@ ATOM registerWindowClass()
 }
 
 PowerWinApp::PowerWinApp() :
+  QSystemTrayIcon(),
   MessageSink(registerWindowClass()),
-  tray_icon_(),
-  configuration_(),
   hotkeys_(),
   global_events_(),
   hooklibs_(),
   modules_(configuration_, hotkeys_, global_events_, hooklibs_),
   quit_shortcut_(hotkeys_)
 {
-}
-
-PowerWinApp::~PowerWinApp() {  }
-
-int PowerWinApp::run()
-{
-  //  init Comctl32.dll
-  /*const INITCOMMONCONTROLSEX icce = {
-    sizeof(INITCOMMONCONTROLSEX),
-    ICC_STANDARD_CLASSES
-  };
-  if (!InitCommonControlsEx(&icce)) {
-    ERROR(L"%s\n", L"Kann 'common controls' nicht initailsieren!");
-  }*/
-
-  Windows::GdiplusContext gdi;
-
-
-
-  PowerWinApp powerwin;
-
-  powerwin.create(POWERWIN_PACKAGE_NAME);
-
-  log(Info) << POWERWIN_PACKAGE_NAME << std::hex << L": " << powerwin.getHWND() << std::endl;
-
-  Windows::Application::processMessages();
-
-  log(Info) << POWERWIN_PACKAGE_NAME L": The end" << std::endl;
-
-  return 0;
-}
-
-void PowerWinApp::onCreate() {
-  print(L"PowerWin::start\n");
-  log(Info) << L"ClassName: " << getClassName() << std::endl;
-
   configuration_.loadIniFile(
-    Application::getExecutablePath() + L"\\config.ini"
+      QString(
+        QCoreApplication::applicationDirPath()
+        + QLatin1String("/config.ini")
+      ).toStdWString()
   );
 
+  //
+  autostart_action_ = new QAction(tr("Start with Windows"), this);
+  autostart_action_->setCheckable(true);
+  autostart_action_->setChecked(isProgramInAutostart());
+
+  // context menu
+  createContextMenu();
+
   // tray icon
-  tray_icon_.setIcon(POWERWIN_ICON_SMALL);
-  tray_icon_.setToolTip(POWERWIN_PACKAGE_NAME);
-  tray_icon_.add(getHWND());
-
-  // popup menu
-  popup_menu_ = createPopupMenu();
-
-  info_menu_ = createPopupMenu();
-  info_menu_.addEntry(InfoEntry, POWERWIN_PACKAGE_NAME POWERWIN_PACKAGE_VERSION);
-  info_menu_.addEntry(InfoEntry, _("Copyright © 2014-2016 R1tschY"));
-  info_menu_.addEntry(InfoLicence, _("Licenced under GPL v3"));
-  popup_menu_.addMenu(L"Info", info_menu_);
-
-  popup_menu_.addSeperator();
-  popup_menu_.addEntry(AutostartEntry, _("Start with Windows"));
-  popup_menu_.check(AutostartEntry, isProgramInAutostart());
-  popup_menu_.addSeperator();
-  popup_menu_.addEntry(QuitEntry, _("Quit"));
+  setIcon(QIcon(QStringLiteral(":/powerwin/img/powerwin16.png")));
+  setToolTip(POWERWIN_PACKAGE_NAME_ASCII);
+  connect(
+      this, &QSystemTrayIcon::activated,
+      this, &PowerWinApp::onTrayIconActivated);
 
   // hotkeys
   auto quit_shortcut = configuration_.readValue(L"powerwin", L"quit", L"Ctrl+F12");
-  quit_shortcut_.setCallback([=](){ destroy(); });
+  quit_shortcut_.setCallback([=](){ qApp->quit(); });
   quit_shortcut_.setKey(quit_shortcut);
 
   // local modules
@@ -171,7 +124,7 @@ void PowerWinApp::onCreate() {
   hooklibs_.startLibs();
 }
 
-void PowerWinApp::onDestroy()
+PowerWinApp::~PowerWinApp()
 {
   log(Info) << L"PowerWinApp::onDestroy" << std::endl;
 
@@ -179,12 +132,6 @@ void PowerWinApp::onDestroy()
 
   // deactivate all plugins
   modules_.unloadModules();
-
-  // remove tray icon
-  tray_icon_.remove();
-
-  // exit process
-  PostQuitMessage(0);
 }
 
 LRESULT PowerWinApp::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
@@ -207,131 +154,87 @@ LRESULT PowerWinApp::onMessage(UINT msg, WPARAM wparam, LPARAM lparam)
   case WM_MOVE:
   case WM_SIZE:
     return ::DefWindowProc(getHWND(), msg, wparam, lparam);
-
-  // trayicon
-  case TrayIcon::MessageId:
-    return tray_icon_.handleMessage(wparam, lparam, [=](UINT ti_msg, Point pt)
-    {
-      pt = getCursorPosition();
-
-      switch (ti_msg)
-      {
-//      case NIN_POPUPOPEN:
-      case NIN_SELECT:
-      case NIN_KEYSELECT:
-      case WM_LBUTTONDOWN:
-      case WM_RBUTTONDOWN:
-      case WM_CONTEXTMENU:
-        onContextMenu(pt);
-        return 1;
-      }
-      return 0;
-    });
-
-  // Messages des PopupMenus
-  case WM_COMMAND: {
-    int id    = LOWORD(wparam);
-    int event = HIWORD(wparam);
-    // Menüauswahl bearbeiten:
-    switch (id)
-    {
-    case InfoEntry:
-      openProjectWebsite();
-      return 0;
-
-    case InfoLicence:
-      openLicence();
-      return 0;
-
-    case AutostartEntry:
-      onAutostartSet(!popup_menu_.isEntryChecked(AutostartEntry));
-      return 0;
-
-    case QuitEntry:
-      destroy();
-      return 0;
-    }
-    return 0;
-  }
   }
 
   // pass message to modules
+  // TODO: remove
   auto result = global_events_.handleWindowsMessage(msg, wparam, lparam);
   return result ? result.value() : Control::onMessage(msg, wparam, lparam);
 }
 
-void PowerWinApp::onContextMenu(Windows::Point pt)
+void PowerWinApp::createContextMenu()
 {
-  ::SetForegroundWindow(getHWND());
-  openPopupMenu(popup_menu_, pt, getHWND());
+  popup_menu_ = std::make_unique<QMenu>();
+
+  auto* info_menu = popup_menu_->addMenu(tr("Info"));
+  info_menu->addAction(
+      QString::fromWCharArray(POWERWIN_PACKAGE_NAME L" " POWERWIN_PACKAGE_VERSION),
+      this, &PowerWinApp::openProjectWebsite);
+  info_menu->addAction(tr("Copyright © 2017 R1tschY"),
+      this, &PowerWinApp::openProjectWebsite);
+  info_menu->addAction(tr("Licenced under GPL v3"),
+      this, &PowerWinApp::openLicence);
+
+  popup_menu_->addSeparator();
+  popup_menu_->addAction(autostart_action_);
+  popup_menu_->addSeparator();
+  popup_menu_->addAction(tr("Quit"), qApp, &QCoreApplication::quit);
 }
 
-void PowerWinApp::onAutostartSet(bool value)
+void PowerWinApp::onAutostartSet()
 {
-  popup_menu_.check(AutostartEntry, value);
-  setProgramToAutostart(value);
+  setProgramToAutostart(autostart_action_->isChecked());
 }
 
 void PowerWinApp::openProjectWebsite()
 {
-  ::ShellExecuteW(getHWND(), L"open", POWERWIN_URL, nullptr, nullptr, SW_SHOW);
+  QDesktopServices::openUrl(QUrl(QString::fromWCharArray(POWERWIN_URL)));
+}
+
+void PowerWinApp::onTrayIconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+  switch(reason)
+  {
+  case QSystemTrayIcon::DoubleClick:
+  case QSystemTrayIcon::Trigger:
+  case QSystemTrayIcon::Context:
+    popup_menu_->exec(QCursor::pos());
+    break;
+  default:;
+  }
 }
 
 void PowerWinApp::openLicence()
 {
-  auto exe_dir = Windows::Path(Windows::Application::getExecutablePath())
-                 .getFolder();
-  auto licence_path = exe_dir + L"\\" POWERWIN_LICENCE_PATH;
-  if (Windows::Path::exists(licence_path))
+  auto licence_path = QCoreApplication::applicationDirPath()
+    + QString::fromWCharArray(L"/" POWERWIN_LICENCE_PATH);
+  if (QFileInfo(licence_path).exists())
   {
-    ::ShellExecuteW(
-      getHWND(),
-      L"open", licence_path.c_str(), nullptr, nullptr,
-      SW_SHOW);
+    QDesktopServices::openUrl(QUrl("file:///" + licence_path));
   }
   else
   {
-    ::ShellExecuteW(
-      getHWND(),
-      L"open", POWERWIN_LICENCE_URL, nullptr, nullptr,
-      SW_SHOW);
+    QDesktopServices::openUrl(QUrl(QString::fromWCharArray(POWERWIN_LICENCE_URL)));
   }
 }
 
 } // namespace PowerWin
 
-int APIENTRY wWinMain(
-  HINSTANCE hInstance,
-  HINSTANCE hPrevInstance,
-  PWSTR pCmdLine,
-  int nCmdShow)
+int main(int argc, char *argv[])
 {
-  Windows::Application app(POWERWIN_PACKAGE_NAME, hInstance);
-  return app.run(PowerWin::PowerWinApp::run);
+  using namespace PowerWin;
+
+  //SharedLock lock("PowerWin");
+  //if (!lock.hasLock())
+  //  return 1;
+
+  Windows::Application app(L"", ::GetModuleHandle(NULL));
+  QApplication a(argc, argv);
+  a.setQuitOnLastWindowClosed(false);
+
+  PowerWinApp powerwin;
+  powerwin.show();
+
+  return a.exec();
 }
-
-///////////////////////////////////////////////////////////////////////////////
-// Windowpicker
-
-//auto windowpicker = MouseClickHook([](unsigned button, POINT pt) -> bool {
-//  if (button == WM_LBUTTONDOWN) return true;
-//  if (button != WM_LBUTTONUP) return false;
-  
-//  OutputDebugString(L"windowpicker\n");
-
-//  HWND window = WindowFromPoint(pt);
-//  if (window == NULL) {
-//    OutputDebugString(L"Kein Fenster ausgewählt!\n");
-//    return false;
-//  } else {
-//    wchar_t class_name[255];
-//    GetClassNameW(window, class_name, sizeof(class_name));
-
-//    OutputDebugString(L"Fensterklassenname: '");
-//    OutputDebugString(class_name);
-//    OutputDebugString(L"'\n");
-//  }
-
-//  return true;
-//});
 

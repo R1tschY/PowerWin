@@ -7,6 +7,9 @@ include_directories(${Boost_INCLUDE_DIRS}) # XXX
 # Sources
 file(GLOB_RECURSE libpowerwin_SOURCES "*.cpp")
 
+# stdlibs
+add_flags(LD "-static-libgcc -static-libstdc++")
+
 # Includes / Libs
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 

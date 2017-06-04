@@ -25,12 +25,19 @@
 
 #include <windows.h>
 
+#include <QObject>
+
 #include <app/module.h>
 #include <app/helper/observermixin.h>
 #include <app/globalevents.h>
 
-class SystemMenuModule : public PowerWin::Module, private PowerWin::ObserverMixin
+
+class SystemMenuModule :
+    private QObject,
+    private PowerWin::ObserverMixin,
+    public PowerWin::Module
 {
+  Q_OBJECT
 public:
   SystemMenuModule(PowerWin::ModuleContext& context);
   ~SystemMenuModule();

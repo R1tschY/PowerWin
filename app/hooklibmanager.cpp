@@ -22,72 +22,75 @@
 
 #include "hooklibmanager.h"
 
-#include <cpp-utils/strings/string_view.h>
-#include <cpp-utils/strings/string_builder.h>
+#include <QString>
+#include <QProcess>
+#include <QCoreApplication>
+#include <QFileInfo>
+#include <QDebug>
+
 #include <cpp-utils/algorithm/container.h>
-#include <lightports/os/process.h>
-#include <lightports/core/debug.h>
 #include <lightports/user/application.h>
 
 #include "messages.h"
 
-using namespace Windows;
-
 namespace PowerWin {
 
-namespace  {
-
-Process runDll(
-    cpp::wstring_view rundll32_exe,
-    cpp::wstring_view dll,
-    cpp::wstring_view entry,
-    cpp::wstring_view cmdln_args)
+void HookLibManager::runDll(
+    int bitness,
+    const QString& dll,
+    const QString& entry)
 {
-  std::wstring cmdln;
-  cpp::concatenate_to(
-        cmdln,
-        L'"', rundll32_exe, L"\" ", dll, L',', entry, L' ', cmdln_args);
+  if (!QFileInfo::exists(dll))
+  {
+    qWarning() << "needed hook dll" << dll << "does not exist (same features will not work).";
+    return;
+  }
 
-  print(L"%ls\n", cmdln.c_str());
+  QStringList arguments;
+  arguments << (dll + ',' + entry);
 
-  return Process::runCmdln(std::move(cmdln));
+  QString rundll32_exe =
+      bitness == 32
+      ? "C:/Windows/System32/rundll32.exe"
+      : "C:/Windows/Sysnative/rundll32.exe";
+
+  processes_.emplace_back(new QProcess());
+  processes_.back()->start(rundll32_exe, arguments);
 }
 
-Process runDll32(cpp::wstring_view dll, cpp::wstring_view entry, cpp::wstring_view cmdln_args)
-{
-  return runDll(
-        L"C:\\Windows\\System32\\rundll32.exe",
-        dll, entry, cmdln_args
-        );
-}
-
-Process runDll64(cpp::wstring_view dll, cpp::wstring_view entry, cpp::wstring_view cmdln_args)
-{
-  return runDll(
-        L"C:\\Windows\\Sysnative\\rundll32.exe",
-        dll, entry, cmdln_args
-        );
-}
-
-} // namespace
-
-HookLibManager::HookLibManager()
-{
-
-}
+HookLibManager::HookLibManager() = default;
+HookLibManager::~HookLibManager() = default;
 
 void HookLibManager::startLibs()
 {
-  runDll32(Path(Application::getExecutablePath()).getFolder() + L"\\libpowerwin32.dll", L"PatchWindows@16", L"");
-  if (Application::is64BitWindows())
+  runDll(
+      32,
+      QCoreApplication::applicationDirPath() + "/libpowerwin32.dll",
+      "PatchWindows@16"
+  );
+  if (Windows::Application::is64BitWindows())
   {
-    runDll64(Path(Application::getExecutablePath()).getFolder() + L"\\libpowerwin64.dll", L"PatchWindows", L"");
+    runDll(
+        64,
+        QCoreApplication::applicationDirPath() + "/libpowerwin64.dll",
+        "PatchWindows"
+    );
   }
 }
 
 void HookLibManager::unloadLibs()
 {
   postMessage(WM_CLOSE);
+
+  for (auto& process : processes_)
+  {
+    process->terminate();
+  }
+
+  for (auto& process : processes_)
+  {
+    process->waitForFinished(1000);
+  }
 }
 
 void HookLibManager::sendMessage(UINT msg, WPARAM wparam, LPARAM lparam)
@@ -106,7 +109,7 @@ void HookLibManager::postMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 
 void HookLibManager::registerHookLib(HWND window)
 {
-  auto iter = std::find(hooklibs_.begin(), hooklibs_.end(), window);
+  auto iter = cpp::find(hooklibs_, window);
   if (iter == hooklibs_.end())
   {
     hooklibs_.push_back(window);

@@ -22,12 +22,15 @@
 
 #pragma once
 
-#include <vector>
+#include <memory>
 
 #include <lightports/controls/messagesink.h>
 #include <lightports/shell/trayicon.h>
 #include <lightports/user/menu.h>
 #include <windows.h>
+
+#include <QObject>
+#include <QSystemTrayIcon>
 
 #include "module.h"
 #include "modulemanager.h"
@@ -36,49 +39,46 @@
 #include "hooklibmanager.h"
 #include "globalevents.h"
 
+class QSystemTrayIcon;
+class QMenu;
+class QAction;
+class QEvent;
+
 namespace PowerWin {
 
-class PowerWinApp : public Windows::MessageSink {
+class PowerWinApp : public QSystemTrayIcon, private Windows::MessageSink
+{
+public:
   PowerWinApp();
   ~PowerWinApp();
 
-public:
-  static int run();
-
+  // TODO: remove
   HWND getWindow() {
     return getHWND();
   }
 
+  using QSystemTrayIcon::show;
+
 private:
-  enum
-  {
-    InfoMenu,
-    InfoEntry,
-    InfoLicence,
-
-    AutostartEntry,
-    QuitEntry
-  };
-
-  Windows::TrayIcon tray_icon_;
-  Windows::Menu popup_menu_;
-  Windows::Menu info_menu_;
-
   Configuration configuration_;
   HotkeyManager hotkeys_;
   GlobalEvents global_events_;
 
-  ModuleManager modules_;
   HookLibManager hooklibs_;
+  ModuleManager modules_;
 
   Hotkey quit_shortcut_;
 
-  LRESULT onMessage(UINT msg, WPARAM wparam, LPARAM lparam) override;
-  void onCreate() override;
-  void onDestroy() override;
+  QAction* autostart_action_ = nullptr;
+  std::unique_ptr<QMenu> popup_menu_ = nullptr;
 
-  void onContextMenu(Windows::Point pt);
-  void onAutostartSet(bool value);
+  LRESULT onMessage(UINT msg, WPARAM wparam, LPARAM lparam) override;
+
+  void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
+
+  void createContextMenu();
+
+  void onAutostartSet();
 
   void openProjectWebsite();
   void openLicence();

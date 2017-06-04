@@ -23,14 +23,15 @@
 #ifndef APP_GLOBALEVENTS_H_
 #define APP_GLOBALEVENTS_H_
 
+#include <app/signals.h>
 #include <windows.h>
 
 #include <cpp-utils/optional.h>
 
-#include "signal.h"
 
 namespace PowerWin {
 
+// TODO: entfernen
 class WindowsMessageEvent
 {
 public:
