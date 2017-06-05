@@ -1,12 +1,15 @@
-# detect non-Windows and use cross-mingw64
-#if (NOT WIN32 AND NOT MSYS AND NOT CMAKE_TOOLCHAIN_FILE)
-#  set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Toolchain-cross-mingw.cmake")
-#endif()
-
 # cmake version
 cmake_minimum_required (VERSION 3.0)
 cmake_policy(VERSION 3.2)
 cmake_policy(SET CMP0048 NEW)
+
+if (NOT DEFINED CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" PATH "Installation directory")
+endif()
+
+if (NOT DEFINED CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" "Build type (Debug or Release)")
+endif()
 
 # project
 project(PowerWin VERSION 0.4)
@@ -36,9 +39,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
-include(IsolatedProject)
 
-message(STATUS "$ENV{PATH}")
 if (NOT PowerWin_ArchBuild)
 
   message(STATUS "    ____                         _       ___      ")     
@@ -47,44 +48,77 @@ if (NOT PowerWin_ArchBuild)
   message(STATUS " / ____/ /_/ / |/ |/ /  __/ /   | |/ |/ / / / / / ")
   message(STATUS "/_/    \\____/|__/|__/\\___/_/    |__/|__/_/_/ /_/  ")
   message(STATUS "                                                  ")
+  
+  # Options
+  if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(DEFAULT_STATIC_QT ON)
+  else()
+    set(DEFAULT_STATIC_QT OFF)
+  endif()
+      
+  option(STATIC_QT "Use static Qt5 libraries" "${DEFAULT_STATIC_QT}")
+  
+  # detect host system
+  if (UNIX)
+    # MSYS2
+    if (MSYS)
+      message(STATUS "Detected MSYS2")
+      set(PowerWin_COMPILER_PREFIX_i686 "i686-w64-mingw32")
+      set(PowerWin_COMPILER_PREFIX_x86_64 "x86_64-w64-mingw32")
+      set(PowerWin_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/cmake/toolchain-msys2-mingw.cmake")
+      set(PowerWin_CMAKE_i686 "${CMAKE_SOURCE_DIR}/cmake/msys2-mingw32-cmake.sh")
+      set(PowerWin_CMAKE_x86_64 "${CMAKE_SOURCE_DIR}/cmake/msys2-mingw64-cmake.sh")
+        
+    # Linux
+    elseif (NOT APPLE)
+      message(STATUS "Detected Linux")
+      set(PowerWin_COMPILER_PREFIX_i686 "i686-w64-mingw32")
+      set(PowerWin_COMPILER_PREFIX_x86_64 "x86_64-w64-mingw32")
+      set(PowerWin_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/cmake/toolchain-linux-mingw.cmake")
+      set(PowerWin_CMAKE_i686 "${CMAKE_COMMAND}")
+      set(PowerWin_CMAKE_x86_64 "${CMAKE_COMMAND}")
+    endif()
+  else()
+    message(FATAL_ERROR "host system not supported. Use MSYS2 or MinGW on Linux.")
+    return()
+  endif()
+  
+  include(IsolatedProject)
 
   add_isolated_project(
-    CMAKE "${CMAKE_SOURCE_DIR}/cmake/msys2-mingw32-cmake.sh"
-    GENERATOR "MSYS Makefiles"
+    CMAKE "${PowerWin_CMAKE_i686}"
     TARGET PowerWin_i686 ADD_TO_ALL
     DIR "${PROJECT_BINARY_DIR}/i686"
     
     PASSTHROUGH 
     "CMAKE_BUILD_TYPE"
     "BOOST_ROOT"
-    "POWERWIN_I18N"
+    "STATIC_QT"
     
     NEW
-    "PowerWin_ArchBuild=i686" 
-    "COMPILER_PREFIX=i686-w64-mingw32"
     "CPP_UTILS_NO_TESTS=ON"
-    "CMAKE_TOOLCHAIN_FILE=${CMAKE_SOURCE_DIR}/cmake/Toolchain-MSYS2-MinGW32.cmake"
+    "PowerWin_ArchBuild=i686" 
+    "COMPILER_PREFIX=${PowerWin_COMPILER_PREFIX_i686}"
+    "CMAKE_TOOLCHAIN_FILE=${PowerWin_TOOLCHAIN_FILE}"
     
     COMMENT "Build i686 targets" 
   )
 
   if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     add_isolated_project(
-      CMAKE "${CMAKE_SOURCE_DIR}/cmake/msys2-mingw64-cmake.sh"
-      GENERATOR "MSYS Makefiles"
+      CMAKE "${PowerWin_CMAKE_x86_64}"
       TARGET PowerWin_x86_64 ADD_TO_ALL
       DIR "${PROJECT_BINARY_DIR}/x86_64"
     
       PASSTHROUGH 
       "CMAKE_BUILD_TYPE"
       "BOOST_ROOT"
-      "POWERWIN_I18N"
     
       NEW
-      "PowerWin_ArchBuild=x86_64" 
-      "COMPILER_PREFIX=x86_64-w64-mingw32"
       "CPP_UTILS_NO_TESTS=ON"
-      "CMAKE_TOOLCHAIN_FILE=${CMAKE_SOURCE_DIR}/cmake/Toolchain-MSYS2-MinGW64.cmake"
+      "PowerWin_ArchBuild=x86_64" 
+      "COMPILER_PREFIX=${PowerWin_COMPILER_PREFIX_x86_64}"
+      "CMAKE_TOOLCHAIN_FILE=${PowerWin_TOOLCHAIN_FILE}"
     
       COMMENT "Build x86_64 targets"                              
     )
@@ -97,11 +131,24 @@ if (NOT PowerWin_ArchBuild)
     "${PROJECT_BINARY_DIR}/i686/bin/PowerWinApp.exe"
     "${PROJECT_BINARY_DIR}/i686/bin/libpowerwin32.dll"
     "${PROJECT_BINARY_DIR}/x86_64/bin/libpowerwin64.dll"
-    
-    DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/install")
+    DESTINATION .
+  )
      
-  set(CPACK_GENERATOR "ZIP")
+  set(CPACK_GENERATOR "ZIP;TZ")
+  set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
+  set(CPACK_PACKAGE_VENDOR "${PowerWin_AUTHOR}")
+  set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION_EN}")
+  set(CPACK_PACKAGE_EXECUTABLES "PowerWinApp;PowerWin")
+  set(CPACK_PACKAGE_INSTALL_DIRECTORY "${PROJECT_NAME}")
+  set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "${PROJECT_NAME}")
+  set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/GPL.txt")
+  set(CPACK_PACKAGE_VERSION_MAJOR "${${PROJECT_NAME}_VERSION_MAJOR}")
+  set(CPACK_PACKAGE_VERSION_MINOR "${${PROJECT_NAME}_VERSION_MINOR}")
+  set(CPACK_PACKAGE_VERSION_PATCH "${${PROJECT_NAME}_VERSION_PATCH}")
+  
   set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")
+  
+  set(CPACK_MONOLITHIC_INSTALL ON)
   include(CPack)
     
   return()
@@ -138,22 +185,21 @@ color_message(red "=====")
 # Boost
 set(Boost_USE_STATIC_LIBS ON) 
 set(Boost_USE_MULTITHREADED ON) 
-if (POWERWIN_I18N)
-  find_package(Boost REQUIRED COMPONENTS locale)
-else()
-  find_package(Boost REQUIRED)    
-endif()
+find_package(Boost REQUIRED)    
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 # Qt
 if (CMAKE_SIZEOF_VOID_P EQUAL 4)
+    if (STATIC_QT)     
+      set(PowerWin_LINKER_FLAGS -static -static-libstdc++ -static-libgcc)
+    endif()
+    
+    find_package(Qt5Widgets REQUIRED)
+
     add_definitions(
      -DQT_DEPRECATED_WARNINGS
      -DQT_DISABLE_DEPRECATED_BEFORE=0x050500
      -DQT_USE_QSTRINGBUILDER)
-    
-    # Find the QtWidgets library
-    find_package(Qt5Widgets REQUIRED)
 endif()
 
 # C++14

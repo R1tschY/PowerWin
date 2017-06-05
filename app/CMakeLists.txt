@@ -18,8 +18,8 @@ set(PowerWinApp_Libs
 )
 
 # Target
-add_executable(PowerWinApp ${PowerWinApp_SOURCES} ${PowerWinApp_MODULE_SOURCES} ${PowerWinApp_RESOURCES})
-target_link_libraries(PowerWinApp ${PowerWinApp_Libs} -Wl,--whole-archive ${PowerWinApp_MODULES} -Wl,--no-whole-archive)
+add_executable(PowerWinApp WIN32 ${PowerWinApp_SOURCES} ${PowerWinApp_MODULE_SOURCES} ${PowerWinApp_RESOURCES})
+target_link_libraries(PowerWinApp ${PowerWin_LINKER_FLAGS} ${PowerWinApp_Libs} -Wl,--whole-archive ${PowerWinApp_MODULES} -Wl,--no-whole-archive)
 add_windows_versioninfo(TARGET PowerWinApp ${PowerWin_VERSIONINFO_ARGS})
 add_windows_manifest(
   TARGET PowerWinApp 
@@ -30,9 +30,9 @@ set_property(TARGET PowerWinApp PROPERTY CXX_STANDARD 14)
 set_property(TARGET PowerWinApp PROPERTY CXX_STANDARD_REQUIRED ON)
 set_property(TARGET PowerWinApp PROPERTY AUTORCC ON) # for *.qrc files
 
-
-if (COMPILER_PREFIX)
-  set(CMAKE_SIZE "${COMPILER_PREFIX}-size")
-else()
-  set(CMAKE_SIZE "size")
+if (STATIC_QT)
+    set_target_properties(PowerWinApp PROPERTIES
+        LINK_SEARCH_START_STATIC ON
+        LINK_SEARCH_END_STATIC ON
+    )
 endif()

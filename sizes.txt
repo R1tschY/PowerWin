@@ -23,3 +23,11 @@
 1121740   16832    4160 1142732  116fcc ../bin/PowerWinApp.exe
  961360   12628    3872  977860   eebc4 ../bin/libpowerwin32.dll
 2083100   29460    8032 2120592  205b90 (TOTALS)
+
+0.4alpha+Qt (Release / Mingw64 6.3.0 / MSYS2)
+   text    data     bss      dec     hex filename
+12201344  43528   37056 12281928  bb6848 i686/bin/PowerWinApp.exe
+1095980   13224    3968  1113172  10fc54 i686/bin/libpowerwin32.dll
+13297324  56752   41024 13395100  cc649c (TOTALS)
+
+
