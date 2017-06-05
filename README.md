@@ -8,9 +8,10 @@ Features
 
 * scroll in inactive windows.
 * move window to topmost (by the system menu of the window).
+* kill windows (xkill clone).
 
 * configure with ini file.
-* use as portable application.
+* portable application.
 * support for 64-Bit and 32-Bit Windows.
 
 Future features
@@ -18,8 +19,6 @@ Future features
 
 * start moving of window by hotkey.
 * rollup window (by system menu or hotkey).
-* configure with gui.
-* kill windows like xkill for X11 (by hotkey)
 
 Known Issues
 ------------
@@ -41,9 +40,16 @@ In the **MSYS2 MinGW 64-Bit enviroment** do:
 
 Install requirements:
 
-    pacman -S mingw32/mingw-w64-i686-gcc mingw64/mingw-w64-x86_64-gcc \
-      mingw32/mingw-w64-i686-boost mingw64/mingw-w64-x86_64-boost \
-      mingw64/mingw-w64-x86_64-cmake msys/git
+    pacman -S \
+      mingw32/mingw-w64-i686-gcc \
+      mingw32/mingw-w64-i686-boost \
+      mingw64/mingw-w64-i686-cmake \
+      mingw32/mingw-w64-i686-qt5-static \
+      mingw64/mingw-w64-x86_64-gcc \
+      mingw64/mingw-w64-x86_64-boost \
+      mingw64/mingw-w64-x86_64-cmake \
+      msys/cmake \
+      msys/git
 
 Checkout the sources:
 
@@ -57,7 +63,6 @@ Create a build directory:
 Configure the project with CMake:
     
     cd build
-    export PATH=/opt/bin:$PATH
     cmake -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ..
     
 Build project:
@@ -68,28 +73,3 @@ Create zip bundle:
 
     cpack
 
-
-Cross compile from Linux
-------------------------
-
-Install *Mingw-w64* cross-compiler and requirements:
-
-    # for Ubuntu:
-    sudo apt-get install mingw-w64 ninja-build cmake git
-
-
-Build:
-
-    mkdir build
-    cd build
-    cmake -DCMAKE_BUILD_TYPE=Release \
-      -DBOOST_ROOT=<BOOST_DIR> \
-      -DCOMPILER_PREFIX=<COMPILER_PREFIX> \
-      ..
-    make -j4
-
-
-Replace `<COMPILER_PREFIX>` with the prefix of your mingw cross compiler. In
-Ubuntu use `x86_64-w64-mingw32`. Also replace `<BOOST_DIR>` with the directory
-you installed boost, e.x. `~/boost_1_55_0`. `<BOOST_DIR>` should not be 
-`/usr/include` or any other host system include directory.

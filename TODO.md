@@ -2,7 +2,6 @@
 
 ### 1.0
 
-* i18n with gettext
 * add copyright to all files
 * use `git describe --tags --match 'v*'` as PowerWin_VERSION
 * remove hooklib/macros.h
@@ -25,6 +24,7 @@
 ### scroll
 
 * no scrolling under cursor in Visual Studio
+* wrong scrolling under cursor in ConEmu in secound view 
 * no scrolling under cursor if Top level window is foreground window
  
 ## Modules
@@ -66,5 +66,5 @@
   * in 1 secound intervall:
   * get window under cursor
   * show information in osd
-  * if cursor in the near if osd: switch position if osd
+  * if cursor in the near if osd: switch position
 
