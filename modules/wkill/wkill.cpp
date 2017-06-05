@@ -27,6 +27,8 @@
 #include <QHBoxLayout>
 #include <QDebug>
 #include <QMouseEvent>
+#include <QGraphicsDropShadowEffect>
+#include <QFont>
 
 #include <app/configuration.h>
 #include <app/hotkeymanager.h>
@@ -41,13 +43,56 @@ namespace PowerWin {
 
 WKillWindow::WKillWindow()
 {
-  auto* layout = new QHBoxLayout();
-  setLayout(layout);
+  resize(300, 150);
+  // TODO: resize to text size
+  // TODO: place to screen center
 
+  // TODO: create overlay base class
+
+  setWindowFlags(Qt::Tool
+    | Qt::WindowCloseButtonHint
+    | Qt::FramelessWindowHint);
+  setAttribute(Qt::WA_TranslucentBackground);
+  auto* effect = new QGraphicsDropShadowEffect();
+  effect->setBlurRadius(10);
+  effect->setColor(QColor(0, 0, 0, 0xcc));
+  effect->setXOffset(3.0);
+  effect->setYOffset(3.0);
+  setGraphicsEffect(effect);
+
+  // frame
+
+  auto* frame = new QFrame(this);
+  frame->setFrameShape(QFrame::NoFrame);
+  frame->setObjectName("overlayWindowFrame");
+
+  auto* frameLayout = new QVBoxLayout(this);
+  frameLayout->addWidget(frame);
+  frameLayout->setMargin(0);
+  setLayout(frameLayout);
+
+  // content
+
+  auto* layout = new QHBoxLayout();
+  frame->setLayout(layout);
   activateButton_ = new QLabel(tr("Drag on Window"), this);
+  QFont font = activateButton_->font();
+  font.setPointSize(24);
+  activateButton_->setFont(font);
+
   layout->addWidget(activateButton_);
 
-  resize(150, 300);
+  // style
+
+  setWindowOpacity(0.75);
+  setStyleSheet(""
+    "#overlayWindowFrame {"
+    "  background-color: #ccc; "
+    "  border-radius: 10px;"
+    "  padding: 10px;"
+    "  padding-top: 0px;"
+    "  margin: 10px;"
+    "}");
 }
 
 void WKillWindow::mousePressEvent(QMouseEvent* event)
@@ -90,7 +135,7 @@ void WKillWindow::mouseReleaseEvent(QMouseEvent* event)
     qInfo() << "wkill: terminate HWND:" << hwnd.getHWND() << "PID:" << pid;
 
     // TODO: do not kill own process, desktop process, ...
-    //process.terminate(1);
+    process.terminate(1);
   }
   catch(const Exception& exp)
   {

@@ -64,6 +64,11 @@
 #include "../hooklib/remotemanager.h"
 #include <powerwin-config.h>
 
+#ifdef QT_STATIC
+# include <QtPlugin>
+Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)
+#endif
+
 using namespace Windows;
 
 namespace PowerWin {
@@ -127,6 +132,8 @@ PowerWinApp::PowerWinApp() :
 PowerWinApp::~PowerWinApp()
 {
   log(Info) << L"PowerWinApp::onDestroy" << std::endl;
+
+  hide();
 
   hooklibs_.unloadLibs();
 

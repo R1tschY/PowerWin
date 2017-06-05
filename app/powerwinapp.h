@@ -58,6 +58,7 @@ public:
   }
 
   using QSystemTrayIcon::show;
+  using QSystemTrayIcon::hide;
 
 private:
   Configuration configuration_;
