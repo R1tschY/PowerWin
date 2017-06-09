@@ -29,6 +29,8 @@
 #include <QMouseEvent>
 #include <QGraphicsDropShadowEffect>
 #include <QFont>
+#include <QKeyEvent>
+#include <QCoreApplication>
 
 #include <app/configuration.h>
 #include <app/hotkeymanager.h>
@@ -114,9 +116,7 @@ void WKillWindow::mouseReleaseEvent(QMouseEvent* event)
   if (!choosing_)
     return;
 
-  hide();
-  setCursor(Qt::ArrowCursor);
-  choosing_ = false;
+  cancelChoosing();
 
   try
   {
@@ -128,8 +128,13 @@ void WKillWindow::mouseReleaseEvent(QMouseEvent* event)
           << event->globalX() << "/" << event->globalY();
       return;
     }
+    if (hwnd == ::GetShellWindow() || hwnd == ::GetDesktopWindow())
+      return;
 
     auto pid = hwnd.getProcessId();
+    if (QCoreApplication::applicationPid() == pid)
+      return;
+
     auto process = Process::open(Process::AccessRights::Terminate, pid);
 
     qInfo() << "wkill: terminate HWND:" << hwnd.getHWND() << "PID:" << pid;
@@ -141,6 +146,23 @@ void WKillWindow::mouseReleaseEvent(QMouseEvent* event)
   {
     qCritical() << "wkill: Terminate process failed:" << exp.what();
   }
+}
+
+void WKillWindow::keyPressEvent(QKeyEvent* event)
+{
+  switch (event->key())
+  {
+  case Qt::Key_Escape:
+    cancelChoosing();
+    return;
+  }
+}
+
+void WKillWindow::cancelChoosing()
+{
+  setCursor(Qt::ArrowCursor);
+  hide();
+  choosing_ = false;
 }
 
 WKill::WKill(ModuleContext& context)

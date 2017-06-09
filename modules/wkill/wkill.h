@@ -47,6 +47,9 @@ private:
 
   void mousePressEvent(QMouseEvent *event) override;
   void mouseReleaseEvent(QMouseEvent *event) override;
+  void keyPressEvent(QKeyEvent *event) override;
+
+  void cancelChoosing();
 };
 
 /// \brief
