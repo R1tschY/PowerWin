@@ -34,10 +34,8 @@
 
 #include <app/configuration.h>
 #include <app/hotkeymanager.h>
-#include <app/log.h>
 #include <app/hooklibmanager.h>
 #include <lightports/os/process.h>
-#include <lightports/user/cursor.h>
 
 using namespace Windows;
 

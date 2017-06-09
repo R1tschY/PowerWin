@@ -1,5 +1,5 @@
 ///
-/// Copyright (c) 2016 R1tschY
+/// Copyright (c) 2017 R1tschY
 ///
 /// Permission is hereby granted, free of charge, to any person obtaining a copy
 /// of this software and associated documentation files (the "Software"), to
@@ -22,19 +22,50 @@
 
 #pragma once
 
+#include <QWidget>
+#include <windows.h>
+
 #include <app/module.h>
 #include <app/helper/observermixin.h>
+#include <lightports/user/geometry.h>
+#include <lightports/controls/control.h>
 
-constexpr int SHIFTED = 0x8000;
+namespace PowerWin {
 
-class ScrollPlugin : public PowerWin::Module, PowerWin::ObserverMixin
+class WModifyOverlay : public QWidget
 {
+  Q_OBJECT
 public:
-  ScrollPlugin(PowerWin::ModuleContext& context);
+  WModifyOverlay();
 
 private:
-  bool inverse_;
 
-  bool handle(POINT pt, int steps, DWORD time);
 };
 
+class WModify : public Module, PowerWin::ObserverMixin
+{
+public:
+  WModify(ModuleContext& context);
+
+private:
+  enum class State {
+    Idle,
+    Moving,
+    Resizing
+  } state_ = State::Idle;
+
+
+  bool handleButtonDown(Windows::Point pt, int button);
+  bool handleMouseMove(Windows::Point pt);
+  bool handleButtonUp(Windows::Point pt, int button);
+
+  Windows::Point initial_pt_;
+  Windows::Window hwnd_;
+  Windows::Rectangle inital_rect_;
+
+  // Resizing
+  int vresize_ = 0;
+  int hresize_ = 0;
+};
+
+} // namespace PowerWin

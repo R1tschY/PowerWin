@@ -129,7 +129,7 @@ LRESULT CALLBACK MouseHook::hookProc(int code, WPARAM wparam, LPARAM lparam)
       return 1;
     }
   }
-  catch(const Exception& exp)
+  catch(const std::exception& exp)
   {
     DebugOutputStream() << L"Exception catched while handling mouse hook: "
       << exp.what();

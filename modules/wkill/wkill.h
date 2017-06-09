@@ -26,9 +26,6 @@
 
 #include <app/hotkeymanager.h>
 #include <app/module.h>
-#include <app/mousehook.h>
-#include <app/signals.h>
-#include <lightports/user/geometry.h>
 
 class QLabel;
 class QMouseEvent;
