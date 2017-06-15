@@ -22,13 +22,87 @@
 
 #include "wmodify.h"
 
-#include <sstream>
+#include <QString>
+#include <QDebug>
+#include <cpp-utils/optional.h>
+
 #include <app/mousehook.h>
 
 namespace PowerWin {
 
 namespace {
+
 constexpr int SHIFTED = 0x8000;
+
+cpp::optional<std::tuple<int, int>> parseMouseCombi(const QString& str)
+{
+  if (str.isEmpty())
+    return {};
+
+  auto list = str.toLower().split('+');
+  if (list.length() != 2)
+    return {};
+
+  int virtualKey = 0xDEADBEEF;
+  if (list[0] == QLatin1String("ctrl"))
+  {
+    virtualKey = VK_CONTROL;
+  }
+  else if (list[0] == QLatin1String("alt"))
+  {
+    virtualKey = VK_MENU;
+  }
+  else if (list[0] == QLatin1String("shift"))
+  {
+    virtualKey = VK_SHIFT;
+  }
+  else
+  {
+    return {};
+  }
+
+  int mouseKey = 0xDEADBEEF;
+  if (list[1] == QLatin1String("rightbutton"))
+  {
+    mouseKey = VK_RBUTTON;
+  }
+  else if (list[1] == QLatin1String("middlebutton"))
+  {
+    mouseKey = VK_LBUTTON;
+  }
+  else if (list[1] == QLatin1String("leftbutton"))
+  {
+    mouseKey = VK_MBUTTON;
+  }
+  else if (list[1] == QLatin1String("xbutton1"))
+  {
+    mouseKey = VK_XBUTTON1;
+  }
+  else if (list[1] == QLatin1String("xbutton2"))
+  {
+    mouseKey = VK_XBUTTON2;
+  }
+  else
+  {
+    return {};
+  }
+
+  return std::tuple<int, int>{virtualKey, mouseKey};
+}
+
+
+std::tuple<int, int> parseMouseCombi(const QString& str, const QString& defaultValue)
+{
+  auto combi = parseMouseCombi(str);
+  if (!combi)
+  {
+    qCritical() << "invalid or unsupported mouse sequence" << str;
+    combi = parseMouseCombi(defaultValue);
+  }
+
+  return *combi;
+}
+
 }  // namespace
 
 using namespace Windows;
@@ -40,6 +114,24 @@ WModifyOverlay::WModifyOverlay()
 
 WModify::WModify(ModuleContext& context)
 {
+  auto& config = context.getConfiguration();
+
+  std::tie(move_modifer_, move_button_) = parseMouseCombi(
+    QString::fromStdWString(
+      config.readValue(L"wmodify", L"move", L"alt+leftbutton")),
+    QLatin1String("alt+rightbutton")
+  );
+  std::tie(resize_modifer_, resize_button_) = parseMouseCombi(
+    QString::fromStdWString(
+      config.readValue(L"wmodify", L"resize", L"alt+middlebutton")),
+    QLatin1String("alt+middlebutton")
+  );
+
+  qDebug() << "move executed by mouse button:" <<  move_button_
+      << "modifer:" << move_modifer_;
+  qDebug() << "resize executed by mouse button:" <<  resize_button_
+        << "modifer:" << resize_modifer_;
+
   connect(context.getMouseHook().mouseButtonDown(),
     [=](Point pt, int button, DWORD) { return handleButtonDown(pt, button); });
 
@@ -52,12 +144,14 @@ WModify::WModify(ModuleContext& context)
 
 bool WModify::handleButtonDown(Point pt, int button)
 {
-  if (button != 0 || state_ != State::Idle)
+  if (state_ != State::Idle)
     return false;
 
-  bool controlState = ::GetKeyState(VK_CONTROL) & SHIFTED;
-  bool altState = ::GetKeyState(VK_MENU) & SHIFTED;
-  if (!controlState && !altState)
+  bool moveState =
+      (::GetKeyState(move_modifer_) & SHIFTED) && button == move_button_;
+  bool resizeState =
+      (::GetKeyState(resize_modifer_) & SHIFTED) && button == resize_button_;
+  if (!moveState && !resizeState)
     return false;
 
   auto hwnd = Window::at(pt);
@@ -71,7 +165,7 @@ bool WModify::handleButtonDown(Point pt, int button)
   inital_rect_ = hwnd_.getWindowRect();
   initial_pt_ = pt;
 
-  if (controlState) // CTRL
+  if (resizeState)
   {
     auto cx = initial_pt_.getX() - inital_rect_.getX();
     auto cy = initial_pt_.getY() - inital_rect_.getY();
@@ -107,12 +201,12 @@ bool WModify::handleButtonDown(Point pt, int button)
 
     state_ = State::Resizing;
   }
-  else // ALT
+  else
   {
     state_ = State::Moving;
   }
 
-  return false;
+  return true;
 }
 
 bool WModify::handleMouseMove(Windows::Point pt)

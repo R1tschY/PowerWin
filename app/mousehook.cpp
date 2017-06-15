@@ -57,28 +57,28 @@ bool MouseHook::handle(DWORD msg, const MSLLHOOKSTRUCT& data)
     return handleMouseWheel(data);
 
   case WM_LBUTTONDOWN:
-    return handleButtonDown(data, 0);
+    return handleButtonDown(data, VK_LBUTTON);
 
   case WM_RBUTTONDOWN:
-    return handleButtonDown(data, 1);
+    return handleButtonDown(data, VK_RBUTTON);
 
   case WM_MBUTTONDOWN:
-    return handleButtonDown(data, 2);
+    return handleButtonDown(data, VK_MBUTTON);
 
   case WM_XBUTTONDOWN:
-    return handleButtonDown(data, 3 + high_word(data.mouseData));
+    return handleButtonDown(data, VK_MBUTTON + high_word(data.mouseData));
 
   case WM_LBUTTONUP:
-    return handleButtonUp(data, 0);
+    return handleButtonUp(data, VK_LBUTTON);
 
   case WM_RBUTTONUP:
-    return handleButtonUp(data, 1);
+    return handleButtonUp(data, VK_RBUTTON);
 
   case WM_MBUTTONUP:
-    return handleButtonUp(data, 2);
+    return handleButtonUp(data, VK_MBUTTON);
 
   case WM_XBUTTONUP:
-    return handleButtonUp(data, 3 + high_word(data.mouseData));
+    return handleButtonUp(data, VK_MBUTTON + high_word(data.mouseData));
   }
 
   return false;
