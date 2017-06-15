@@ -126,6 +126,7 @@ PowerWinApp::PowerWinApp() :
   modules_.loadModules();
 
   // hook modules
+  MessageSink::create(L"PowerWinApp");
   hooklibs_.startLibs();
 }
 
