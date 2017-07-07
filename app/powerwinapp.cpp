@@ -55,6 +55,10 @@
 #include <QDir>
 #include <QUrl>
 #include <QEvent>
+#include <QTranslator>
+#include <QLibraryInfo>
+#include <QLocale>
+#include <QFile>
 
 #include "messages.h"
 #include "log.h"
@@ -236,13 +240,27 @@ int main(int argc, char *argv[])
   //if (!lock.hasLock())
   //  return 1;
 
-  Windows::Application app(L"", ::GetModuleHandle(NULL));
-  QApplication a(argc, argv);
-  a.setQuitOnLastWindowClosed(false);
+  Windows::Application app(L"", ::GetModuleHandle(nullptr));
+  QApplication qtapp(argc, argv);
+  qtapp.setQuitOnLastWindowClosed(false);
+
+  QTranslator translator;
+  if (translator.load(
+    QLocale(),
+    QLatin1String("PowerWinApp"),
+    QLatin1String("_"),
+    QLatin1String(":/translations")))
+  {
+    qtapp.installTranslator(&translator);
+  }
+  else
+  {
+    qCritical() << "Translations for PowerWin cannot be loaded.";
+  }
 
   PowerWinApp powerwin;
   powerwin.show();
 
-  return a.exec();
+  return qtapp.exec();
 }
 

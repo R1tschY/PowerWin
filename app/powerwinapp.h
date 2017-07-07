@@ -31,6 +31,7 @@
 
 #include <QObject>
 #include <QSystemTrayIcon>
+#include <QMenu>
 
 #include "module.h"
 #include "modulemanager.h"
@@ -40,7 +41,6 @@
 #include "globalevents.h"
 
 class QSystemTrayIcon;
-class QMenu;
 class QAction;
 class QEvent;
 
@@ -48,6 +48,7 @@ namespace PowerWin {
 
 class PowerWinApp : public QSystemTrayIcon, private Windows::MessageSink
 {
+  Q_OBJECT
 public:
   PowerWinApp();
   ~PowerWinApp();

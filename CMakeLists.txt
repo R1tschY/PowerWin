@@ -40,6 +40,8 @@ endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
+option(UPDATE_TRANSLATIONS "Update source translation translations/*.ts")
+
 if (NOT PowerWin_ArchBuild)
 
   message(STATUS "    ____                         _       ___      ")     
@@ -94,6 +96,7 @@ if (NOT PowerWin_ArchBuild)
     "CMAKE_BUILD_TYPE"
     "BOOST_ROOT"
     "STATIC_QT"
+    "UPDATE_TRANSLATIONS"
     
     NEW
     "CPP_UTILS_NO_TESTS=ON"
@@ -186,7 +189,6 @@ color_message(red "=====")
 set(Boost_USE_STATIC_LIBS ON) 
 set(Boost_USE_MULTITHREADED ON) 
 find_package(Boost REQUIRED)    
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 # Qt
 if (CMAKE_SIZEOF_VOID_P EQUAL 4)
@@ -195,6 +197,7 @@ if (CMAKE_SIZEOF_VOID_P EQUAL 4)
     endif()
     
     find_package(Qt5Widgets REQUIRED)
+    find_package(Qt5LinguistTools REQUIRED)
 
     add_definitions(
      -DQT_DEPRECATED_WARNINGS

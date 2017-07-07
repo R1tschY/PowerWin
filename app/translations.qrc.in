@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/translations">
+        <file>PowerWinApp_en.qm</file>
+        <file>PowerWinApp_de.qm</file>
+    </qresource>
+</RCC>

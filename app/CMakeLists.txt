@@ -14,12 +14,40 @@ set(PowerWinApp_Libs
   lightports-core
   lightports-user
   lightports-controls
-  ${Boost_LIBRARIES}
+  Boost::boost
 )
 
+# Translations
+set(PowerWinApp_TRANSLATIONS 
+    translations/PowerWinApp_en.ts
+    translations/PowerWinApp_de.ts
+)
+
+configure_file(translations.qrc.in ${CMAKE_BINARY_DIR}/app/translations.qrc COPYONLY)
+list(APPEND PowerWinApp_RESOURCES ${CMAKE_BINARY_DIR}/app/translations.qrc)
+
+if (UPDATE_TRANSLATIONS)
+    qt5_create_translation(
+        PowerWinApp_QM 
+        ${PowerWinApp_SOURCES} 
+        ${PowerWinApp_TRANSLATIONS}
+    )
+else()
+    qt5_add_translation(PowerWinApp_QM ${PowerWinApp_TRANSLATIONS})
+endif()
+
+add_custom_target(translations DEPENDS ${PowerWinApp_QM})
+
+# prevent the generated files from being deleted during make clean
+set_directory_properties(PROPERTIES CLEAN_NO_CUSTOM true)
+
 # Target
-add_executable(PowerWinApp WIN32 ${PowerWinApp_SOURCES} ${PowerWinApp_MODULE_SOURCES} ${PowerWinApp_RESOURCES})
-target_link_libraries(PowerWinApp ${PowerWin_LINKER_FLAGS} ${PowerWinApp_Libs} -Wl,--whole-archive ${PowerWinApp_MODULES} -Wl,--no-whole-archive)
+add_executable(PowerWinApp WIN32 ${PowerWinApp_SOURCES} ${PowerWinApp_RESOURCES} ${PowerWinApp_QM})
+target_link_libraries(PowerWinApp 
+    ${PowerWin_LINKER_FLAGS} 
+    ${PowerWinApp_Libs} 
+    -Wl,--whole-archive ${PowerWinApp_MODULES} -Wl,--no-whole-archive
+)
 add_windows_versioninfo(TARGET PowerWinApp ${PowerWin_VERSIONINFO_ARGS})
 add_windows_manifest(
   TARGET PowerWinApp 
