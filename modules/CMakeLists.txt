@@ -31,6 +31,9 @@ macro(powerwin_module)
     
     list(APPEND PowerWinApp_MODULES "powerwin-${${prefix}_NAME}")
     move_to_parent(PowerWinApp_MODULES)
+    
+    list(APPEND PowerWinApp_TRANSLATION_SOURCES ${${prefix}_SOURCES})
+    move_to_parent(PowerWinApp_TRANSLATION_SOURCES)
   endif()
   
   # hook modules
@@ -58,3 +61,4 @@ endforeach()
 
 move_to_parent(PowerWinApp_MODULES)
 move_to_parent(libpowerwin_MODULES)
+move_to_parent(PowerWinApp_TRANSLATION_SOURCES)

@@ -1,5 +1,6 @@
 # Sources
 file(GLOB_RECURSE PowerWinApp_SOURCES "*.cpp")
+file(GLOB_RECURSE PowerWinApp_HEADER "*.h")
 file(GLOB_RECURSE PowerWinApp_RESOURCES "*.qrc")
 
 # Find includes in corresponding build directories
@@ -23,13 +24,19 @@ set(PowerWinApp_TRANSLATIONS
     translations/PowerWinApp_de.ts
 )
 
+list(APPEND 
+    PowerWinApp_TRANSLATION_SOURCES 
+    ${PowerWinApp_SOURCES} 
+    ${PowerWinApp_HEADER}
+)
+
 configure_file(translations.qrc.in ${CMAKE_BINARY_DIR}/app/translations.qrc COPYONLY)
 list(APPEND PowerWinApp_RESOURCES ${CMAKE_BINARY_DIR}/app/translations.qrc)
 
 if (UPDATE_TRANSLATIONS)
     qt5_create_translation(
         PowerWinApp_QM 
-        ${PowerWinApp_SOURCES} 
+        ${PowerWinApp_TRANSLATION_SOURCES} 
         ${PowerWinApp_TRANSLATIONS}
     )
 else()
