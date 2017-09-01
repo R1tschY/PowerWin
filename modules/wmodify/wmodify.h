@@ -57,12 +57,9 @@ private:
   } state_ = State::Idle;
 
   Windows::Point initial_pt_;
-  Windows::Window hwnd_;
   Windows::Rectangle inital_rect_;
-
-  // Resizing
-  int vresize_ = 0;
-  int hresize_ = 0;
+  Windows::Window hwnd_;
+  long sys_command_ = 0;
 
   // config
   int move_button_ = 0;
@@ -73,6 +70,7 @@ private:
   bool handleButtonDown(Windows::Point pt, int button);
   bool handleMouseMove(Windows::Point pt);
   bool handleButtonUp(Windows::Point pt, int button);
+  void calcResizeMode();
 };
 
 } // namespace PowerWin

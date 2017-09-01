@@ -25,6 +25,7 @@
 #include <QString>
 #include <QDebug>
 #include <cpp-utils/optional.h>
+#include <lightports/user/cursor.h>
 
 #include <app/mousehook.h>
 
@@ -142,6 +143,80 @@ WModify::WModify(ModuleContext& context)
     [=](Point pt, int button, DWORD) { return handleButtonUp(pt, button); });
 }
 
+// undocumented
+constexpr long SC_DRAGMOVE = SC_MOVE + 2;
+constexpr long SC_SIZE_LEFT = SC_SIZE + 1;
+constexpr long SC_SIZE_RIGHT = SC_SIZE + 2;
+constexpr long SC_SIZE_TOP = SC_SIZE + 3;
+constexpr long SC_SIZE_TOPLEFT = SC_SIZE + 4;
+constexpr long SC_SIZE_TOPRIGHT = SC_SIZE + 5;
+constexpr long SC_SIZE_BOTTOM = SC_SIZE + 6;
+constexpr long SC_SIZE_BOTTOMLEFT = SC_SIZE + 7;
+constexpr long SC_SIZE_BOTTOMRIGHT = SC_SIZE + 8;
+
+void WModify::calcResizeMode()
+{
+  const auto cx = initial_pt_.getX() - inital_rect_.getX();
+  const auto cy = initial_pt_.getY() - inital_rect_.getY();
+  const float px = float(cx) / float(inital_rect_.getWidth());
+  const float py = float(cy) / float(inital_rect_.getHeight());
+
+  constexpr float edgeSize = 0.2f; // procentage
+
+  // check for edges
+  if (px < edgeSize)
+  {
+    if (py < edgeSize)
+    {
+      sys_command_ = SC_SIZE_TOPLEFT;
+      return;
+    }
+    else if (py > 1.f - edgeSize)
+    {
+      sys_command_ = SC_SIZE_BOTTOMLEFT;
+      return;
+    }
+  }
+  else if (px > 1.f - edgeSize)
+  {
+    if (py < edgeSize)
+    {
+      sys_command_ = SC_SIZE_TOPRIGHT;
+      return;
+    }
+    else if (py > 1.f - edgeSize)
+    {
+      sys_command_ = SC_SIZE_BOTTOMRIGHT;
+      return;
+    }
+  }
+
+  if (px < py)
+  {
+    // bottom left half
+    if (px + py < 1.f)
+    {
+      sys_command_ = SC_SIZE_LEFT;
+    }
+    else
+    {
+      sys_command_ = SC_SIZE_BOTTOM;
+    }
+  }
+  else
+  {
+    // top right half
+    if (px + py < 1.f)
+    {
+      sys_command_ = SC_SIZE_TOP;
+    }
+    else
+    {
+      sys_command_ = SC_SIZE_RIGHT;
+    }
+  }
+}
+
 bool WModify::handleButtonDown(Point pt, int button)
 {
   if (state_ != State::Idle)
@@ -167,39 +242,10 @@ bool WModify::handleButtonDown(Point pt, int button)
 
   if (resizeState)
   {
-    auto cx = initial_pt_.getX() - inital_rect_.getX();
-    auto cy = initial_pt_.getY() - inital_rect_.getY();
-    float px = float(cx) / float(inital_rect_.getWidth());
-    float py = float(cy) / float(inital_rect_.getHeight());
-
-    if (px < py)
-    {
-      if (px + py < 1.f)
-      {
-        hresize_ = -1;
-        vresize_ = 0;
-      }
-      else
-      {
-        hresize_ = 0;
-        vresize_ = 1;
-      }
-    }
-    else
-    {
-      if (px + py < 1.f)
-      {
-        hresize_ = 0;
-        vresize_ = -1;
-      }
-      else
-      {
-        hresize_ = 1;
-        vresize_ = 0;
-      }
-    }
-
+    calcResizeMode();
     state_ = State::Resizing;
+
+    ::PostMessageW(hwnd_.getHWND(), WM_SYSCOMMAND, sys_command_, 0);
   }
   else
   {
@@ -216,56 +262,7 @@ bool WModify::handleMouseMove(Windows::Point pt)
 
   if (state_ == State::Resizing)
   {
-    auto diffX = pt.getX() - initial_pt_.getX();
-    auto diffY = pt.getY() - initial_pt_.getY();
-
-    auto x = inital_rect_.getX();
-    auto y = inital_rect_.getY();
-    auto cx = inital_rect_.getWidth();
-    auto cy = inital_rect_.getHeight();
-
-    if (vresize_ < 0)
-    {
-      y += diffY;
-      cy -= diffY;
-
-      if (cy < 10)
-        cy = 10; // TODO: set correct y
-    }
-    else if (vresize_ > 0)
-    {
-      cy += diffY;
-      if (cy < 10)
-        cy = 10;
-    }
-
-    if (hresize_ < 0)
-    {
-      x += diffX;
-      cx -= diffX;
-
-      if (cx < 10)
-        cx = 10; // TODO: set correct x
-    }
-    else if (hresize_ > 0)
-    {
-      cx += diffX;
-      if (cx < 10)
-        cx = 10;
-    }
-
-    ::SetWindowPos(
-        hwnd_.getHWND(),
-        nullptr,
-        x,
-        y,
-        cx,
-        cy,
-        SWP_ASYNCWINDOWPOS | SWP_DEFERERASE
-    );
-
-    // else no mouse movement
-    return false; // TODO: set mouse on yourself
+    return false;
   }
   else if (state_ == State::Moving)
   {
