@@ -25,6 +25,7 @@
 #include <QString>
 #include <QDebug>
 #include <cpp-utils/optional.h>
+#include <cpp-utils/algorithm/clamp.h>
 #include <lightports/user/cursor.h>
 
 #include <app/mousehook.h>
@@ -35,6 +36,7 @@ namespace {
 
 constexpr int SHIFTED = 0x8000;
 
+// TODO: use same function as in QxtSystemShortcut
 cpp::optional<std::tuple<int, int>> parseMouseCombi(const QString& str)
 {
   if (str.isEmpty())
@@ -104,9 +106,23 @@ std::tuple<int, int> parseMouseCombi(const QString& str, const QString& defaultV
   return *combi;
 }
 
+void pressEnter()
+{
+  std::array<INPUT, 2> inputs;
+  inputs[0] = { };
+  inputs[0].type = INPUT_KEYBOARD;
+  inputs[0].ki.wVk = VK_RETURN;
+  inputs[0].ki.dwExtraInfo = ::GetMessageExtraInfo();
+  inputs[1] = inputs[0];
+  inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
+
+  win_print_on_fail(SendInput(2, inputs.data(), sizeof(INPUT)));
+}
+
 }  // namespace
 
 using namespace Windows;
+using namespace cpp;
 
 WModifyOverlay::WModifyOverlay()
 {
@@ -127,11 +143,6 @@ WModify::WModify(ModuleContext& context)
       config.readValue(L"wmodify", L"resize", L"alt+middlebutton")),
     QLatin1String("alt+middlebutton")
   );
-
-  qDebug() << "move executed by mouse button:" <<  move_button_
-      << "modifer:" << move_modifer_;
-  qDebug() << "resize executed by mouse button:" <<  resize_button_
-        << "modifer:" << resize_modifer_;
 
   connect(context.getMouseHook().mouseButtonDown(),
     [=](Point pt, int button, DWORD) { return handleButtonDown(pt, button); });
@@ -156,65 +167,18 @@ constexpr long SC_SIZE_BOTTOMRIGHT = SC_SIZE + 8;
 
 void WModify::calcResizeMode()
 {
+  static const std::array<std::array<long, 3>, 3> resizeModes{{
+    {SC_SIZE_TOPLEFT, SC_SIZE_TOP, SC_SIZE_TOPRIGHT},
+    {SC_SIZE_LEFT, 0, SC_SIZE_RIGHT},
+    {SC_SIZE_BOTTOMLEFT, SC_SIZE_BOTTOM, SC_SIZE_BOTTOMRIGHT}
+  }};
+
   const auto cx = initial_pt_.getX() - inital_rect_.getX();
   const auto cy = initial_pt_.getY() - inital_rect_.getY();
-  const float px = float(cx) / float(inital_rect_.getWidth());
-  const float py = float(cy) / float(inital_rect_.getHeight());
+  const int px = int(float(cx) / float(inital_rect_.getWidth()) * 3);
+  const int py = int(float(cy) / float(inital_rect_.getHeight()) * 3);
 
-  constexpr float edgeSize = 0.2f; // procentage
-
-  // check for edges
-  if (px < edgeSize)
-  {
-    if (py < edgeSize)
-    {
-      sys_command_ = SC_SIZE_TOPLEFT;
-      return;
-    }
-    else if (py > 1.f - edgeSize)
-    {
-      sys_command_ = SC_SIZE_BOTTOMLEFT;
-      return;
-    }
-  }
-  else if (px > 1.f - edgeSize)
-  {
-    if (py < edgeSize)
-    {
-      sys_command_ = SC_SIZE_TOPRIGHT;
-      return;
-    }
-    else if (py > 1.f - edgeSize)
-    {
-      sys_command_ = SC_SIZE_BOTTOMRIGHT;
-      return;
-    }
-  }
-
-  if (px < py)
-  {
-    // bottom left half
-    if (px + py < 1.f)
-    {
-      sys_command_ = SC_SIZE_LEFT;
-    }
-    else
-    {
-      sys_command_ = SC_SIZE_BOTTOM;
-    }
-  }
-  else
-  {
-    // top right half
-    if (px + py < 1.f)
-    {
-      sys_command_ = SC_SIZE_TOP;
-    }
-    else
-    {
-      sys_command_ = SC_SIZE_RIGHT;
-    }
-  }
+  sys_command_ = resizeModes[clamp(py, 0, 3)][clamp(px, 0, 3)];
 }
 
 bool WModify::handleButtonDown(Point pt, int button)
@@ -243,9 +207,12 @@ bool WModify::handleButtonDown(Point pt, int button)
   if (resizeState)
   {
     calcResizeMode();
-    state_ = State::Resizing;
 
-    ::PostMessageW(hwnd_.getHWND(), WM_SYSCOMMAND, sys_command_, 0);
+    if (sys_command_)
+    {
+      state_ = State::Resizing;
+      ::PostMessageW(hwnd_.getHWND(), WM_SYSCOMMAND, sys_command_, 0);
+    }
   }
   else
   {
@@ -257,14 +224,7 @@ bool WModify::handleButtonDown(Point pt, int button)
 
 bool WModify::handleMouseMove(Windows::Point pt)
 {
-  if (state_ == State::Idle)
-    return false;
-
-  if (state_ == State::Resizing)
-  {
-    return false;
-  }
-  else if (state_ == State::Moving)
+  if (state_ == State::Moving)
   {
     auto diffX = pt.getX() - initial_pt_.getX();
     auto diffY = pt.getY() - initial_pt_.getY();
