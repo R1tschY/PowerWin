@@ -9,6 +9,8 @@ Features
 * scroll in inactive windows.
 * move window to topmost (by the system menu of the window).
 * kill windows (xkill clone).
+* resizing and moving of window by mouse.
+
 
 * configure with ini file.
 * portable application.
@@ -17,8 +19,8 @@ Features
 Future features
 ---------------
 
-* start moving of window by hotkey.
 * rollup window (by system menu or hotkey).
+* change transparency of window.
 
 Known Issues
 ------------
@@ -26,8 +28,35 @@ Known Issues
   * no scrolling in inactive windows:
   	- in Visual Studio 2010
   	- when the active window is topmost
+  	
+  * ConEmu: no scrolling in splitted consoles 
   
   * OpenCV `cv::namedWindow` ends in dead-lock for system-menu module
+  
+Configure
+---------
+
+Place a file named `config.ini` next to the `PowerWin.exe`. This file
+has to be in the ini format. The default configuration is:
+
+```
+[scroll]
+active=true
+inverse=false
+
+[system-menu]
+active=true
+
+[wkill]
+active=true
+hotkey=Ctrl+Alt+X
+
+[wnotify]
+active=true
+move=alt+leftbutton
+resize=alt+middlebutton
+```
+
   
 Compile
 -------
@@ -36,7 +65,7 @@ For compilation a *MSYS2* enviroment is needed:
 
 https://sourceforge.net/projects/msys2/
 
-In the **MSYS2 MinGW 64-Bit enviroment** do:
+In the **MSYS2 MSYS console** do:
 
 Install requirements:
 
@@ -54,6 +83,7 @@ Install requirements:
 Checkout the sources:
 
     git clone https://github.com/R1tschY/PowerWin.git
+    git submodule init
     
 Create a build directory:
 
@@ -67,7 +97,7 @@ Configure the project with CMake:
     
 Build project:
 
-    make
+    make install
     
 Create zip bundle:
 

@@ -12,7 +12,7 @@ if (NOT DEFINED CMAKE_BUILD_TYPE)
 endif()
 
 # project
-project(PowerWin VERSION 0.4)
+project(PowerWin VERSION 0.4.1)
 set(PowerWin_VERSION_EXT "alpha")
 
 set(PowerWin_AUTHOR "Richard Liebscher")

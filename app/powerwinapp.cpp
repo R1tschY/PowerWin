@@ -61,7 +61,6 @@
 #include <QFile>
 
 #include "messages.h"
-#include "log.h"
 
 #include "../hooklib/macros.h"
 
@@ -136,7 +135,7 @@ PowerWinApp::PowerWinApp() :
 
 PowerWinApp::~PowerWinApp()
 {
-  log(Info) << L"PowerWinApp::onDestroy" << std::endl;
+  qInfo() << L"PowerWinApp::onDestroy\n";
 
   hide();
 
