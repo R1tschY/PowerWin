@@ -1,0 +1,12 @@
+[package]
+name = "usewin"
+version = "0.1.0"
+authors = ["Richard"]
+edition = "2018"
+
+[dependencies]
+winapi = { version = "0.3.6", features = ["std", "debugapi"] }
+lightports = { path = "lightports" }
+lightports_gui = { path = "lightports-gui" }
+
+

@@ -1,0 +1,10 @@
+[package]
+name = "lightports_gui"
+version = "0.1.0"
+authors = ["Richard"]
+edition = "2018"
+
+[dependencies]
+winapi = { version = "0.3.6", features = ["std", "libloaderapi", "winuser", "debugapi", "shellapi"] }
+lightports = { path = "../lightports" }
+bitflags = "1.0.4"
