@@ -7,7 +7,7 @@ use std::panic;
 
 use winapi::shared::minwindef::{LPARAM, LRESULT, UINT, WPARAM, HINSTANCE};
 use winapi::shared::windef::{HWND, HMENU};
-use winapi::um::winuser::{CREATESTRUCTW, GWLP_USERDATA, WM_NCCREATE};
+use winapi::um::winuser::{CREATESTRUCTW, GWLP_USERDATA, WM_NCCREATE, WM_NCDESTROY};
 use lightports::Result;
 use std::cell::Cell;
 
@@ -73,7 +73,9 @@ pub struct UserControlBuilder<T: UsrCtrl> {
 
 impl<T: UsrCtrl> Drop for UserControlData<T> {
     fn drop(&mut self) {
-        self.hwnd.get().destroy().unwrap();
+        if self.hwnd.get().as_hwnd() != ptr::null_mut() {
+            self.hwnd.get().destroy().unwrap();
+        }
     }
 }
 
@@ -109,7 +111,11 @@ fn user_control_proc<T: UsrCtrl>(
         p = prepare_hwnd(hwnd, unsafe { mem::transmute(l) });
     }
 
-    Ok(UserControlData::message(unsafe { &*p }, hwnd, msg, w, l).into_raw())
+    let result = UserControlData::message(unsafe { &*p }, hwnd, msg, w, l).into_raw();
+    if msg == WM_NCDESTROY {
+        unsafe { &*p }.hwnd.replace(Window::from(ptr::null_mut()));
+    }
+    Ok(result)
 }
 
 unsafe extern "system" fn unsafe_user_control_proc<T: UsrCtrl>(
