@@ -21,6 +21,7 @@ use winapi::um::winuser::SW_SHOW;
 use lightports_gui::shell::TrayIcon;
 use lightports_gui::sys::post_quit_message;
 use std::cell::RefCell;
+use lightports_gui::sys::WindowStyle;
 
 const MSG_TRAYICON: u32 = WM_USER + 0x27;
 
@@ -74,6 +75,7 @@ fn main() {
     let mut window = win_class
         .build_window()
         .module(module)
+        .style(WindowStyle::OVERLAPPEDWINDOW.bits())
         .create(MyControl::new())
         .unwrap();
 
