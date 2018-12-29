@@ -1,67 +1,93 @@
 use std::ffi::{c_void, OsStr};
 use std::mem;
 use std::ptr::null_mut;
+use std::ptr;
 
 use lightports::{clear_last_error, NonNull, Result, result, Wstr, WString};
-use winapi::shared::minwindef::{LRESULT, UINT};
+use winapi::shared::minwindef::{UINT};
 use winapi::shared::minwindef::HINSTANCE;
 use winapi::shared::windef::{
-    HMENU, HWND
+    HMENU, HWND, HWND__
 };
 use winapi::um::winuser::{DefWindowProcW, DestroyWindow, GetWindowLongPtrW, SetWindowLongPtrW, ShowWindow};
 use winapi::um::winuser::CreateWindowExW;
 
-use crate::sys::{WindowClass, WParam, LParam, AtomOrString};
+use crate::sys::{WindowClass, WParam, LParam, LResult, AtomOrString};
+
+
+pub trait AsHwnd<'a> {
+    fn as_hwnd(&self) -> &'a mut HWND__;
+}
+
+pub trait IsA<T>: for<'a> AsHwnd<'a> + 'static { }
+impl<T> IsA<T> for T where T: for<'a> AsHwnd<'a> + 'static {}
+
+pub trait WindowFunctions {
+    fn destroy(&mut self) -> Result<()>;
+    fn get_attribute(&self, index: i32) -> Result<isize>;
+    fn set_attribute(&mut self, index: i32, data: isize);
+    fn try_set_attribute(&mut self, index: i32, data: isize) -> Result<isize>;
+}
+
+impl<T: IsA<Window>> WindowFunctions for T {
+    fn destroy(&mut self) -> Result<()> {
+        unsafe { result(DestroyWindow(self.as_hwnd())).map(|_| ()) }
+    }
+
+    fn get_attribute(&self, index: i32) -> Result<isize> {
+        unsafe {
+            result(GetWindowLongPtrW(self.as_hwnd(), index))
+        }
+    }
+
+    fn set_attribute(&mut self, index: i32, data: isize) {
+        unsafe {
+            SetWindowLongPtrW(self.as_hwnd(), index, data);
+        }
+    }
+
+    fn try_set_attribute(&mut self, index: i32, data: isize) -> Result<isize> {
+        clear_last_error();
+        unsafe {
+            result(SetWindowLongPtrW(self.as_hwnd(), index, mem::transmute(data)))
+        }
+    }
+}
+
 
 /// low level HWND abstraction
 #[derive(Clone, Copy, Eq, PartialEq)]
-pub struct HWnd(HWND);
+pub struct Window(HWND);
 
-impl HWnd {
-    pub fn build() -> HWndBuilder { HWndBuilder::new() }
-
+impl Window {
     pub fn as_hwnd(&self) -> HWND { self.0 }
 
-    pub fn default_proc<W: Into<WParam>, L: Into<LParam>>(&self, msg: UINT, w: W, l: L) -> LRESULT {
-        unsafe { DefWindowProcW(self.0, msg, w.into().into(), l.into().into()) }
+    pub fn build() -> WindowBuilder { WindowBuilder::new() }
+
+    pub fn default_proc<W: Into<WParam>, L: Into<LParam>>(&self, msg: UINT, w: W, l: L) -> LResult {
+        unsafe { LResult::from(DefWindowProcW(self.0, msg, w.into().into(), l.into().into())) }
     }
 
     pub fn show(&mut self, cmd: i32) -> bool {
         unsafe { ShowWindow(self.0, cmd) != 0 }
     }
+}
 
-    pub fn destroy(&mut self) -> Result<()> {
-        unsafe { result(DestroyWindow(self.0)).map(|_| ()) }
-    }
-
-    pub fn get_attribute(&self, index: i32) -> Result<isize> {
-        unsafe {
-            result(GetWindowLongPtrW(self.0, index))
-        }
-    }
-
-    pub fn set_attribute(&mut self, index: i32, data: isize) {
-        unsafe {
-            SetWindowLongPtrW(self.0, index, data);
-        }
-    }
-
-    pub fn try_set_attribute(&mut self, index: i32, data: isize) -> Result<isize> {
-        clear_last_error();
-        unsafe {
-            result(SetWindowLongPtrW(self.0, index, mem::transmute(data)))
-        }
+impl<'a> AsHwnd<'a> for Window {
+    fn as_hwnd(&self) -> &'a mut HWND__ {
+        assert!(self.0 != ptr::null_mut());
+        unsafe { &mut *self.0 }
     }
 }
 
-impl From<HWND> for HWnd {
+impl From<HWND> for Window {
     fn from(hwnd: HWND) -> Self {
-        HWnd(hwnd)
+        Window(hwnd)
     }
 }
 
 /// builder for a HWND
-pub struct HWndBuilder {
+pub struct WindowBuilder {
     ex_style: u32,
     class: AtomOrString,
     window_name: WString,
@@ -76,9 +102,9 @@ pub struct HWndBuilder {
     create_param: *mut c_void
 }
 
-impl HWndBuilder {
+impl WindowBuilder {
     fn new() -> Self {
-        HWndBuilder {
+        WindowBuilder {
             ex_style: 0,
             class: AtomOrString::Str(WString::new()),
             window_name: WString::new(),
@@ -151,9 +177,9 @@ impl HWndBuilder {
         self
     }
 
-    pub fn create(&self) -> Result<HWnd> {
+    pub fn create(&self) -> Result<Window> {
         unsafe {
-            result(HWnd(CreateWindowExW(
+            result(Window(CreateWindowExW(
                 self.ex_style,
                 self.class.as_ptr(),
                 self.window_name.as_ptr(),
@@ -169,7 +195,7 @@ impl HWndBuilder {
     }
 }
 
-impl NonNull for HWnd {
+impl NonNull for Window {
     fn non_null(&self) -> bool {
         self.0 != null_mut()
     }

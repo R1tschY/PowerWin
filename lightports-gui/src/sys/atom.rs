@@ -1,5 +1,4 @@
 use std::ffi::c_void;
-use std::ptr;
 
 use lightports::{WString, Wstr};
 
@@ -27,6 +26,7 @@ pub fn atom_to_wchar_ptr(atom: u16) -> *const u16 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ptr;
 
     #[test]
     fn test_atom_to_wchar_ptr() {

@@ -2,7 +2,7 @@ use winapi::um::shellapi::{
     NOTIFYICONDATAW,
     Shell_NotifyIconW,
     NIM_ADD, NIM_SETVERSION, NIM_DELETE, NIM_MODIFY,
-    NIF_TIP, NIF_SHOWTIP,
+    NIF_TIP, NIF_SHOWTIP, NIF_MESSAGE,
     NOTIFYICON_VERSION_4,
 };
 use winapi::shared::windef::HWND;
@@ -14,11 +14,12 @@ pub struct TrayIcon {
 }
 
 impl TrayIcon {
-    pub fn new(id: u32) -> TrayIcon {
+    pub fn new(id: u32, message_id: u32) -> TrayIcon { // TODO: make message_id optional
         unsafe {
             let mut inner: NOTIFYICONDATAW = std::mem::zeroed();
             inner.cbSize = std::mem::size_of::<NOTIFYICONDATAW>() as u32;
             inner.uID = id;
+            inner.uCallbackMessage = message_id;
             *inner.u.uVersion_mut() = NOTIFYICON_VERSION_4;
 
             TrayIcon { inner }
@@ -26,16 +27,20 @@ impl TrayIcon {
     }
 
     pub fn attach(&mut self, hwnd: HWND) {
-        unsafe {
-            self.inner.uFlags = 0;
-            self.inner.hWnd = hwnd;
-            Shell_NotifyIconW(NIM_ADD, &mut self.inner);
-            Shell_NotifyIconW(NIM_SETVERSION, &mut self.inner);
+        self.detach();
+
+        if self.inner.hWnd.is_null() && hwnd != null_mut() {
+            unsafe {
+                self.inner.uFlags = NIF_MESSAGE;
+                self.inner.hWnd = hwnd;
+                Shell_NotifyIconW(NIM_ADD, &mut self.inner);
+                Shell_NotifyIconW(NIM_SETVERSION, &mut self.inner);
+            }
         }
     }
 
     pub fn detach(&mut self) {
-        if self.inner.hWnd.is_null() {
+        if !self.inner.hWnd.is_null() {
             unsafe {
                 Shell_NotifyIconW(NIM_DELETE, &mut self.inner);
             }
