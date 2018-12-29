@@ -5,4 +5,4 @@ authors = ["Richard"]
 edition = "2018"
 
 [dependencies]
-winapi = { version = "0.3.6", features = ["std", "winbase", "winuser", "errhandlingapi", "debugapi"] }
+winapi = { version = "0.3.6", features = ["std", "errhandlingapi", "debugapi"] }
