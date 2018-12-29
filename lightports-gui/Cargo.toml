@@ -5,6 +5,6 @@ authors = ["Richard"]
 edition = "2018"
 
 [dependencies]
-winapi = { version = "0.3.6", features = ["std", "libloaderapi", "winuser", "debugapi", "shellapi", "windowsx"] }
+winapi = { version = "0.3.6", features = ["std", "libloaderapi", "winuser", "debugapi", "shellapi", "windowsx", "shlobj"] }
 lightports = { path = "../lightports" }
 bitflags = "1.0.4"
