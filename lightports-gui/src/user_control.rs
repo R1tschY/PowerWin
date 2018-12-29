@@ -3,35 +3,29 @@ use std::mem;
 use std::ptr;
 use std::ffi;
 use std::marker::PhantomData;
-use std::cell::{Cell, RefCell, Ref, RefMut};
 use std::panic;
-use std::ops::Deref;
 
 use winapi::shared::minwindef::{LPARAM, LRESULT, UINT, WPARAM, HINSTANCE};
 use winapi::shared::windef::{HWND, HMENU};
 use winapi::um::winuser::{CREATESTRUCTW, GWLP_USERDATA, WM_NCCREATE};
-use winapi::um::libloaderapi::GetModuleHandleW;
 use lightports::Result;
+use std::cell::Cell;
 
-use crate::sys::{HWnd, HWndBuilder, LParam, WParam, WindowClass, WindowClassBuilder};
-use crate::usr_ctrl::{UsrCtrl};
-
-thread_local! {
-    static PANIC: Cell<std::thread::Result<()>> = Cell::new(Ok(()));
-}
+use crate::sys::{Window, WindowBuilder, AsHwnd, IsA, LParam, WParam, LResult, WindowClass, WindowClassBuilder};
+use crate::usr_ctrl::UsrCtrl;
+use crate::sys::WindowFunctions;
 
 struct UserControlData<T: UsrCtrl> {
-    hwnd: HWnd,
+    hwnd: Cell<Window>,
     ctrl: T,
 }
 
 impl<T: UsrCtrl> UserControlData<T> {
-    pub fn as_ptr(&mut self) -> *mut ffi::c_void {
-        self as *mut UserControlData<T> as *mut ffi::c_void
+    pub fn as_ptr(&self) -> *const ffi::c_void {
+        self as *const UserControlData<T> as *const ffi::c_void
     }
 
-    pub fn message(&mut self, hwnd: HWnd, msg: UINT, w: WPARAM, l: LPARAM) -> LRESULT {
-        debug_assert!(hwnd == self.hwnd);
+    pub fn message(&self, hwnd: Window, msg: UINT, w: WPARAM, l: LPARAM) -> LResult {
         self.ctrl.message(hwnd, msg, WParam::from(w), LParam::from(l))
     }
 }
@@ -40,25 +34,21 @@ pub struct UserControlClass<T: UsrCtrl>(WindowClass, PhantomData<T>);
 
 impl<T: UsrCtrl> UserControlClass<T> {
     pub fn build_window(&self) -> UserControlBuilder<T> {
-        let mut builder = HWnd::build();
+        let mut builder = Window::build();
         builder.class(&self.0);
         UserControlBuilder { inner: builder, _type: PhantomData }
     }
 }
 
-pub struct UserControl<T: UsrCtrl>(Box<RefCell<UserControlData<T>>>);
+pub struct UserControl<T: UsrCtrl>(Box<UserControlData<T>>);
 
 impl<T: UsrCtrl> UserControl<T> {
-    pub fn as_hwnd(&mut self) -> HWnd {
-        self.0.borrow().hwnd
+    pub fn as_hwnd(&mut self) -> Window {
+        self.0.hwnd.get()
     }
 
-    pub fn borrow(&self) -> Ref<T> {
-        Ref::map(self.0.borrow(), |t| &t.ctrl)
-    }
-
-    pub fn borrow_mut(&mut self) -> RefMut<T> {
-        RefMut::map(self.0.borrow_mut(), |t| &mut t.ctrl)
+    pub fn get(&self) -> &T {
+        &self.0.ctrl
     }
 }
 
@@ -77,55 +67,55 @@ impl UserControlClassBuilderExt for WindowClassBuilder {
 }
 
 pub struct UserControlBuilder<T: UsrCtrl> {
-    inner: HWndBuilder,
+    inner: WindowBuilder,
     _type: PhantomData<T>
 }
 
 impl<T: UsrCtrl> Drop for UserControlData<T> {
     fn drop(&mut self) {
-        self.hwnd.destroy().unwrap();
+        self.hwnd.get().destroy().unwrap();
     }
 }
 
+impl<'a, T: UsrCtrl> AsHwnd<'a> for UserControl<T> {
+    fn as_hwnd(&self) -> HWND {
+        self.0.hwnd.get().as_hwnd()
+    }
+}
+
+impl<T: UsrCtrl + 'static> IsA<Window> for UserControl<T> { }
+
 // TODO: remove T
-fn prepare_hwnd<T: UsrCtrl>(mut hwnd: HWnd, create_struct: *const CREATESTRUCTW) -> *mut RefCell<UserControlData<T>> {
+fn prepare_hwnd<T: UsrCtrl>(mut hwnd: Window, create_struct: *const CREATESTRUCTW) -> *const UserControlData<T> {
     unsafe {
-        let p: *mut RefCell<UserControlData<T>> = mem::transmute((*create_struct).lpCreateParams);
+        let p: *const UserControlData<T> = mem::transmute((*create_struct).lpCreateParams);
         assert_ne!(p, ptr::null_mut());
 
         hwnd.set_attribute(GWLP_USERDATA, mem::transmute(p));
-        (*p).borrow_mut().hwnd = hwnd;
+        (*p).hwnd.replace(hwnd);
         p
     }
 }
 
 fn user_control_proc<T: UsrCtrl>(
-    hwnd: HWnd, msg: UINT, w: WPARAM, l: LPARAM
+    hwnd: Window, msg: UINT, w: WPARAM, l: LPARAM
 ) -> Result<LRESULT> {
-    let mut p: *mut RefCell<UserControlData<T>> = unsafe { mem::transmute(hwnd.get_attribute(GWLP_USERDATA)?) };
+    let mut p: *const UserControlData<T> = unsafe {
+        mem::transmute(hwnd.get_attribute(GWLP_USERDATA)?) };
     if p == ptr::null_mut() {
         if msg != WM_NCCREATE {
-            return Ok(hwnd.default_proc(msg, w, l));
+            return Ok(hwnd.default_proc(msg, w, l).into_raw());
         }
         p = prepare_hwnd(hwnd, unsafe { mem::transmute(l) });
     }
 
-    let r = unsafe { &mut *p }.borrow_mut().message(hwnd, msg, w, l);
-    Ok(r)
+    Ok(UserControlData::message(unsafe { &*p }, hwnd, msg, w, l).into_raw())
 }
 
 unsafe extern "system" fn unsafe_user_control_proc<T: UsrCtrl>(
     hwnd: HWND, msg: UINT, w: WPARAM, l: LPARAM
 ) -> LRESULT {
-    match panic::catch_unwind(|| {
-        user_control_proc::<T>(HWnd::from(hwnd), msg, w, l).unwrap()
-    }) {
-        Ok(result) => result,
-        Err(err) => {
-            PANIC.with(|p| p.set(Err(err)));
-            HWnd::from(hwnd).default_proc(msg, w, l)
-        }
-    }
+    user_control_proc::<T>(Window::from(hwnd), msg, w, l).unwrap()
 }
 
 impl<T: UsrCtrl> UserControlBuilder<T> {
@@ -170,18 +160,13 @@ impl<T: UsrCtrl> UserControlBuilder<T> {
     }
 
     pub fn create(&mut self, ctrl: T) -> Result<UserControl<T>> {
-        let mut data = Box::new(RefCell::new(UserControlData {
-            hwnd: HWnd::from(ptr::null_mut()),
+        let mut data = Box::new(UserControlData {
+            hwnd: Cell::new(Window::from(ptr::null_mut())),
             ctrl
-        }));
-        let cell_ptr: *mut RefCell<UserControlData<T>> =  &mut *data;
+        });
+        let cell_ptr: *mut UserControlData<T> =  &mut *data;
         self.inner.create_param(cell_ptr as *mut ffi::c_void);
         self.inner.create()?;
-        PANIC.with(|p| {
-            if let Err(pnc) = p.replace(Ok(())) {
-                panic::resume_unwind(pnc);
-            }
-        });
         Ok(UserControl(data))
     }
 }
@@ -190,23 +175,24 @@ impl<T: UsrCtrl> UserControlBuilder<T> {
 mod tests {
     use super::*;
     use winapi::um::winuser::{WM_CREATE, WM_USER};
+    use winapi::um::libloaderapi::GetModuleHandleW;
     use crate::sys::send_message;
 
     const WM_WPARAM: u32 = WM_USER;
     const WM_LPARAM: u32 = WM_USER + 1;
 
     struct MyControl {
-        data: u32
+        data: Cell<u32>
     }
 
     impl UsrCtrl for MyControl {
-        fn message(&mut self, hwnd: HWnd, msg: u32, w: WParam, l: LParam) -> isize {
+        fn message(&self, hwnd: Window, msg: u32, w: WParam, l: LParam) -> LResult {
             match msg {
-                WM_CREATE => self.data = 42,
-                WM_WPARAM => self.data = w.into_raw() as u32,
-                WM_LPARAM => self.data = l.into_raw() as u32,
+                WM_CREATE => { self.data.replace(42); }
+                WM_WPARAM => { self.data.replace(w.into_raw() as u32); }
+                WM_LPARAM => { self.data.replace(l.into_raw() as u32); }
                 _ => ()
-            }
+            };
             hwnd.default_proc(msg, w, l)
         }
     }
@@ -224,14 +210,14 @@ mod tests {
         let mut window = win_class
             .build_window()
             .module(module)
-            .create(MyControl { data: 0 })
+            .create(MyControl { data: Cell::new(0) })
             .unwrap();
-        assert_eq!(window.borrow().data, 42);
+        assert_eq!(window.get().data.get(), 42);
 
         send_message(window.as_hwnd(), WM_WPARAM, 5, 0);
-        assert_eq!(window.borrow().data, 5);
+        assert_eq!(window.get().data.get(), 5);
 
         send_message(window.as_hwnd(), WM_LPARAM, 0, 28);
-        assert_eq!(window.borrow().data, 28);
+        assert_eq!(window.get().data.get(), 28);
     }
 }

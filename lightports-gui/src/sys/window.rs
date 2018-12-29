@@ -7,7 +7,7 @@ use lightports::{clear_last_error, NonNull, Result, result, Wstr, WString};
 use winapi::shared::minwindef::{UINT};
 use winapi::shared::minwindef::HINSTANCE;
 use winapi::shared::windef::{
-    HMENU, HWND, HWND__
+    HMENU, HWND
 };
 use winapi::um::winuser::{DefWindowProcW, DestroyWindow, GetWindowLongPtrW, SetWindowLongPtrW, ShowWindow};
 use winapi::um::winuser::CreateWindowExW;
@@ -16,7 +16,7 @@ use crate::sys::{WindowClass, WParam, LParam, LResult, AtomOrString};
 
 
 pub trait AsHwnd<'a> {
-    fn as_hwnd(&self) -> &'a mut HWND__;
+    fn as_hwnd(&self) -> HWND;
 }
 
 pub trait IsA<T>: for<'a> AsHwnd<'a> + 'static { }
@@ -74,9 +74,9 @@ impl Window {
 }
 
 impl<'a> AsHwnd<'a> for Window {
-    fn as_hwnd(&self) -> &'a mut HWND__ {
+    fn as_hwnd(&self) -> HWND {
         assert!(self.0 != ptr::null_mut());
-        unsafe { &mut *self.0 }
+        self.0
     }
 }
 

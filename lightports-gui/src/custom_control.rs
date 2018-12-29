@@ -13,7 +13,7 @@ trait MessageHandlerBuilder {
     fn create(self) -> Box<Fn(WParam, LParam) -> Option<LResult>>;
 }
 
-struct CustomControl {
+pub struct CustomControl {
     connections: HashMap<u32, Box<Fn(WParam, LParam) -> Option<LResult>>>
 }
 
@@ -48,8 +48,8 @@ impl<T: Fn() -> () + 'static> MessageHandlerBuilder for WindowMsg<T> {
     #[inline]
     fn create(self) -> Box<Fn(WParam, LParam) -> Option<LResult>> {
         match self {
-            WmCreate(func) => Box::new(move |w, l| { func(); None }),
-            WmDestroy(func) => Box::new(move |w, l| { func(); None }),
+            WmCreate(func) => Box::new(move |_w, _l| { func(); None }),
+            WmDestroy(func) => Box::new(move |_w, _l| { func(); None }),
         }
     }
 }

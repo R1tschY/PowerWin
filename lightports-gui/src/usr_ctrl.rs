@@ -1,11 +1,11 @@
-use crate::sys::{HWnd, WParam, LParam, WindowClassStyle};
+use crate::sys::{Window, WParam, LParam, LResult, WindowClassStyle};
 
 pub trait UsrCtrl {
     fn class_style() -> WindowClassStyle {
         WindowClassStyle::default()
     }
 
-    fn message(&mut self, hwnd: HWnd, msg: u32, w: WParam, l: LParam) -> isize {
+    fn message(&self, hwnd: Window, msg: u32, w: WParam, l: LParam) -> LResult {
         hwnd.default_proc(msg, w, l)
     }
 }
