@@ -1,7 +1,9 @@
-use std::ffi::OsStr;
-use std::os::windows::ffi::OsStrExt;
+use std::ffi::{OsStr, OsString};
+use std::os::windows::ffi::{OsStrExt, OsStringExt};
 use std::iter::once;
 use std::cmp;
+use std::slice;
+use std::path::PathBuf;
 
 static EMPTY_WSTRING: EmptyWstr = EmptyWstr([0; 1]);
 
@@ -127,6 +129,31 @@ impl From<&[u16]> for WString {
         };
 
         WString { inner }
+    }
+}
+
+pub trait FromWide where Self: Sized {
+    fn from_wide(wide: &[u16]) -> Self;
+
+    fn from_wide_ptr(wide: *const u16) -> Self { unsafe {
+        for i in 0.. {
+            if *wide.offset(i) == 0 {
+                return Self::from_wide(slice::from_raw_parts(wide, i as usize));
+            }
+        }
+        unreachable!();
+    }}
+}
+
+impl FromWide for OsString {
+    fn from_wide(wide: &[u16]) -> Self {
+        OsStringExt::from_wide(wide)
+    }
+}
+
+impl FromWide for PathBuf {
+    fn from_wide(wide: &[u16]) -> Self {
+        PathBuf::from(<OsString as OsStringExt>::from_wide(wide))
     }
 }
 
