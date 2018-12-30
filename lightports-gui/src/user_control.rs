@@ -4,6 +4,7 @@ use std::ptr;
 use std::ffi;
 use std::marker::PhantomData;
 use std::panic;
+use log::error;
 
 use winapi::shared::minwindef::{LPARAM, LRESULT, UINT, WPARAM, HINSTANCE};
 use winapi::shared::windef::{HWND, HMENU};
@@ -11,7 +12,7 @@ use winapi::um::winuser::{CREATESTRUCTW, GWLP_USERDATA, WM_NCCREATE, WM_NCDESTRO
 use lightports::Result;
 use std::cell::Cell;
 
-use crate::sys::{Window, WindowBuilder, AsHwnd, IsA, LParam, WParam, LResult, WindowClass, WindowClassBuilder};
+use crate::sys::{Window, WindowBuilder, IsA, AsHwnd, LParam, WParam, LResult, WindowClass, WindowClassBuilder};
 use crate::usr_ctrl::UsrCtrl;
 use crate::sys::WindowFunctions;
 
@@ -31,6 +32,8 @@ impl<T: UsrCtrl> UserControlData<T> {
 }
 
 pub struct UserControlClass<T: UsrCtrl>(WindowClass, PhantomData<T>);
+unsafe impl<T: UsrCtrl> Send for UserControlClass<T> {}
+unsafe impl<T: UsrCtrl> Sync for UserControlClass<T> {}
 
 impl<T: UsrCtrl> UserControlClass<T> {
     pub fn build_window(&self) -> UserControlBuilder<T> {
@@ -43,8 +46,8 @@ impl<T: UsrCtrl> UserControlClass<T> {
 pub struct UserControl<T: UsrCtrl>(Box<UserControlData<T>>);
 
 impl<T: UsrCtrl> UserControl<T> {
-    pub fn as_hwnd(&mut self) -> Window {
-        self.0.hwnd.get()
+    pub fn as_hwnd(&mut self) -> HWND {
+        self.0.hwnd.get().as_hwnd()
     }
 
     pub fn get(&self) -> &T {
@@ -79,7 +82,13 @@ impl<T: UsrCtrl> Drop for UserControlData<T> {
     }
 }
 
-impl<'a, T: UsrCtrl> AsHwnd<'a> for UserControl<T> {
+impl<T: UsrCtrl> From<UserControl<T>> for Window {
+    fn from(f: UserControl<T>) -> Self {
+        Window::from(f.0.hwnd.get())
+    }
+}
+
+impl<T: UsrCtrl> AsHwnd for UserControl<T> {
     fn as_hwnd(&self) -> HWND {
         self.0.hwnd.get().as_hwnd()
     }
@@ -121,7 +130,13 @@ fn user_control_proc<T: UsrCtrl>(
 unsafe extern "system" fn unsafe_user_control_proc<T: UsrCtrl>(
     hwnd: HWND, msg: UINT, w: WPARAM, l: LPARAM
 ) -> LRESULT {
-    user_control_proc::<T>(Window::from(hwnd), msg, w, l).unwrap()
+    match user_control_proc::<T>(Window::from(hwnd), msg, w, l) {
+        Ok(result) => result,
+        Err(err) => {
+            error!("unhandled error: {}", err);
+            Window::from(hwnd).default_proc(msg, w, l).into_raw()
+        }
+    }
 }
 
 impl<T: UsrCtrl> UserControlBuilder<T> {

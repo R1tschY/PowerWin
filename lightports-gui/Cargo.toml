@@ -8,3 +8,4 @@ edition = "2018"
 winapi = { version = "0.3.6", features = ["std", "libloaderapi", "winuser", "debugapi", "shellapi", "windowsx", "shlobj"] }
 lightports = { path = "../lightports" }
 bitflags = "1.0.4"
+log = "0.4"

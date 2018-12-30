@@ -8,5 +8,13 @@ edition = "2018"
 winapi = { version = "0.3.6", features = ["std", "debugapi"] }
 lightports = { path = "lightports" }
 lightports_gui = { path = "lightports-gui" }
+config = { version = "0.9", default-features = false, features = ["ini"] }
+log = "0.4"
+lazy_static = "1.2.0"
+
+[profile.release]
+lto="fat"
+codegen-units=1
+opt-level="z"
 
 
