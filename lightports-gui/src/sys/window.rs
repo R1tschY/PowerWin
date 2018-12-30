@@ -2,6 +2,7 @@ use std::ffi::{c_void, OsStr};
 use std::mem;
 use std::ptr::null_mut;
 use std::ptr;
+use log::{info, trace, warn};
 
 use lightports::{clear_last_error, NonNull, Result, result, Wstr, WString};
 use winapi::shared::minwindef::{UINT};
@@ -88,38 +89,53 @@ bitflags! {
 }
 
 
-pub trait AsHwnd<'a> {
+pub trait AsHwnd {
     fn as_hwnd(&self) -> HWND;
 }
 
-pub trait IsA<T>: for<'a> AsHwnd<'a> + 'static { }
-impl<T> IsA<T> for T where T: for<'a> AsHwnd<'a> + 'static {}
+impl AsHwnd for HWND {
+    fn as_hwnd(&self) -> HWND {
+        self.clone()
+    }
+}
+
+pub trait IsA<T>: AsHwnd + 'static { }
+impl<T> IsA<T> for T where T: AsHwnd + 'static {}
 
 pub trait WindowFunctions {
-    fn destroy(&mut self) -> Result<()>;
+    fn show(&self, cmd: i32) -> bool;
+    fn destroy(&self) -> Result<()>;
     fn get_attribute(&self, index: i32) -> Result<isize>;
-    fn set_attribute(&mut self, index: i32, data: isize);
-    fn try_set_attribute(&mut self, index: i32, data: isize) -> Result<isize>;
+    fn set_attribute(&self, index: i32, data: isize);
+    fn try_set_attribute(&self, index: i32, data: isize) -> Result<isize>;
 }
 
 impl<T: IsA<Window>> WindowFunctions for T {
-    fn destroy(&mut self) -> Result<()> {
+    #[inline]
+    fn show(&self, cmd: i32) -> bool {
+        unsafe { ShowWindow(self.as_hwnd(), cmd) != 0 }
+    }
+
+    #[inline]
+    fn destroy(&self) -> Result<()> {
         unsafe { result(DestroyWindow(self.as_hwnd())).map(|_| ()) }
     }
 
+    #[inline]
     fn get_attribute(&self, index: i32) -> Result<isize> {
         unsafe {
             result(GetWindowLongPtrW(self.as_hwnd(), index))
         }
     }
 
-    fn set_attribute(&mut self, index: i32, data: isize) {
+    #[inline]
+    fn set_attribute(&self, index: i32, data: isize) {
         unsafe {
             SetWindowLongPtrW(self.as_hwnd(), index, data);
         }
     }
 
-    fn try_set_attribute(&mut self, index: i32, data: isize) -> Result<isize> {
+    fn try_set_attribute(&self, index: i32, data: isize) -> Result<isize> {
         clear_last_error();
         unsafe {
             result(SetWindowLongPtrW(self.as_hwnd(), index, mem::transmute(data)))
@@ -133,20 +149,19 @@ impl<T: IsA<Window>> WindowFunctions for T {
 pub struct Window(HWND);
 
 impl Window {
+    #[inline]
     pub fn as_hwnd(&self) -> HWND { self.0 }
 
     pub fn build() -> WindowBuilder { WindowBuilder::new() }
 
+    #[inline]
     pub fn default_proc<W: Into<WParam>, L: Into<LParam>>(&self, msg: UINT, w: W, l: L) -> LResult {
         unsafe { LResult::from(DefWindowProcW(self.0, msg, w.into().into(), l.into().into())) }
     }
-
-    pub fn show(&mut self, cmd: i32) -> bool {
-        unsafe { ShowWindow(self.0, cmd) != 0 }
-    }
 }
 
-impl<'a> AsHwnd<'a> for Window {
+impl AsHwnd for Window {
+    #[inline]
     fn as_hwnd(&self) -> HWND {
         assert!(self.0 != ptr::null_mut());
         self.0
@@ -154,6 +169,7 @@ impl<'a> AsHwnd<'a> for Window {
 }
 
 impl From<HWND> for Window {
+    #[inline]
     fn from(hwnd: HWND) -> Self {
         Window(hwnd)
     }
@@ -269,6 +285,7 @@ impl WindowBuilder {
 }
 
 impl NonNull for Window {
+    #[inline]
     fn non_null(&self) -> bool {
         self.0 != null_mut()
     }

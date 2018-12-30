@@ -11,10 +11,12 @@ static EMPTY_WSTRING: EmptyWstr = EmptyWstr([0; 1]);
 struct EmptyWstr(pub [u16; 1]);
 
 impl Wstr for EmptyWstr {
+    #[inline]
     fn as_ptr(&self) -> *const u16 {
         self.0.as_ptr()
     }
 
+    #[inline]
     fn slice(&self) -> &[u16] {
         &self.0
     }
@@ -46,6 +48,7 @@ impl<'t> Wstr + 't {
         }
     }
 
+    #[inline]
     pub fn empty() -> &'static Wstr {
         &EMPTY_WSTRING
     }
@@ -62,6 +65,7 @@ impl WString {
         WString { inner: vec![0] }
     }
 
+    #[inline]
     pub fn from_str<T: AsRef<OsStr>>(s: T) -> WString {
         WString { inner: to_wide(s.as_ref()) }
     }
@@ -105,12 +109,14 @@ impl<'t> IntoWstr for &'t WString {
 impl IntoWstr for &str {
     type Impl = WString;
 
+    #[inline]
     fn into_wstr(&self) -> WString {
         WString::from(&to_wide(self.as_ref()) as &[u16])
     }
 }
 
 impl<'t> From<&'t Wstr> for WString {
+    #[inline]
     fn from(src: &'t Wstr) -> Self {
         WString::from(src.slice())
     }
@@ -146,12 +152,14 @@ pub trait FromWide where Self: Sized {
 }
 
 impl FromWide for OsString {
+    #[inline]
     fn from_wide(wide: &[u16]) -> Self {
         OsStringExt::from_wide(wide)
     }
 }
 
 impl FromWide for PathBuf {
+    #[inline]
     fn from_wide(wide: &[u16]) -> Self {
         PathBuf::from(<OsString as OsStringExt>::from_wide(wide))
     }

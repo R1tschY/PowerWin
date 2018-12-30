@@ -11,6 +11,7 @@ pub trait NonNull {
 
 macro_rules! non_zero_impl {
     ($($type:ident)*) => ($(impl NonNull for $type {
+        #[inline]
         fn non_null(&self) -> bool { *self != 0 }
     })*)
 }
@@ -19,10 +20,12 @@ macro_rules! non_zero_impl {
 // isize -> LONG_PTR
 non_zero_impl! { i32 isize }
 
+#[inline]
 pub fn clear_last_error() {
     unsafe { SetLastError(0); }
 }
 
+#[inline]
 pub fn last_os_error() -> u32 {
     unsafe { GetLastError() }
 }
@@ -38,6 +41,7 @@ pub fn result<T: NonNull>(t: T) -> Result<T> {
     Ok(t)
 }
 
+#[inline]
 pub fn hresult(h: i32) -> Result<bool> {
     if h < 0 {
         Err(Error::from_raw_os_error(h))
