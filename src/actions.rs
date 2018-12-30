@@ -1,19 +1,22 @@
+use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::io;
+use std::rc::Rc;
 
 use lazy_static::lazy_static;
 use lightports::Result;
 use lightports_gui::app::app_instance;
+use lightports_gui::extra::hotkey::HotKey;
 use lightports_gui::sys::*;
 use lightports_gui::user_control::*;
 use lightports_gui::usr_ctrl::UsrCtrl;
-use winapi::um::winuser::WM_HOTKEY;
-use std::rc::Rc;
 use winapi::shared::windef::HWND;
-use lightports_gui::extra::hotkey::HotKey;
+use winapi::um::winuser::HWND_MESSAGE;
+use winapi::um::winuser::WS_POPUP;
+use winapi::um::winuser::WS_EX_TOOLWINDOW;
 use winapi::um::winuser::WM_DESTROY;
-use std::borrow::Cow;
+use winapi::um::winuser::WM_HOTKEY;
 
 lazy_static! {
     static ref ACTIONS_WNDCLASS: UserControlClass<HotkeySink> = {
@@ -81,6 +84,9 @@ impl Actions {
         Actions {
             window: ACTIONS_WNDCLASS.build_window()
                 .module(app_instance())
+                .parent(HWND_MESSAGE)
+                .style(WS_POPUP)
+                .ex_style(WS_EX_TOOLWINDOW)
                 .create(HotkeySink(RefCell::new(HotkeySinkInner {
                     functions: HashMap::new(),
                     last_id: -1,
