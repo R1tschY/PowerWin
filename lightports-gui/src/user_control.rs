@@ -1,20 +1,21 @@
-use std::ffi::OsStr;
-use std::mem;
-use std::ptr;
-use std::ffi;
-use std::marker::PhantomData;
-use std::panic;
-use log::error;
-
-use winapi::shared::minwindef::{LPARAM, LRESULT, UINT, WPARAM, HINSTANCE};
-use winapi::shared::windef::{HWND, HMENU};
-use winapi::um::winuser::{CREATESTRUCTW, GWLP_USERDATA, WM_NCCREATE, WM_NCDESTROY};
-use lightports::Result;
 use std::cell::Cell;
+use std::ffi;
+use std::ffi::OsStr;
+use std::marker::PhantomData;
+use std::mem;
+use std::panic;
+use std::ptr;
 
-use crate::sys::{Window, WindowBuilder, IsA, AsHwnd, LParam, WParam, LResult, WindowClass, WindowClassBuilder};
-use crate::usr_ctrl::UsrCtrl;
+use lightports::Result;
+use log::error;
+use winapi::shared::minwindef::{HINSTANCE, LPARAM, LRESULT, UINT, WPARAM};
+use winapi::shared::windef::{HMENU, HWND};
+use winapi::um::winuser::{CREATESTRUCTW, GWLP_USERDATA, WM_NCCREATE, WM_NCDESTROY};
+use winapi::um::winuser::HWND_MESSAGE;
+
+use crate::sys::{AsHwnd, IsA, LParam, LResult, Window, WindowBuilder, WindowClass, WindowClassBuilder, WParam};
 use crate::sys::WindowFunctions;
+use crate::usr_ctrl::UsrCtrl;
 
 struct UserControlData<T: UsrCtrl> {
     hwnd: Cell<Window>,
@@ -170,6 +171,12 @@ impl<T: UsrCtrl> UserControlBuilder<T> {
         self
     }
 
+    /// sets parent to HWND_MESSAGE
+    pub fn message_only(&mut self) -> &mut Self {
+        self.inner.parent(HWND_MESSAGE);
+        self
+    }
+
     pub fn menu(&mut self, value: HMENU) -> &mut Self {
         self.inner.menu(value);
         self
@@ -194,10 +201,12 @@ impl<T: UsrCtrl> UserControlBuilder<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use winapi::um::winuser::{WM_CREATE, WM_USER};
     use winapi::um::libloaderapi::GetModuleHandleW;
+    use winapi::um::winuser::{WM_CREATE, WM_USER};
+
     use crate::sys::send_message;
+
+    use super::*;
 
     const WM_WPARAM: u32 = WM_USER;
     const WM_LPARAM: u32 = WM_USER + 1;

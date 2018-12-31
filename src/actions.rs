@@ -84,7 +84,7 @@ impl Actions {
         Actions {
             window: ACTIONS_WNDCLASS.build_window()
                 .module(app_instance())
-                .parent(HWND_MESSAGE)
+                .message_only()
                 .style(WS_POPUP)
                 .ex_style(WS_EX_TOOLWINDOW)
                 .create(HotkeySink(RefCell::new(HotkeySinkInner {

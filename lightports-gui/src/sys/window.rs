@@ -10,6 +10,7 @@ use winapi::shared::minwindef::HINSTANCE;
 use winapi::shared::windef::{
     HMENU, HWND
 };
+use winapi::um::winuser::HWND_MESSAGE;
 use winapi::um::winuser::{DefWindowProcW, DestroyWindow, GetWindowLongPtrW, SetWindowLongPtrW, ShowWindow};
 use winapi::um::winuser::CreateWindowExW;
 
@@ -258,6 +259,12 @@ impl WindowBuilder {
 
     pub fn module(&mut self, value: HINSTANCE) -> &mut Self {
         self.module = value;
+        self
+    }
+
+    /// sets parent to HWND_MESSAGE
+    pub fn message_only(&mut self) -> &mut Self {
+        self.parent = HWND_MESSAGE;
         self
     }
 
