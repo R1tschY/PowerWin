@@ -91,6 +91,7 @@ dependencies = [
  "lightports 0.1.0",
  "lightports_gui 0.1.0",
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nom 4.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
