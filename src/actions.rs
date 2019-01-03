@@ -12,7 +12,6 @@ use lightports_gui::sys::*;
 use lightports_gui::user_control::*;
 use lightports_gui::usr_ctrl::UsrCtrl;
 use winapi::shared::windef::HWND;
-use winapi::um::winuser::HWND_MESSAGE;
 use winapi::um::winuser::WS_POPUP;
 use winapi::um::winuser::WS_EX_TOOLWINDOW;
 use winapi::um::winuser::WM_DESTROY;
@@ -47,7 +46,7 @@ impl HotkeySinkInner {
             return Err(io::Error::new(io::ErrorKind::Other, "no hotkey identifiers left"))
         }
 
-        let hotkey = HotKey::new(action.modifiers, action.vk, &hwnd, self.last_id)?;
+        let hotkey = HotKey::new(action.modifiers as isize, action.vk as i32, &hwnd, self.last_id)?;
         let func = action.func.clone();
         self.actions.insert(action.id.clone(), (hotkey, action));
         self.functions.insert(self.last_id, func);
@@ -69,8 +68,8 @@ impl HotkeySinkInner {
 
 pub struct Action {
     pub id: Cow<'static, str>,
-    pub modifiers: isize,
-    pub vk: i32,
+    pub modifiers: u32, // TODO: change to Vec<Key> or KeyCombination
+    pub vk: u32,
     pub func: Rc<Fn()>
 }
 
@@ -96,9 +95,9 @@ impl Actions {
         }
     }
 
-    pub fn set_action(&mut self, action: Action) -> Result<()> {
+    pub fn set_action(&mut self, action: Action) {
         let hwnd = self.window.as_hwnd();
-        self.window.get().0.borrow_mut().set_action(hwnd, action)
+        self.window.get().0.borrow_mut().set_action(hwnd, action);  // TODO: report error
     }
 
     pub fn remove_action(&mut self, id: &str) {

@@ -25,6 +25,8 @@ use usewin::actions::Actions;
 use usewin::actions::Action;
 use std::rc::Rc;
 use std::borrow::Cow;
+use usewin::hotkeys::HotKeysModuleBuilder;
+use usewin::module::{ModuleBuilder, ModuleContext};
 
 const MSG_TRAYICON: u32 = WM_USER + 0x27;
 
@@ -73,8 +75,8 @@ fn main() {
     let mut settings = config::Config::default();
     settings
         .merge(config::File::with_name("Settings")).unwrap();
-    println!("\n{:?} \n\n-----------",
-             settings.try_into::<HashMap<String, HashMap<String, String>>>().unwrap());
+    // println!("\n{:?} \n\n-----------",
+    //          settings.try_into::<HashMap<String, HashMap<String, String>>>().unwrap());
 
     let module = app_instance();
 
@@ -94,12 +96,8 @@ fn main() {
         .unwrap();
 
     let mut actions = Actions::new();
-    actions.set_action(Action {
-        id: Cow::from("test"),
-        modifiers: MOD_CONTROL | MOD_NOREPEAT,
-        vk: VK_F12,
-        func: Rc::new(|| post_quit_message(0))
-    }).unwrap();
+    let mut ctx = ModuleContext::new(&mut actions, &settings);
+    let module = HotKeysModuleBuilder().build(&mut ctx);
 
     window.show(SW_SHOW);
 
