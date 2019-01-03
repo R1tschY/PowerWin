@@ -1,24 +1,47 @@
+use std::collections::HashMap;
+use std::io;
 use std::num;
 
-use nom::{is_digit, digit, ErrorKind, Err as Error, space0};
+use lazy_static::lazy_static;
+use nom::{digit, Err as Error, ErrorKind, is_digit, space0};
 use nom::types::CompleteStr;
+use winapi::um::winuser::GetKeyboardLayout;
 use winapi::um::winuser::MOD_ALT;
 use winapi::um::winuser::MOD_CONTROL;
 use winapi::um::winuser::MOD_SHIFT;
 use winapi::um::winuser::MOD_WIN;
-use winapi::um::winuser::VK_F1;
-use std::io;
-use winapi::um::winuser::VkKeyScanExW;
-use winapi::um::winuser::GetKeyboardLayout;
 use winapi::um::winuser::VK_BACK;
-use winapi::um::winuser::VK_HOME;
+use winapi::um::winuser::VK_DELETE;
 use winapi::um::winuser::VK_END;
+use winapi::um::winuser::VK_ESCAPE;
+use winapi::um::winuser::VK_F1;
+use winapi::um::winuser::VK_HOME;
+use winapi::um::winuser::VK_INSERT;
 use winapi::um::winuser::VK_NEXT;
 use winapi::um::winuser::VK_PRIOR;
-use winapi::um::winuser::VK_DELETE;
-use winapi::um::winuser::VK_INSERT;
-use winapi::um::winuser::VK_ESCAPE;
 use winapi::um::winuser::VK_RETURN;
+use winapi::um::winuser::VkKeyScanExW;
+
+lazy_static! {
+    static ref SPECIAL_KEYS: HashMap<&'static str, Key> = {
+        [
+            ("ctrl", Key::Ctrl),
+            ("alt", Key::Alt),
+            ("win", Key::Win),
+            ("shift", Key::Shift),
+            ("space", Key::Char(' ')),
+            ("tab", Key::Char('\t')),
+            ("enter", Key::Enter),
+            ("backspace", Key::Backspace),
+            ("home", Key::Home),
+            ("end", Key::End),
+            ("page_up", Key::PageUp),
+            ("page_down", Key::PageDown),
+            ("esc", Key::Esc),
+            ("plus", Key::Char('+')),
+        ].iter().cloned().collect()
+    };
+}
 
 #[derive(Eq, PartialEq, Debug, Copy, Clone)]
 pub enum Key {
@@ -31,62 +54,65 @@ pub enum Key {
     Backspace, Delete, Home, End, PageUp, PageDown, Insert, Esc, Enter
 }
 
-fn create_function_key(number: CompleteStr) -> Result<Key, num::ParseIntError> {
+fn is_decimal_digit(d: char) -> bool {
+    d.is_ascii_digit()
+}
+
+fn is_printable(c: char) -> bool {
+    !c.is_whitespace() && !c.is_control()
+}
+
+fn parse_function_key(number: CompleteStr) -> Result<Key, num::ParseIntError> {
     // TODO: test for <= 24
     Ok(Key::F(u8::from_str_radix(number.as_ref(), 10)?))
 }
 
-fn is_ascii_digit(d: char) -> bool {
-    d.is_ascii_digit()
-}
-
 named!(fkey<CompleteStr, Key>,
-    map_res!(
-        preceded!(tag_no_case!("f"), take_while1!(is_ascii_digit)),
-        create_function_key
-    )
-);
-
-named!(modifier<CompleteStr, Key>,
-    alt!(
-        value!(Key::Ctrl, tag_no_case!("ctrl")) |
-        value!(Key::Alt, tag_no_case!("alt")) |
-        value!(Key::Win, tag_no_case!("win")) |
-        value!(Key::Shift, tag_no_case!("shift"))
-    )
-);
-
-named!(special_key<CompleteStr, Key>,
-    alt!(
-        value!(Key::Char(' '), tag_no_case!("space")) |
-        value!(Key::Char('\t'), tag_no_case!("tab")) |
-        value!(Key::Enter, tag_no_case!("enter")) |
-        value!(Key::Backspace, tag_no_case!("backspace")) |
-        value!(Key::Home, tag_no_case!("home")) |
-        value!(Key::End, tag_no_case!("end")) |
-        value!(Key::PageUp, tag_no_case!("page_up")) |
-        value!(Key::PageDown, tag_no_case!("page_down")) |
-        value!(Key::Esc, tag_no_case!("esc"))
-    )
-);
-
-named!(key<CompleteStr, Key>,
-    alt!(modifier | fkey | special_key)
-);
-
-named!(key_combo<CompleteStr, Vec<Key> >,
-    exact!(separated_nonempty_list_complete!(
-        tag!("+"), delimited!(space0, key, space0)
+    exact!(map_res!(
+        preceded!(char!('f'), take_while1!(is_decimal_digit)),
+        parse_function_key
     ))
 );
 
-pub fn parse_key_combination(input: &str) -> io::Result<Vec<Key>> {
+fn parse_char_key(input: CompleteStr) -> Option<Key> {
+    let mut chars = input.as_ref().chars();
+    let c = chars.next().unwrap();
+    match chars.next() {
+        Some(_) => None,
+        None => Some(Key::Char(c))
+    }
+}
+
+named!(char_key<CompleteStr, Key>,
+    map_opt!(exact!(take_while1!(is_printable)), parse_char_key)
+);
+
+fn parse_special_key(input: CompleteStr) -> Option<Key> {
+    SPECIAL_KEYS.get(input.as_ref()).cloned()
+}
+
+named!(special_key<CompleteStr, Key>,
+    map_opt!(take_while1!(|_| true), parse_special_key)
+);
+
+named!(key<CompleteStr, Key>,
+    alt!(special_key | fkey | char_key)
+);
+
+fn parse_key(input: CompleteStr) -> Option<Key> {
+    key(input).map(|(_, out)| out).ok()
+}
+
+named!(key_combo<CompleteStr, Vec<Key> >,
+    exact!(separated_nonempty_list_complete!(
+        tag!("+"), delimited!(space0, map_opt!(is_not!(" \t+"), parse_key), space0)
+    ))
+);
+
+pub fn parse_key_combination(input: &str) -> Option<Vec<Key>> {
     // TODO: check for multiple same keys
     // TODO: check for only one key
-    match key_combo(input.into()) {
-        Ok((_, result)) => Ok(result),
-        Err(_) => Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid key combination")),
-    }
+    key_combo(input.to_lowercase().as_str().into()).map(|(_, out)| out).ok()
 }
 
 fn char_to_vk(c: &char) -> io::Result<(u32, u32)> {
@@ -147,55 +173,108 @@ pub fn to_vk(key_seq: &[Key]) -> io::Result<(u32, u32)> {
     Ok((modifier, vk))
 }
 
+pub fn parse_key_combination_to_vk(input: &str) -> io::Result<(u32, u32)> {
+    if let Some(combi) = parse_key_combination(input) {
+        to_vk(&combi)
+    } else {
+        Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid key combination"))
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::*;
     use winapi::um::winuser::VK_F3;
     use winapi::um::winuser::VK_OEM_PERIOD;
     use winapi::um::winuser::VK_SPACE;
     use winapi::um::winuser::VK_TAB;
 
+    use super::*;
+
     #[test]
     fn test_fkey() {
-        assert_eq!(fkey("F12".into()), Ok(("".into(), Key::F(12))));
+        assert_eq!(fkey("f12".into()), Ok(("".into(), Key::F(12))));
         assert_eq!(fkey("f1".into()), Ok(("".into(), Key::F(1))));
-        assert_eq!(fkey("f1 ".into()), Ok((" ".into(), Key::F(1))));
 
         assert_matches!(fkey("f".into()), Err(Error::Error(_)));
         assert_matches!(fkey("1".into()), Err(Error::Error(_)));
         assert_matches!(fkey("fa".into()), Err(Error::Error(_)));
+        assert_matches!(fkey("f ".into()), Err(Error::Error(_)));
         assert_matches!(fkey("f 3".into()), Err(Error::Error(_)));
+        assert_matches!(fkey("fü".into()), Err(Error::Error(_)));
     }
 
     #[test]
-    fn test_modifier() {
-        assert_eq!(modifier("Alt".into()), Ok(("".into(), Key::Alt)));
-        assert_eq!(modifier("Alt ".into()), Ok((" ".into(), Key::Alt)));
-        assert_eq!(modifier("alt".into()), Ok(("".into(), Key::Alt)));
-        assert_eq!(modifier("ALT".into()), Ok(("".into(), Key::Alt)));
-        assert_eq!(modifier("CTRL".into()), Ok(("".into(), Key::Ctrl)));
-        assert_eq!(modifier("WIN".into()), Ok(("".into(), Key::Win)));
-        assert_eq!(modifier("SHIFT".into()), Ok(("".into(), Key::Shift)));
+    fn test_parse_special_key() {
+        assert_eq!(parse_special_key("alt".into()), Some(Key::Alt));
+        assert_eq!(parse_special_key("ctrl".into()), Some(Key::Ctrl));
+        assert_eq!(parse_special_key("win".into()), Some(Key::Win));
+        assert_eq!(parse_special_key("shift".into()), Some(Key::Shift));
+        assert_eq!(parse_special_key("space".into()), Some(Key::Char(' ')));
+
+        assert_eq!(parse_special_key("a".into()), None);
+        assert_eq!(parse_special_key("abc".into()), None);
+        assert_eq!(parse_special_key("f1".into()), None);
+    }
+
+    #[test]
+    fn test_char_key() {
+        assert_eq!(char_key("f".into()), Ok(("".into(), Key::Char('f'))));
+        assert_eq!(char_key("ä".into()), Ok(("".into(), Key::Char('ä'))));
+        assert_eq!(char_key(".".into()), Ok(("".into(), Key::Char('.'))));
+        assert_eq!(char_key("§".into()), Ok(("".into(), Key::Char('§'))));
+        assert_eq!(char_key("🤷".into()), Ok(("".into(), Key::Char('🤷'))));
+
+        assert_matches!(char_key("".into()), Err(Error::Error(_)));
+        assert_matches!(char_key("ff".into()), Err(Error::Error(_)));
+        assert_matches!(char_key("\t".into()), Err(Error::Error(_)));
+        assert_matches!(char_key("\n".into()), Err(Error::Error(_)));
+        assert_matches!(char_key("\r".into()), Err(Error::Error(_)));
+        assert_matches!(char_key("\0".into()), Err(Error::Error(_)));
+        assert_matches!(char_key("\x13".into()), Err(Error::Error(_)));
+        assert_matches!(char_key(" ".into()), Err(Error::Error(_)));
     }
 
     #[test]
     fn test_key() {
-        assert_eq!(key("F12".into()), Ok(("".into(), Key::F(12))));
-        assert_eq!(key("SHIFT".into()), Ok(("".into(), Key::Shift)));
-        assert_eq!(key("SPACE".into()), Ok(("".into(), Key::Char(' '))));
+        assert_eq!(key("f12".into()), Ok(("".into(), Key::F(12))));
+        assert_eq!(key("shift".into()), Ok(("".into(), Key::Shift)));
+        assert_eq!(key("space".into()), Ok(("".into(), Key::Char(' '))));
+
+        assert_matches!(key("f3a".into()), Err(Error::Error(_)));
     }
 
     #[test]
     fn test_key_combi() {
-        assert_eq!(key_combo("ALT+F3".into()), Ok(("".into(), vec![Key::Alt, Key::F(3)])));
+        assert_eq!(key_combo("alt+f3".into()), Ok(("".into(), vec![Key::Alt, Key::F(3)])));
         assert_eq!(
-            key_combo("WIN + ALT + F3".into()),
+            key_combo("win + alt + f3".into()),
             Ok(("".into(), vec![Key::Win, Key::Alt, Key::F(3)])));
-        assert_eq!(key_combo(" ALT + F3 ".into()), Ok(("".into(), vec![Key::Alt, Key::F(3)])));
-        assert_eq!(key_combo(" ALT+  F3    ".into()), Ok(("".into(), vec![Key::Alt, Key::F(3)])));
-        assert_eq!(key_combo("SHIFT".into()), Ok(("".into(), vec![Key::Shift])));
+        assert_eq!(key_combo(" alt + f3 ".into()), Ok(("".into(), vec![Key::Alt, Key::F(3)])));
+        assert_eq!(key_combo(" alt+  f3    ".into()), Ok(("".into(), vec![Key::Alt, Key::F(3)])));
+        assert_eq!(key_combo("shift".into()), Ok(("".into(), vec![Key::Shift])));
 
-        assert_matches!(key_combo("ALT+F 3".into()), Err(Error::Error(_)));
+        assert_matches!(key_combo("alt+f 3".into()), Err(Error::Error(_)));
+    }
+
+    #[test]
+    fn test_parse_key_combination() {
+        assert_eq!(parse_key_combination("alt+f3"), Some(vec![Key::Alt, Key::F(3)]));
+        assert_eq!(parse_key_combination("alt + f3"), Some(vec![Key::Alt, Key::F(3)]));
+        assert_eq!(parse_key_combination("ALT+F3"), Some(vec![Key::Alt, Key::F(3)]));
+        assert_eq!(parse_key_combination(" Alt   +\tf3 "), Some(vec![Key::Alt, Key::F(3)]));
+        assert_eq!(parse_key_combination("WIN+SPACE"), Some(vec![Key::Win, Key::Char(' ')]));
+        assert_eq!(parse_key_combination("CTRL+WIN+SHIFT+HOME"),
+                   Some(vec![Key::Ctrl, Key::Win, Key::Shift, Key::Home]));
+        assert_eq!(parse_key_combination("HOME"), Some(vec![Key::Home]));
+        assert_eq!(parse_key_combination("PAGE_UP"), Some(vec![Key::PageUp]));
+        assert_eq!(parse_key_combination("Alt+Ä"), Some(vec![Key::Alt, Key::Char('ä')]));
+
+        assert_eq!(parse_key_combination("alt+f 3"), None);
+        assert_eq!(parse_key_combination("a lt+f3"), None);
+        assert_eq!(parse_key_combination("alt+"), None);
+        assert_eq!(parse_key_combination(""), None);
+        assert_eq!(parse_key_combination("+"), None);
+        assert_eq!(parse_key_combination("alt+abc"), None);
     }
 
     #[test]
