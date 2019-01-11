@@ -5,7 +5,7 @@ authors = ["Richard"]
 edition = "2018"
 
 [dependencies]
-winapi = { version = "0.3.6", features = ["std", "debugapi"] }
+winapi = { version = "0.3.6", features = ["std", "debugapi", "winnt", "winuser", "reason", "winbase", "securitybaseapi"] }
 lightports = { path = "lightports" }
 lightports_gui = { path = "lightports-gui" }
 config = { version = "0.9", default-features = false, features = ["ini"] }

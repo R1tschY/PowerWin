@@ -16,6 +16,7 @@ use winapi::um::winuser::WS_POPUP;
 use winapi::um::winuser::WS_EX_TOOLWINDOW;
 use winapi::um::winuser::WM_DESTROY;
 use winapi::um::winuser::WM_HOTKEY;
+use crate::key_combination::parse_key_combination_to_vk;
 
 lazy_static! {
     static ref ACTIONS_WNDCLASS: UserControlClass<HotkeySink> = {
@@ -95,9 +96,34 @@ impl Actions {
         }
     }
 
-    pub fn set_action(&mut self, action: Action) {
+    pub fn set_action_internal(&mut self, action: Action) {
         let hwnd = self.window.as_hwnd();
         self.window.get().0.borrow_mut().set_action(hwnd, action);  // TODO: report error
+    }
+
+    pub fn set_action<I: Into<Cow<'static, str>>>(
+        &mut self, id: I, keys: &str, f: Rc<Fn()>
+    ) {
+        match parse_key_combination_to_vk(keys) {
+            Ok((modifiers, vk)) =>
+                self.set_action_internal(Action {
+                    id: id.into(),
+                    modifiers,
+                    vk,
+                    func: f
+                }),
+            Err(err) => error!("cannot register hotkey {}: {}", keys, err),
+        }
+    }
+
+    pub fn set_system_action<I: Into<Cow<'static, str>>, T: Fn() -> io::Result<()> + 'static>(
+        &mut self, id: I, keys: &str, f: T
+    ) {
+        let id = id.into();
+        self.set_action(id.clone(), keys, Rc::new(move || match f() {
+            Ok(_) => (),
+            Err(err) => error!("action {} failed: {}", id, err),
+        }))
     }
 
     pub fn remove_action(&mut self, id: &str) {

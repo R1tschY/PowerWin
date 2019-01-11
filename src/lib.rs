@@ -4,6 +4,7 @@ extern crate lightports_gui;
 extern crate winapi;
 extern crate lazy_static;
 #[macro_use] extern crate nom;
+#[macro_use] extern crate log;
 #[cfg(test)] #[macro_use] extern crate assert_matches;
 
 pub mod actions;
