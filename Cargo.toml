@@ -13,6 +13,10 @@ log = "0.4"
 lazy_static = "1.2.0"
 nom = "4.1"
 
+[build-dependencies]
+embed-resource = "1.1.4"
+winres = "0.1.8"
+
 [dev-dependencies]
 assert_matches = "1.3"
 
