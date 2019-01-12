@@ -1,58 +1,46 @@
 use std::ffi::{OsStr, OsString};
 use std::os::windows::ffi::{OsStrExt, OsStringExt};
-use std::iter::once;
 use std::cmp;
 use std::slice;
+use std::mem;
+use std::borrow::Cow;
+
 use std::path::PathBuf;
+use std::borrow::Borrow;
+use std::ops::Deref;
 
-static EMPTY_WSTRING: EmptyWstr = EmptyWstr([0; 1]);
+unsafe fn wstrlen(p: *mut u16) -> usize {
+    for i in 0.. {
+        if *p.offset(i) == 0 {
+            return i as usize;
+        }
+    }
+    unreachable!();
+}
 
+pub struct Wstr {
+    inner: [u16]
+}
 
-struct EmptyWstr(pub [u16; 1]);
+impl Wstr {
 
-impl Wstr for EmptyWstr {
-    #[inline]
-    fn as_ptr(&self) -> *const u16 {
-        self.0.as_ptr()
+    pub unsafe fn from_bytes_terminated_unchecked(s: &[u16]) -> &Wstr {
+        mem::transmute(s)
     }
 
-    #[inline]
-    fn slice(&self) -> &[u16] {
-        &self.0
+    pub fn as_ptr(&self) -> *const u16 {
+        &self.inner as *const [u16] as *const u16
     }
-}
 
-
-pub trait IntoWstr where Self::Impl : Wstr {
-    type Impl;
-
-    fn into_wstr(&self) -> Self::Impl;
-}
-
-
-
-
-
-pub trait Wstr {
-    fn as_ptr(&self) -> *const u16;
-    fn slice(&self) -> &[u16];
-}
-
-impl<'t> Wstr + 't {
     pub fn copy_to(&self, dest: &mut [u16]) {
-        let src = self.slice();
-        let len = cmp::min(dest.len(), src.len()) - 1;
+        let len = cmp::min(dest.len(), self.inner.len()) - 1;
         if len > 0 {
-            dest[..len].copy_from_slice(&src[..len]);
+            dest[..len].copy_from_slice(&self.inner[..len]);
             dest[len] = 0;
         }
     }
-
-    #[inline]
-    pub fn empty() -> &'static Wstr {
-        &EMPTY_WSTRING
-    }
 }
+
 
 
 #[derive(Clone)]
@@ -61,94 +49,130 @@ pub struct WString {
 }
 
 impl WString {
-    pub fn new() -> WString {
-        WString { inner: vec![0] }
+    pub fn new<T: Into<Vec<u16>>>(t: T) -> WString {
+        Self::from_vec_unchecked(t.into())
     }
+
+    pub fn from_vec_unchecked(mut v: Vec<u16>) -> WString {
+        v.reserve_exact(1);
+        v.push(0);
+        WString { inner: v }
+    }
+
+    pub unsafe fn from_raw(p: *mut u16) -> WString {
+        let len = wstrlen(p);
+        WString::from_vec_unchecked(slice::from_raw_parts(p, len).into())
+    }
+
+    pub fn into_raw(mut self) -> *mut u16 {
+        self.inner.as_mut_ptr()
+    }
+
+    pub fn into_string(self) -> Result<String, OsString> {
+        <OsString as OsStringExt>::from_wide(&self.inner).into_string()
+    }
+
+    pub fn into_bytes(mut self) -> Vec<u16> {
+        self.inner.pop();
+        self.inner
+    }
+
+    pub fn into_bytes_terminated(self) -> Vec<u16> {
+        self.inner
+    }
+
+    pub fn as_bytes(&self) -> &[u16] { &self.inner[..self.inner.len() - 1] }
+    pub fn as_bytes_terminated(&self) -> &[u16] { &self.inner }
+
+    pub fn as_wstr(&self) -> &Wstr { &*self }
+
 
     #[inline]
     pub fn from_str<T: AsRef<OsStr>>(s: T) -> WString {
-        WString { inner: to_wide(s.as_ref()) }
+        to_wide(s.as_ref())
     }
 }
 
-impl Wstr for WString {
-    fn as_ptr(&self) -> *const u16 {
-        self.inner.as_ptr()
-    }
+impl Deref for WString {
+    type Target = Wstr;
 
-    fn slice(&self) -> &[u16] {
-        &self.inner
+    fn deref(&self) -> &Wstr {
+        unsafe { Wstr::from_bytes_terminated_unchecked(self.as_bytes_terminated()) }
     }
 }
 
-impl Wstr for &WString {
-    fn as_ptr(&self) -> *const u16 {
-        self.inner.as_ptr()
-    }
-
-    fn slice(&self) -> &[u16] {
-        &self.inner
+impl From<WString> for Vec<u16> {
+    fn from(s: WString) -> Self {
+        s.into_bytes()
     }
 }
 
-fn to_wide(s: &OsStr) -> Vec<u16> {
-    let mut v: Vec<u16> = s.encode_wide().collect();
-    v.push(0);
-    v
-}
-
-
-impl<'t> IntoWstr for &'t WString {
-    type Impl = &'t WString;
-
-    fn into_wstr(&self) -> &'t WString {
-        self
+impl Default for WString {
+    fn default() -> Self {
+        WString { inner: vec![0] }
     }
 }
 
-impl IntoWstr for &str {
-    type Impl = WString;
+impl<'t> Default for &'t Wstr {
+    fn default() -> Self {
+        const EMPTY: &'static [u16] = &[0];
+        unsafe { Wstr::from_bytes_terminated_unchecked(EMPTY) }
+    }
+}
+
+fn to_wide(s: &OsStr) -> WString {
+    let v: Vec<u16> = s.encode_wide().collect();
+    WString::new(v)
+}
+
+
+impl Borrow<Wstr> for WString {
+    #[inline]
+    fn borrow(&self) -> &Wstr { self }
+}
+
+impl ToOwned for Wstr {
+    type Owned = WString;
 
     #[inline]
-    fn into_wstr(&self) -> WString {
-        WString::from(&to_wide(self.as_ref()) as &[u16])
+    fn to_owned(&self) -> Self::Owned {
+        WString::new(&self.inner)
     }
 }
 
 impl<'t> From<&'t Wstr> for WString {
     #[inline]
-    fn from(src: &'t Wstr) -> Self {
-        WString::from(src.slice())
+    fn from(s: &'t Wstr) -> Self {
+        s.to_owned()
     }
 }
 
-impl From<&[u16]> for WString {
-    fn from(slice: &[u16]) -> Self {
-        let inner: Vec<u16> = if let Some(last) = slice.last() {
-            if *last == 0 {
-                Vec::from(slice)
-            } else {
-                slice.iter().cloned().chain(once(0)).collect()
-            }
-        } else {
-            vec![0]
-        };
+// cow integration
 
-        WString { inner }
-    }
+impl<'t> From<&'t Wstr> for Cow<'t, Wstr> {
+    #[inline] fn from(s: &'t Wstr) -> Self { Cow::Borrowed(s) }
 }
+
+impl<'t> From<&'t WString> for Cow<'t, Wstr> {
+    #[inline] fn from(s: &'t WString) -> Self { Cow::Borrowed(s.as_wstr()) }
+}
+
+impl<'t> From<WString> for Cow<'t, Wstr> {
+    #[inline] fn from(s: WString) -> Self { Cow::Owned(s) }
+}
+
+impl<'t, T: AsRef<OsStr>> From<T> for WString {
+    fn from(s: T) -> Self { to_wide(s.as_ref()) }
+}
+
+// from wide
 
 pub trait FromWide where Self: Sized {
     fn from_wide(wide: &[u16]) -> Self;
 
-    fn from_wide_ptr(wide: *const u16) -> Self { unsafe {
-        for i in 0.. {
-            if *wide.offset(i) == 0 {
-                return Self::from_wide(slice::from_raw_parts(wide, i as usize));
-            }
-        }
-        unreachable!();
-    }}
+    unsafe fn from_wide_ptr(wide: *mut u16) -> Self {
+        return Self::from_wide(slice::from_raw_parts(wide, wstrlen(wide)));
+    }
 }
 
 impl FromWide for OsString {

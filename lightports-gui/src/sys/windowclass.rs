@@ -55,7 +55,7 @@ pub struct WindowClassBuilder {
 impl WindowClassBuilder {
     pub fn new() -> WindowClassBuilder {
         WindowClassBuilder {
-            class_name: WString::new(),
+            class_name: WString::default(),
             style: 0,
             icon: null_mut(),
             small_icon: null_mut(),
@@ -63,7 +63,7 @@ impl WindowClassBuilder {
             background: null_mut(),
             wnd_proc: None,
             module: null_mut(),
-            menu: WString::new(),
+            menu: WString::default(),
         }
     }
 

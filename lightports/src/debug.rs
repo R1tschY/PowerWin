@@ -1,10 +1,9 @@
-use crate::string::IntoWstr;
-use crate::string::Wstr;
+use crate::string::WString;
+use std::borrow::Cow;
 use winapi::um::debugapi::OutputDebugStringW;
 
-pub fn output_debug_string<'t, T: IntoWstr>(s: T) {
-    let wstr = s.into_wstr();
+pub fn output_debug_string(s: &str) {
     unsafe {
-        OutputDebugStringW(wstr.as_ptr());
+        OutputDebugStringW(WString::from(s).as_ptr());
     }
 }

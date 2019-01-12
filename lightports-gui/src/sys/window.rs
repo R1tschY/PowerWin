@@ -196,8 +196,8 @@ impl WindowBuilder {
     fn new() -> Self {
         WindowBuilder {
             ex_style: 0,
-            class: AtomOrString::Str(WString::new()),
-            window_name: WString::new(),
+            class: AtomOrString::Str(WString::default()),
+            window_name: WString::default(),
             style: 0,
             x: 0,
             y: 0,

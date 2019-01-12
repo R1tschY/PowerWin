@@ -47,7 +47,7 @@ impl<T: UsrCtrl> UserControlClass<T> {
 pub struct UserControl<T: UsrCtrl>(Box<UserControlData<T>>);
 
 impl<T: UsrCtrl> UserControl<T> {
-    pub fn as_hwnd(&mut self) -> HWND {
+    pub fn as_hwnd(&self) -> HWND {
         self.0.hwnd.get().as_hwnd()
     }
 
