@@ -10,16 +10,21 @@ use lightports::Result;
 use log::error;
 use winapi::shared::minwindef::{HINSTANCE, LPARAM, LRESULT, UINT, WPARAM};
 use winapi::shared::windef::{HMENU, HWND};
-use winapi::um::winuser::{CREATESTRUCTW, GWLP_USERDATA, WM_NCCREATE, WM_NCDESTROY};
+use winapi::um::winuser::{CREATESTRUCTW, GWLP_USERDATA, WM_CREATE, WM_NCDESTROY};
 use winapi::um::winuser::HWND_MESSAGE;
 
 use crate::sys::{AsHwnd, IsA, LParam, LResult, Window, WindowBuilder, WindowClass, WindowClassBuilder, WParam};
 use crate::sys::WindowFunctions;
 use crate::usr_ctrl::UsrCtrl;
 
+struct CreateData<'t, T: UsrCtrl> {
+    param: &'t T::CreateParam,
+    target: *mut UserControlData<T>,
+}
+
 struct UserControlData<T: UsrCtrl> {
     hwnd: Cell<Window>,
-    ctrl: T,
+    ctrl: Option<T>,
 }
 
 impl<T: UsrCtrl> UserControlData<T> {
@@ -28,7 +33,7 @@ impl<T: UsrCtrl> UserControlData<T> {
     }
 
     pub fn message(&self, hwnd: Window, msg: UINT, w: WPARAM, l: LPARAM) -> LResult {
-        self.ctrl.message(hwnd, msg, WParam::from(w), LParam::from(l))
+        self.ctrl.as_ref().unwrap().message(hwnd, msg, WParam::from(w), LParam::from(l))
     }
 }
 
@@ -52,7 +57,7 @@ impl<T: UsrCtrl> UserControl<T> {
     }
 
     pub fn get(&self) -> &T {
-        &self.0.ctrl
+        self.0.ctrl.as_ref().unwrap()
     }
 }
 
@@ -97,15 +102,16 @@ impl<T: UsrCtrl> AsHwnd for UserControl<T> {
 
 impl<T: UsrCtrl + 'static> IsA<Window> for UserControl<T> { }
 
-// TODO: remove T
-fn prepare_hwnd<T: UsrCtrl>(mut hwnd: Window, create_struct: *const CREATESTRUCTW) -> *const UserControlData<T> {
+fn prepare_hwnd<T: UsrCtrl>(hwnd: Window, create_struct: *const CREATESTRUCTW) -> *const UserControlData<T> {
     unsafe {
-        let p: *const UserControlData<T> = mem::transmute((*create_struct).lpCreateParams);
+        let p: *mut CreateData<T> = mem::transmute((*create_struct).lpCreateParams);
         assert_ne!(p, ptr::null_mut());
 
-        hwnd.set_attribute(GWLP_USERDATA, mem::transmute(p));
-        (*p).hwnd.replace(hwnd);
-        p
+        let target = (*p).target;
+        (*target).ctrl = Some(T::create(hwnd, &(*p).param));
+        hwnd.set_attribute(GWLP_USERDATA, mem::transmute(target));
+        (*target).hwnd.replace(hwnd);
+        target
     }
 }
 
@@ -115,7 +121,7 @@ fn user_control_proc<T: UsrCtrl>(
     let mut p: *const UserControlData<T> = unsafe {
         mem::transmute(hwnd.get_attribute(GWLP_USERDATA)?) };
     if p == ptr::null_mut() {
-        if msg != WM_NCCREATE {
+        if msg != WM_CREATE {
             return Ok(hwnd.default_proc(msg, w, l).into_raw());
         }
         p = prepare_hwnd(hwnd, unsafe { mem::transmute(l) });
@@ -187,13 +193,13 @@ impl<T: UsrCtrl> UserControlBuilder<T> {
         self
     }
 
-    pub fn create(&mut self, ctrl: T) -> Result<UserControl<T>> {
+    pub fn create(&mut self, param: &T::CreateParam) -> Result<UserControl<T>> {
         let mut data = Box::new(UserControlData {
             hwnd: Cell::new(Window::from(ptr::null_mut())),
-            ctrl
+            ctrl: None
         });
-        let cell_ptr: *mut UserControlData<T> =  &mut *data;
-        self.inner.create_param(cell_ptr as *mut ffi::c_void);
+        let mut create_data = CreateData { param, target: &mut *data };
+        self.inner.create_param(&mut create_data as *mut CreateData<T> as *mut ffi::c_void);
         self.inner.create()?;
         Ok(UserControl(data))
     }
@@ -216,6 +222,12 @@ mod tests {
     }
 
     impl UsrCtrl for MyControl {
+        type CreateParam = ();
+
+        fn create(hwnd: Window, params: &()) -> Self {
+            MyControl { data: Cell::new(0) }
+        }
+
         fn message(&self, hwnd: Window, msg: u32, w: WParam, l: LParam) -> LResult {
             match msg {
                 WM_CREATE => { self.data.replace(42); }
@@ -240,7 +252,7 @@ mod tests {
         let mut window = win_class
             .build_window()
             .module(module)
-            .create(MyControl { data: Cell::new(0) })
+            .create(&())
             .unwrap();
         assert_eq!(window.get().data.get(), 42);
 

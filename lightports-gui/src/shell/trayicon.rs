@@ -7,71 +7,94 @@ use winapi::um::shellapi::{
 };
 use winapi::shared::windef::HWND;
 use std::ptr::null_mut;
-use lightports::{Wstr};
+use lightports::{Wstr, result, Result};
+use std::borrow::Cow;
+use std::ptr;
+use crate::sys::Window;
 
 pub struct TrayIcon {
-    inner: NOTIFYICONDATAW
+    hwnd: Window,
+    id: u32
 }
 
 impl TrayIcon {
-    pub fn new(id: u32, message_id: u32) -> TrayIcon { // TODO: make message_id optional
-        unsafe {
-            let mut inner: NOTIFYICONDATAW = std::mem::zeroed();
-            inner.cbSize = std::mem::size_of::<NOTIFYICONDATAW>() as u32;
-            inner.uID = id;
-            inner.uCallbackMessage = message_id;
-            *inner.u.uVersion_mut() = NOTIFYICON_VERSION_4;
-
-            TrayIcon { inner }
-        }
+    pub fn build(hwnd: Window, id: u32) -> TrayIconBuilder {
+        TrayIconBuilder::new(hwnd, id)
     }
 
-    pub fn attach(&mut self, hwnd: HWND) {
-        self.detach();
-
-        if self.inner.hWnd.is_null() && hwnd != null_mut() {
-            unsafe {
-                self.inner.uFlags = NIF_MESSAGE;
-                self.inner.hWnd = hwnd;
-                Shell_NotifyIconW(NIM_ADD, &mut self.inner);
-                Shell_NotifyIconW(NIM_SETVERSION, &mut self.inner);
-            }
-        }
-    }
-
-    pub fn detach(&mut self) {
-        if !self.inner.hWnd.is_null() {
-            unsafe {
-                Shell_NotifyIconW(NIM_DELETE, &mut self.inner);
-            }
-            self.inner.hWnd = null_mut();
-            self.inner.uFlags = 0;
-        }
-    }
-
-    // pub fn set_tool_tip<T: IntoWstr + 'static>(&mut self, value: T) {
-    //     let wstr = value.into_wstr();
-    //     self._set_tool_tip(&wstr);
-    // }
-
-    pub fn _set_tool_tip(&mut self, value: &Wstr) {
-        self.inner.uFlags |= NIF_TIP | NIF_SHOWTIP;
-        value.copy_to(&mut self.inner.szTip);
-        self.update();
-    }
-
-    fn update(&mut self) {
-        if self.inner.hWnd.is_null() {
-            unsafe {
-                Shell_NotifyIconW(NIM_MODIFY, &mut self.inner);
-            }
-            self.inner.uFlags = 0;
-        }
+    pub fn change(&self) -> TrayIconBuilder {
+        TrayIconBuilder::new(self.hwnd, self.id)
     }
 }
 
 impl Drop for TrayIcon {
     fn drop(&mut self) {
-        self.detach()
+        self.change().delete().unwrap_or_default();
+    }
+}
+
+pub struct TrayIconBuilder {
+    inner: NOTIFYICONDATAW,
+}
+
+impl TrayIconBuilder {
+    fn new(hwnd: Window, id: u32) -> Self {
+        unsafe {
+            let mut inner: NOTIFYICONDATAW = std::mem::zeroed();
+            inner.cbSize = std::mem::size_of::<NOTIFYICONDATAW>() as u32;
+            inner.uID = id;
+            inner.hWnd = hwnd.as_hwnd();
+            inner.uFlags = 0;
+            TrayIconBuilder { inner }
+        }
+    }
+
+     pub fn tool_tip<'t, T: Into<Cow<'t, Wstr>>>(&mut self, value: T) -> &mut Self {
+         self._tool_tip(&value.into());
+         self
+     }
+
+    fn _tool_tip(&mut self, value: &Wstr) {
+        self.inner.uFlags |= NIF_TIP | NIF_SHOWTIP;
+        value.copy_to(&mut self.inner.szTip);
+    }
+
+    pub fn callback_message(&mut self, msg: u32) -> &mut Self {
+        self.inner.uFlags |= NIF_MESSAGE;
+        self.inner.uCallbackMessage = msg;
+        self
+    }
+
+    pub fn add(&mut self) -> Result<TrayIcon> {
+        unsafe {
+            result(Shell_NotifyIconW(NIM_ADD, &mut self.inner))?;
+            *self.inner.u.uVersion_mut() = NOTIFYICON_VERSION_4;
+            result(Shell_NotifyIconW(NIM_SETVERSION, &mut self.inner))?;
+        }
+        Ok(TrayIcon { hwnd: Window::from(self.inner.hWnd), id: self.inner.uID })
+    }
+
+    pub fn modify(&mut self) -> Result<()> {
+        unsafe {
+            result(Shell_NotifyIconW(NIM_MODIFY, &mut self.inner))?;
+        }
+        Ok(())
+    }
+
+    pub fn delete(&mut self) -> Result<()> {
+        unsafe {
+            result(Shell_NotifyIconW(NIM_DELETE, &mut self.inner))?;
+        }
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_builder_new() {
+
     }
 }

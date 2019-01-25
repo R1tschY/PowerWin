@@ -24,6 +24,12 @@ impl CustomControl {
 }
 
 impl UsrCtrl for CustomControl {
+    type CreateParam = ();
+
+    fn create(hwnd: Window, params: &()) -> Self {
+        CustomControl { connections: HashMap::new() }
+    }
+
     fn message(&self, hwnd: Window, msg: u32, w: WParam, l: LParam) -> LResult {
         if let Some(ref func) = self.connections.get(&msg) {
             if let Some(res) = func(w, l) {

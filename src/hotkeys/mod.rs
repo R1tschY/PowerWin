@@ -1,11 +1,9 @@
-use std::borrow::Cow;
 use std::io;
 use std::mem;
 use std::ptr;
 use std::rc::Rc;
 
 use lightports::result;
-use lightports::Wstr;
 use lightports::WString;
 use lightports_gui::sys::post_quit_message;
 use winapi::um::processthreadsapi::GetCurrentProcess;
@@ -21,13 +19,10 @@ use winapi::um::winnt::TOKEN_ADJUST_PRIVILEGES;
 use winapi::um::winnt::TOKEN_PRIVILEGES;
 use winapi::um::winnt::TOKEN_QUERY;
 use winapi::um::winuser::EWX_HYBRID_SHUTDOWN;
-use winapi::um::winuser::EWX_RESTARTAPPS;
 use winapi::um::winuser::EWX_SHUTDOWN;
 use winapi::um::winuser::ExitWindowsEx;
 
-use crate::actions::Action;
 use crate::actions::Actions;
-use crate::key_combination::parse_key_combination_to_vk;
 use crate::module::Module;
 use crate::module::ModuleBuilder;
 use crate::module::ModuleContext;

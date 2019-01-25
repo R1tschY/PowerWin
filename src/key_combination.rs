@@ -3,7 +3,7 @@ use std::io;
 use std::num;
 
 use lazy_static::lazy_static;
-use nom::{digit, Err as Error, ErrorKind, is_digit, space0};
+use nom::space0;
 use nom::types::CompleteStr;
 use winapi::um::winuser::GetKeyboardLayout;
 use winapi::um::winuser::MOD_ALT;
@@ -189,6 +189,7 @@ mod tests {
     use winapi::um::winuser::VK_TAB;
 
     use super::*;
+    use nom::{Err as Error};
 
     #[test]
     fn test_fkey() {
