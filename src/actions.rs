@@ -31,7 +31,7 @@ lazy_static! {
 struct HotkeySinkInner {
     functions: HashMap<i32, Rc<Fn()>>,
     last_id: i32,
-    actions: HashMap<Cow<'static, str>, (HotKey, Action)>
+    actions: HashMap<Cow<'static, str>, (Option<HotKey>, Action)>
 }
 
 struct HotkeySink(RefCell<HotkeySinkInner>);
@@ -47,16 +47,19 @@ impl HotkeySinkInner {
             return Err(io::Error::new(io::ErrorKind::Other, "no hotkey identifiers left"))
         }
 
-        let hotkey = HotKey::new(action.modifiers as isize, action.vk as i32, &hwnd, self.last_id)?;
-        let func = action.func.clone();
-        self.actions.insert(action.id.clone(), (hotkey, action));
-        self.functions.insert(self.last_id, func);
+        if let Some(func) = action.func.clone() {
+            let hotkey = HotKey::new(action.modifiers as isize, action.vk as i32, &hwnd, self.last_id)?;
+            self.actions.insert(action.id.clone(), (Some(hotkey), action));
+            self.functions.insert(self.last_id, func);
+        } else {
+            self.actions.insert(action.id.clone(), (None, action));
+        }
 
         Ok(())
     }
 
     pub fn remove_action(&mut self, id: &str) {
-        if let Some((hotkey, _action)) = self.actions.remove(id) {
+        if let Some((Some(hotkey), _action)) = self.actions.remove(id) {
             self.functions.remove(&hotkey.id());
         }
     }
@@ -71,7 +74,7 @@ pub struct Action {
     pub id: Cow<'static, str>,
     pub modifiers: u32, // TODO: change to Vec<Key> or KeyCombination
     pub vk: u32,
-    pub func: Rc<Fn()>
+    pub func: Option<Rc<Fn()>>
 }
 
 pub struct Actions {
@@ -101,6 +104,19 @@ impl Actions {
         }
     }
 
+    pub fn set_doc_action<I: Into<Cow<'static, str>>>(&mut self, id: I, keys: &str) {
+        match parse_key_combination_to_vk(keys) {
+            Ok((modifiers, vk)) =>
+                self.set_action_internal(Action {
+                    id: id.into(),
+                    modifiers,
+                    vk,
+                    func: None
+                }),
+            Err(err) => error!("cannot register hotkey {}: {}", keys, err),
+        }
+    }
+
     pub fn set_action<I: Into<Cow<'static, str>>>(
         &mut self, id: I, keys: &str, f: Rc<Fn()>
     ) {
@@ -110,7 +126,7 @@ impl Actions {
                     id: id.into(),
                     modifiers,
                     vk,
-                    func: f
+                    func: Some(f)
                 }),
             Err(err) => error!("cannot register hotkey {}: {}", keys, err),
         }
