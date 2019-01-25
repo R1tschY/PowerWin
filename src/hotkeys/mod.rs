@@ -59,12 +59,6 @@ impl Module for HotKeysModule {
     }
 }
 
-fn system_action() {
-    if let Err(err) = shutdown_system() {
-        error!("shutdown failed: {}", err);
-    }
-}
-
 unsafe fn enable_privilege(privilege: &str) -> io::Result<()> {
     let mut token: HANDLE = ptr::null_mut();
     let mut tkp: TOKEN_PRIVILEGES = mem::zeroed();
