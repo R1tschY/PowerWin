@@ -5,11 +5,8 @@ use winapi::um::shellapi::{
     NIF_TIP, NIF_SHOWTIP, NIF_MESSAGE,
     NOTIFYICON_VERSION_4,
 };
-use winapi::shared::windef::HWND;
-use std::ptr::null_mut;
 use lightports::{Wstr, result, Result};
 use std::borrow::Cow;
-use std::ptr;
 use crate::sys::Window;
 
 pub struct TrayIcon {

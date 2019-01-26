@@ -2,9 +2,8 @@ use std::ffi::{c_void, OsStr};
 use std::mem;
 use std::ptr::null_mut;
 use std::ptr;
-use log::{info, trace, warn};
 
-use lightports::{clear_last_error, NonNull, Result, result, Wstr, WString};
+use lightports::{clear_last_error, NonNull, Result, result, WString};
 use winapi::shared::minwindef::{UINT};
 use winapi::shared::minwindef::HINSTANCE;
 use winapi::shared::windef::{
