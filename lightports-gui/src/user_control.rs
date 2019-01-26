@@ -1,10 +1,11 @@
-use std::cell::Cell;
 use std::ffi;
 use std::ffi::OsStr;
 use std::marker::PhantomData;
 use std::mem;
 use std::panic;
 use std::ptr;
+use std::io;
+use std::cell::Cell;
 
 use lightports::Result;
 use log::error;
@@ -19,12 +20,12 @@ use crate::usr_ctrl::UsrCtrl;
 
 struct CreateData<'t, T: UsrCtrl> {
     param: &'t T::CreateParam,
-    target: *mut UserControlData<T>,
+    target: &'t mut Option<Box<UserControlData<T>>>,
 }
 
 struct UserControlData<T: UsrCtrl> {
     hwnd: Cell<Window>,
-    ctrl: Option<T>,
+    ctrl: T,
 }
 
 impl<T: UsrCtrl> UserControlData<T> {
@@ -33,7 +34,7 @@ impl<T: UsrCtrl> UserControlData<T> {
     }
 
     pub fn message(&self, hwnd: Window, msg: UINT, w: WPARAM, l: LPARAM) -> LResult {
-        self.ctrl.as_ref().unwrap().message(hwnd, msg, WParam::from(w), LParam::from(l))
+        self.ctrl.message(hwnd, msg, WParam::from(w), LParam::from(l))
     }
 }
 
@@ -57,7 +58,7 @@ impl<T: UsrCtrl> UserControl<T> {
     }
 
     pub fn get(&self) -> &T {
-        self.0.ctrl.as_ref().unwrap()
+        &self.0.ctrl
     }
 }
 
@@ -107,11 +108,14 @@ fn prepare_hwnd<T: UsrCtrl>(hwnd: Window, create_struct: *const CREATESTRUCTW) -
         let p: *mut CreateData<T> = mem::transmute((*create_struct).lpCreateParams);
         assert_ne!(p, ptr::null_mut());
 
-        let target = (*p).target;
-        (*target).ctrl = Some(T::create(hwnd, &(*p).param));
-        hwnd.set_attribute(GWLP_USERDATA, mem::transmute(target));
-        (*target).hwnd.replace(hwnd);
-        target
+        let data = Box::new(UserControlData {
+            hwnd: Cell::new(hwnd), ctrl: T::create(hwnd, &(*p).param)
+        });
+        let data_ptr = data.as_ref() as *const UserControlData<T>;
+
+        *(*p).target = Some(data);
+        hwnd.set_attribute(GWLP_USERDATA, mem::transmute(data_ptr));
+        data_ptr
     }
 }
 
@@ -194,14 +198,15 @@ impl<T: UsrCtrl> UserControlBuilder<T> {
     }
 
     pub fn create(&mut self, param: &T::CreateParam) -> Result<UserControl<T>> {
-        let mut data = Box::new(UserControlData {
-            hwnd: Cell::new(Window::from(ptr::null_mut())),
-            ctrl: None
-        });
-        let mut create_data = CreateData { param, target: &mut *data };
+        let mut maybe_data = None;
+        let mut create_data = CreateData { param, target: &mut maybe_data };
         self.inner.create_param(&mut create_data as *mut CreateData<T> as *mut ffi::c_void);
         self.inner.create()?;
-        Ok(UserControl(data))
+        if let Some(data) = maybe_data {
+            Ok(UserControl(data))
+        } else {
+            Err(io::Error::new(io::ErrorKind::Interrupted, "window creation aborted"))
+        }
     }
 }
 
