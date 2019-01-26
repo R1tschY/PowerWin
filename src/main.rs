@@ -21,6 +21,10 @@ use lightports_gui::app::app_instance;
 use usewin::actions::Actions;
 use usewin::hotkeys::HotKeysModuleBuilder;
 use usewin::module::{ModuleBuilder, ModuleContext};
+use lightports_gui::extra::icon::Icon;
+use lightports_gui::extra::resources::ResourceSize;
+use winapi::shared::minwindef::HINSTANCE;
+use usewin::resources::POWERWIN_SMALL_ICON;
 
 const MSG_TRAYICON: u32 = WM_USER + 0x27;
 
@@ -30,11 +34,14 @@ struct MyControl {
 }
 
 impl UsrCtrl for MyControl {
-    type CreateParam = ();
+    type CreateParam = HINSTANCE;
 
-    fn create(hwnd: Window, _params: &()) -> Self {
+    fn create(hwnd: Window, hinst: &HINSTANCE) -> Self {
         let _tray_icon = TrayIcon::build(hwnd, 42)
             .callback_message(MSG_TRAYICON)
+            .icon(
+                Icon::from_resource_shared(*hinst, POWERWIN_SMALL_ICON, ResourceSize::Small)
+                    .expect("app icon could not be loaded"))
             .add().expect("creation of tray icon failed");
 
         MyControl { _tray_icon }
@@ -85,7 +92,7 @@ fn main() {
         .style(WindowStyle::OVERLAPPEDWINDOW.bits())
         .size(300, 200)
         .pos(200, 200)
-        .create(&())
+        .create(&module)
         .unwrap();
 
     let mut actions = Actions::new();

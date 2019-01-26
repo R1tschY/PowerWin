@@ -1,12 +1,15 @@
+use std::borrow::Cow;
+
+use lightports::{result, Result, Wstr};
 use winapi::um::shellapi::{
+    NIF_MESSAGE, NIF_SHOWTIP, NIF_TIP, NIF_ICON,
+    NIM_ADD, NIM_DELETE, NIM_MODIFY, NIM_SETVERSION,
+    NOTIFYICON_VERSION_4,
     NOTIFYICONDATAW,
     Shell_NotifyIconW,
-    NIM_ADD, NIM_SETVERSION, NIM_DELETE, NIM_MODIFY,
-    NIF_TIP, NIF_SHOWTIP, NIF_MESSAGE,
-    NOTIFYICON_VERSION_4,
 };
-use lightports::{Wstr, result, Result};
-use std::borrow::Cow;
+
+use crate::extra::icon::Icon;
 use crate::sys::Window;
 
 pub struct TrayIcon {
@@ -59,6 +62,12 @@ impl TrayIconBuilder {
     pub fn callback_message(&mut self, msg: u32) -> &mut Self {
         self.inner.uFlags |= NIF_MESSAGE;
         self.inner.uCallbackMessage = msg;
+        self
+    }
+
+    pub fn icon(&mut self, icon: Icon) -> &mut Self {
+        self.inner.uFlags |= NIF_ICON;
+        self.inner.hIcon = icon.as_raw();
         self
     }
 

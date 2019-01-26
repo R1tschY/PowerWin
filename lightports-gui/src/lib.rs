@@ -10,3 +10,4 @@ pub mod usr_ctrl;
 pub mod custom_control;
 pub mod extra;
 pub mod app;
+pub mod size;

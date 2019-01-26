@@ -1,4 +1,5 @@
 use std::io;
+use std::ptr;
 
 use winapi::um::errhandlingapi::{GetLastError, SetLastError};
 
@@ -19,6 +20,17 @@ macro_rules! non_zero_impl {
 // i32 -> BOOL
 // isize -> LONG_PTR
 non_zero_impl! { i32 isize }
+
+impl<T> NonNull for *const T {
+    #[inline]
+    fn non_null(&self) -> bool { *self != ptr::null() }
+}
+
+impl<T> NonNull for *mut T {
+    #[inline]
+    fn non_null(&self) -> bool { *self != ptr::null_mut() }
+}
+
 
 #[inline]
 pub fn clear_last_error() {
