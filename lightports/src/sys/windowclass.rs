@@ -1,14 +1,13 @@
-use winapi::shared::minwindef::{ATOM, HINSTANCE};
-use winapi::shared::windef::{
-    HICON, HCURSOR, HBRUSH
-};
-use std::ptr::null_mut;
-use winapi::um::winuser::{RegisterClassExW, WNDCLASSEXW};
-use std::io;
+use crate::WString;
+use bitflags::bitflags;
 use std::ffi::OsStr;
+use std::io;
 use std::mem::size_of;
+use std::ptr::null_mut;
+use winapi::shared::minwindef::{ATOM, HINSTANCE};
+use winapi::shared::windef::{HBRUSH, HCURSOR, HICON};
 use winapi::um::winuser::WNDPROC;
-use crate::{WString};
+use winapi::um::winuser::{RegisterClassExW, WNDCLASSEXW};
 
 bitflags! {
     #[derive(Default)]
@@ -28,15 +27,16 @@ bitflags! {
     }
 }
 
-
 pub struct WindowClass(ATOM);
 
-impl WindowClass  {
+impl WindowClass {
     pub fn build() -> WindowClassBuilder {
         WindowClassBuilder::new()
     }
 
-    pub fn as_atom(&self) -> ATOM { self.0 }
+    pub fn as_atom(&self) -> ATOM {
+        self.0
+    }
 }
 
 #[derive(Clone)]
@@ -101,11 +101,10 @@ impl WindowClassBuilder {
                 hbrBackground: self.background,
                 lpszMenuName: self.menu.as_ptr(),
                 lpszClassName: self.class_name.as_ptr(),
-                hIconSm: self.small_icon
+                hIconSm: self.small_icon,
             };
 
             Ok(WindowClass(RegisterClassExW(&params)))
         }
     }
 }
-

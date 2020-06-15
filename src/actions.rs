@@ -12,6 +12,7 @@ use lightports::sys::*;
 use lightports::user_control::*;
 use lightports::usr_ctrl::UsrCtrl;
 use lightports::Result;
+use log::error;
 use winapi::shared::windef::HWND;
 use winapi::um::winuser::WM_DESTROY;
 use winapi::um::winuser::WM_HOTKEY;

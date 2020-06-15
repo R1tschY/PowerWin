@@ -18,12 +18,13 @@ use lightports::{
     user_control::UserControlClassBuilderExt,
     usr_ctrl::UsrCtrl,
 };
+use winapi::shared::minwindef::HINSTANCE;
+use winapi::um::winuser::*;
+
 use usewin::actions::Actions;
 use usewin::hotkeys::HotKeysModuleBuilder;
 use usewin::module::{ModuleBuilder, ModuleContext};
 use usewin::resources::POWERWIN_SMALL_ICON;
-use winapi::shared::minwindef::HINSTANCE;
-use winapi::um::winuser::*;
 
 const MSG_TRAYICON: u32 = WM_USER + 0x27;
 

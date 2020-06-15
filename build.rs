@@ -1,8 +1,5 @@
-extern crate embed_resource;
-extern crate winres;
-
-use std::io;
 use std::env;
+use std::io;
 
 const MANIFEST_TEMPLATE: &'static str = r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3" >
@@ -45,7 +42,7 @@ fn to_windows_version(s: &str) -> String {
         1 => format!("{}.0.0", s),
         2 => format!("{}.0", s),
         3 => String::from(s),
-        _ => panic!("invalid package version")
+        _ => panic!("invalid package version"),
     }
 }
 
@@ -54,9 +51,14 @@ fn main() -> io::Result<()> {
     let versioninfo = format!("{}/versioninfo.rc", env::var("OUT_DIR").unwrap());
     winres::WindowsResource::new()
         .set("LegalCopyright", "Copyright © 2019 Richard Liebscher")
-        .set_manifest(&MANIFEST_TEMPLATE
-            .replace("@CARGO_PKG_VERSION@", &to_windows_version(env!("CARGO_PKG_VERSION")))
-            .replace("\n", " ")) // FIXME: winres bug
+        .set_manifest(
+            &MANIFEST_TEMPLATE
+                .replace(
+                    "@CARGO_PKG_VERSION@",
+                    &to_windows_version(env!("CARGO_PKG_VERSION")),
+                )
+                .replace("\n", " "),
+        ) // FIXME: winres bug
         .write_resource_file(&versioninfo)?;
     embed_resource::compile(&versioninfo);
 

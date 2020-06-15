@@ -1,20 +1,20 @@
 use std::ffi::{c_void, OsStr};
 use std::mem;
-use std::ptr::null_mut;
 use std::ptr;
+use std::ptr::null_mut;
 
-use crate::{clear_last_error, NonNull, Result, result, WString};
-use winapi::shared::minwindef::{UINT};
+use crate::{clear_last_error, result, NonNull, Result, WString};
 use winapi::shared::minwindef::HINSTANCE;
-use winapi::shared::windef::{
-    HMENU, HWND
-};
-use winapi::um::winuser::HWND_MESSAGE;
-use winapi::um::winuser::{DefWindowProcW, DestroyWindow, GetWindowLongPtrW, SetWindowLongPtrW, ShowWindow};
+use winapi::shared::minwindef::UINT;
+use winapi::shared::windef::{HMENU, HWND};
 use winapi::um::winuser::CreateWindowExW;
+use winapi::um::winuser::HWND_MESSAGE;
+use winapi::um::winuser::{
+    DefWindowProcW, DestroyWindow, GetWindowLongPtrW, SetWindowLongPtrW, ShowWindow,
+};
 
-use crate::sys::{WindowClass, WParam, LParam, LResult, AtomOrString};
-
+use crate::sys::{AtomOrString, LParam, LResult, WParam, WindowClass};
+use bitflags::bitflags;
 
 bitflags! {
     #[derive(Default)]
@@ -88,7 +88,6 @@ bitflags! {
     }
 }
 
-
 pub trait AsHwnd {
     fn as_hwnd(&self) -> HWND;
 }
@@ -99,7 +98,7 @@ impl AsHwnd for HWND {
     }
 }
 
-pub trait IsA<T>: AsHwnd + 'static { }
+pub trait IsA<T>: AsHwnd + 'static {}
 impl<T> IsA<T> for T where T: AsHwnd + 'static {}
 
 pub trait WindowFunctions {
@@ -123,9 +122,7 @@ impl<T: IsA<Window>> WindowFunctions for T {
 
     #[inline]
     fn get_attribute(&self, index: i32) -> Result<isize> {
-        unsafe {
-            result(GetWindowLongPtrW(self.as_hwnd(), index))
-        }
+        unsafe { result(GetWindowLongPtrW(self.as_hwnd(), index)) }
     }
 
     #[inline]
@@ -138,11 +135,14 @@ impl<T: IsA<Window>> WindowFunctions for T {
     fn try_set_attribute(&self, index: i32, data: isize) -> Result<isize> {
         clear_last_error();
         unsafe {
-            result(SetWindowLongPtrW(self.as_hwnd(), index, mem::transmute(data)))
+            result(SetWindowLongPtrW(
+                self.as_hwnd(),
+                index,
+                mem::transmute(data),
+            ))
         }
     }
 }
-
 
 /// low level HWND abstraction
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -150,13 +150,24 @@ pub struct Window(HWND);
 
 impl Window {
     #[inline]
-    pub fn as_hwnd(&self) -> HWND { self.0 }
+    pub fn as_hwnd(&self) -> HWND {
+        self.0
+    }
 
-    pub fn build() -> WindowBuilder { WindowBuilder::new() }
+    pub fn build() -> WindowBuilder {
+        WindowBuilder::new()
+    }
 
     #[inline]
     pub fn default_proc<W: Into<WParam>, L: Into<LParam>>(&self, msg: UINT, w: W, l: L) -> LResult {
-        unsafe { LResult::from(DefWindowProcW(self.0, msg, w.into().into(), l.into().into())) }
+        unsafe {
+            LResult::from(DefWindowProcW(
+                self.0,
+                msg,
+                w.into().into(),
+                l.into().into(),
+            ))
+        }
     }
 }
 
@@ -188,7 +199,7 @@ pub struct WindowBuilder {
     parent: HWND,
     menu: HMENU,
     module: HINSTANCE,
-    create_param: *mut c_void
+    create_param: *mut c_void,
 }
 
 impl WindowBuilder {
@@ -205,7 +216,7 @@ impl WindowBuilder {
             parent: null_mut(),
             menu: null_mut(),
             module: null_mut(),
-            create_param: null_mut()
+            create_param: null_mut(),
         }
     }
 
@@ -279,12 +290,14 @@ impl WindowBuilder {
                 self.class.as_ptr(),
                 self.window_name.as_ptr(),
                 self.style,
-                self.x, self.y,
-                self.width, self.height,
+                self.x,
+                self.y,
+                self.width,
+                self.height,
                 self.parent,
                 self.menu,
                 self.module,
-                self.create_param
+                self.create_param,
             )))
         }
     }

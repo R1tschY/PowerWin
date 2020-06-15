@@ -3,24 +3,16 @@ use std::io;
 use std::num;
 
 use lazy_static::lazy_static;
-use nom::space0;
 use nom::types::CompleteStr;
-use winapi::um::winuser::GetKeyboardLayout;
-use winapi::um::winuser::MOD_ALT;
-use winapi::um::winuser::MOD_CONTROL;
-use winapi::um::winuser::MOD_SHIFT;
-use winapi::um::winuser::MOD_WIN;
-use winapi::um::winuser::VK_BACK;
-use winapi::um::winuser::VK_DELETE;
-use winapi::um::winuser::VK_END;
-use winapi::um::winuser::VK_ESCAPE;
-use winapi::um::winuser::VK_F1;
-use winapi::um::winuser::VK_HOME;
-use winapi::um::winuser::VK_INSERT;
-use winapi::um::winuser::VK_NEXT;
-use winapi::um::winuser::VK_PRIOR;
-use winapi::um::winuser::VK_RETURN;
-use winapi::um::winuser::VkKeyScanExW;
+use nom::{
+    alt, call, char, complete, delimited, eof, error_position, exact, is_not, map_opt, map_res,
+    named, preceded, separated_nonempty_list, separated_nonempty_list_complete, space0, tag,
+    take_while1, terminated, tuple, tuple_parser,
+};
+use winapi::um::winuser::{
+    GetKeyboardLayout, VkKeyScanExW, MOD_ALT, MOD_CONTROL, MOD_SHIFT, MOD_WIN, VK_BACK, VK_DELETE,
+    VK_END, VK_ESCAPE, VK_F1, VK_HOME, VK_INSERT, VK_NEXT, VK_PRIOR, VK_RETURN,
+};
 
 lazy_static! {
     static ref SPECIAL_KEYS: HashMap<&'static str, Key> = {
@@ -39,7 +31,10 @@ lazy_static! {
             ("page_down", Key::PageDown),
             ("esc", Key::Esc),
             ("plus", Key::Char('+')),
-        ].iter().cloned().collect()
+        ]
+        .iter()
+        .cloned()
+        .collect()
     };
 }
 
@@ -51,7 +46,15 @@ pub enum Key {
     Win,
     F(u8),
     Char(char),
-    Backspace, Delete, Home, End, PageUp, PageDown, Insert, Esc, Enter
+    Backspace,
+    Delete,
+    Home,
+    End,
+    PageUp,
+    PageDown,
+    Insert,
+    Esc,
+    Enter,
 }
 
 fn is_decimal_digit(d: char) -> bool {
@@ -79,7 +82,7 @@ fn parse_char_key(input: CompleteStr) -> Option<Key> {
     let c = chars.next().unwrap();
     match chars.next() {
         Some(_) => None,
-        None => Some(Key::Char(c))
+        None => Some(Key::Char(c)),
     }
 }
 
@@ -112,30 +115,43 @@ named!(key_combo<CompleteStr, Vec<Key> >,
 pub fn parse_key_combination(input: &str) -> Option<Vec<Key>> {
     // TODO: check for multiple same keys
     // TODO: check for only one key
-    key_combo(input.to_lowercase().as_str().into()).map(|(_, out)| out).ok()
+    key_combo(input.to_lowercase().as_str().into())
+        .map(|(_, out)| out)
+        .ok()
 }
 
 fn char_to_vk(c: &char) -> io::Result<(u32, u32)> {
     let mut b = [0; 2];
     let utf16 = c.encode_utf16(&mut b);
     if utf16.len() == 2 {
-        Err(io::Error::new(io::ErrorKind::InvalidInput,
-                           "unsupported character key (two utf16 characters needed)"))
+        Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "unsupported character key (two utf16 characters needed)",
+        ))
     } else {
         let res = unsafe { VkKeyScanExW(utf16[0].clone(), GetKeyboardLayout(0)) };
         if res == -1 {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
-                "unsupported character key (not supported in current input locale)"))
+                "unsupported character key (not supported in current input locale)",
+            ));
         }
 
         let mut modifier = 0;
-        if res & 0x100 != 0 { modifier |= MOD_SHIFT; }
-        if res & 0x200 != 0 { modifier |= MOD_CONTROL; }
-        if res & 0x400 != 0 { modifier |= MOD_ALT; }
+        if res & 0x100 != 0 {
+            modifier |= MOD_SHIFT;
+        }
+        if res & 0x200 != 0 {
+            modifier |= MOD_CONTROL;
+        }
+        if res & 0x400 != 0 {
+            modifier |= MOD_ALT;
+        }
         if (res >> 8) >= 8 {
-            Err(io::Error::new(io::ErrorKind::InvalidInput,
-                               "unsupported character key (unsupported modifier required)"))
+            Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "unsupported character key (unsupported modifier required)",
+            ))
         } else {
             Ok((modifier as u32, (res & 0xFF) as u32))
         }
@@ -157,7 +173,7 @@ pub fn to_vk(key_seq: &[Key]) -> io::Result<(u32, u32)> {
                 let (m, k) = char_to_vk(c)?;
                 modifier |= m;
                 vk = k;
-            },
+            }
             Key::Backspace => vk = VK_BACK as u32,
             Key::Home => vk = VK_HOME as u32,
             Key::End => vk = VK_END as u32,
@@ -177,7 +193,10 @@ pub fn parse_key_combination_to_vk(input: &str) -> io::Result<(u32, u32)> {
     if let Some(combi) = parse_key_combination(input) {
         to_vk(&combi)
     } else {
-        Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid key combination"))
+        Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "invalid key combination",
+        ))
     }
 }
 
@@ -189,7 +208,8 @@ mod tests {
     use winapi::um::winuser::VK_TAB;
 
     use super::*;
-    use nom::{Err as Error};
+    use assert_matches::assert_matches;
+    use nom::Err as Error;
 
     #[test]
     fn test_fkey() {
@@ -246,12 +266,22 @@ mod tests {
 
     #[test]
     fn test_key_combi() {
-        assert_eq!(key_combo("alt+f3".into()), Ok(("".into(), vec![Key::Alt, Key::F(3)])));
+        assert_eq!(
+            key_combo("alt+f3".into()),
+            Ok(("".into(), vec![Key::Alt, Key::F(3)]))
+        );
         assert_eq!(
             key_combo("win + alt + f3".into()),
-            Ok(("".into(), vec![Key::Win, Key::Alt, Key::F(3)])));
-        assert_eq!(key_combo(" alt + f3 ".into()), Ok(("".into(), vec![Key::Alt, Key::F(3)])));
-        assert_eq!(key_combo(" alt+  f3    ".into()), Ok(("".into(), vec![Key::Alt, Key::F(3)])));
+            Ok(("".into(), vec![Key::Win, Key::Alt, Key::F(3)]))
+        );
+        assert_eq!(
+            key_combo(" alt + f3 ".into()),
+            Ok(("".into(), vec![Key::Alt, Key::F(3)]))
+        );
+        assert_eq!(
+            key_combo(" alt+  f3    ".into()),
+            Ok(("".into(), vec![Key::Alt, Key::F(3)]))
+        );
         assert_eq!(key_combo("shift".into()), Ok(("".into(), vec![Key::Shift])));
 
         assert_matches!(key_combo("alt+f 3".into()), Err(Error::Error(_)));
@@ -259,16 +289,36 @@ mod tests {
 
     #[test]
     fn test_parse_key_combination() {
-        assert_eq!(parse_key_combination("alt+f3"), Some(vec![Key::Alt, Key::F(3)]));
-        assert_eq!(parse_key_combination("alt + f3"), Some(vec![Key::Alt, Key::F(3)]));
-        assert_eq!(parse_key_combination("ALT+F3"), Some(vec![Key::Alt, Key::F(3)]));
-        assert_eq!(parse_key_combination(" Alt   +\tf3 "), Some(vec![Key::Alt, Key::F(3)]));
-        assert_eq!(parse_key_combination("WIN+SPACE"), Some(vec![Key::Win, Key::Char(' ')]));
-        assert_eq!(parse_key_combination("CTRL+WIN+SHIFT+HOME"),
-                   Some(vec![Key::Ctrl, Key::Win, Key::Shift, Key::Home]));
+        assert_eq!(
+            parse_key_combination("alt+f3"),
+            Some(vec![Key::Alt, Key::F(3)])
+        );
+        assert_eq!(
+            parse_key_combination("alt + f3"),
+            Some(vec![Key::Alt, Key::F(3)])
+        );
+        assert_eq!(
+            parse_key_combination("ALT+F3"),
+            Some(vec![Key::Alt, Key::F(3)])
+        );
+        assert_eq!(
+            parse_key_combination(" Alt   +\tf3 "),
+            Some(vec![Key::Alt, Key::F(3)])
+        );
+        assert_eq!(
+            parse_key_combination("WIN+SPACE"),
+            Some(vec![Key::Win, Key::Char(' ')])
+        );
+        assert_eq!(
+            parse_key_combination("CTRL+WIN+SHIFT+HOME"),
+            Some(vec![Key::Ctrl, Key::Win, Key::Shift, Key::Home])
+        );
         assert_eq!(parse_key_combination("HOME"), Some(vec![Key::Home]));
         assert_eq!(parse_key_combination("PAGE_UP"), Some(vec![Key::PageUp]));
-        assert_eq!(parse_key_combination("Alt+Ä"), Some(vec![Key::Alt, Key::Char('ä')]));
+        assert_eq!(
+            parse_key_combination("Alt+Ä"),
+            Some(vec![Key::Alt, Key::Char('ä')])
+        );
 
         assert_eq!(parse_key_combination("alt+f 3"), None);
         assert_eq!(parse_key_combination("a lt+f3"), None);
