@@ -4,19 +4,19 @@ use std::collections::HashMap;
 use std::io;
 use std::rc::Rc;
 
+use crate::key_combination::parse_key_combination_to_vk;
 use lazy_static::lazy_static;
+use lightports::app::app_instance;
+use lightports::extra::hotkey::HotKey;
+use lightports::sys::*;
+use lightports::user_control::*;
+use lightports::usr_ctrl::UsrCtrl;
 use lightports::Result;
-use lightports_gui::app::app_instance;
-use lightports_gui::extra::hotkey::HotKey;
-use lightports_gui::sys::*;
-use lightports_gui::user_control::*;
-use lightports_gui::usr_ctrl::UsrCtrl;
 use winapi::shared::windef::HWND;
-use winapi::um::winuser::WS_POPUP;
-use winapi::um::winuser::WS_EX_TOOLWINDOW;
 use winapi::um::winuser::WM_DESTROY;
 use winapi::um::winuser::WM_HOTKEY;
-use crate::key_combination::parse_key_combination_to_vk;
+use winapi::um::winuser::WS_EX_TOOLWINDOW;
+use winapi::um::winuser::WS_POPUP;
 
 lazy_static! {
     static ref ACTIONS_WNDCLASS: UserControlClass<HotkeySink> = {
@@ -29,9 +29,9 @@ lazy_static! {
 }
 
 struct HotkeySinkInner {
-    functions: HashMap<i32, Rc<Fn()>>,
+    functions: HashMap<i32, Rc<dyn Fn()>>,
     last_id: i32,
-    actions: HashMap<Cow<'static, str>, (Option<HotKey>, Action)>
+    actions: HashMap<Cow<'static, str>, (Option<HotKey>, Action)>,
 }
 
 struct HotkeySink(RefCell<HotkeySinkInner>);
@@ -44,12 +44,21 @@ impl HotkeySinkInner {
 
         self.last_id += 1;
         if self.last_id > 0xBFFF {
-            return Err(io::Error::new(io::ErrorKind::Other, "no hotkey identifiers left"))
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                "no hotkey identifiers left",
+            ));
         }
 
         if let Some(func) = action.func.clone() {
-            let hotkey = HotKey::new(action.modifiers as isize, action.vk as i32, &hwnd, self.last_id)?;
-            self.actions.insert(action.id.clone(), (Some(hotkey), action));
+            let hotkey = HotKey::new(
+                action.modifiers as isize,
+                action.vk as i32,
+                &hwnd,
+                self.last_id,
+            )?;
+            self.actions
+                .insert(action.id.clone(), (Some(hotkey), action));
             self.functions.insert(self.last_id, func);
         } else {
             self.actions.insert(action.id.clone(), (None, action));
@@ -74,18 +83,18 @@ pub struct Action {
     pub id: Cow<'static, str>,
     pub modifiers: u32, // TODO: change to Vec<Key> or KeyCombination
     pub vk: u32,
-    pub func: Option<Rc<Fn()>>
+    pub func: Option<Rc<dyn Fn()>>,
 }
 
 pub struct Actions {
-    window: UserControl<HotkeySink>
+    window: UserControl<HotkeySink>,
 }
 
 impl Actions {
-
     pub fn new() -> Actions {
         Actions {
-            window: ACTIONS_WNDCLASS.build_window()
+            window: ACTIONS_WNDCLASS
+                .build_window()
                 .module(app_instance())
                 .message_only()
                 .style(WS_POPUP)
@@ -100,52 +109,54 @@ impl Actions {
         let id = action.id.clone();
         match self.window.get().0.borrow_mut().set_action(hwnd, action) {
             Err(err) => error!("cannot register action {}: {}", id, err),
-            _ => ()
+            _ => (),
         }
     }
 
     pub fn set_doc_action<I: Into<Cow<'static, str>>>(&mut self, id: I, keys: &str) {
         match parse_key_combination_to_vk(keys) {
-            Ok((modifiers, vk)) =>
-                self.set_action_internal(Action {
-                    id: id.into(),
-                    modifiers,
-                    vk,
-                    func: None
-                }),
+            Ok((modifiers, vk)) => self.set_action_internal(Action {
+                id: id.into(),
+                modifiers,
+                vk,
+                func: None,
+            }),
             Err(err) => error!("cannot register hotkey {}: {}", keys, err),
         }
     }
 
-    pub fn set_action<I: Into<Cow<'static, str>>>(
-        &mut self, id: I, keys: &str, f: Rc<Fn()>
-    ) {
+    pub fn set_action<I: Into<Cow<'static, str>>>(&mut self, id: I, keys: &str, f: Rc<dyn Fn()>) {
         match parse_key_combination_to_vk(keys) {
-            Ok((modifiers, vk)) =>
-                self.set_action_internal(Action {
-                    id: id.into(),
-                    modifiers,
-                    vk,
-                    func: Some(f)
-                }),
+            Ok((modifiers, vk)) => self.set_action_internal(Action {
+                id: id.into(),
+                modifiers,
+                vk,
+                func: Some(f),
+            }),
             Err(err) => error!("cannot register hotkey {}: {}", keys, err),
         }
     }
 
     pub fn set_system_action<I: Into<Cow<'static, str>>, T: Fn() -> io::Result<()> + 'static>(
-        &mut self, id: I, keys: &str, f: T
+        &mut self,
+        id: I,
+        keys: &str,
+        f: T,
     ) {
         let id = id.into();
-        self.set_action(id.clone(), keys, Rc::new(move || match f() {
-            Ok(_) => (),
-            Err(err) => error!("action {} failed: {}", id, err),
-        }))
+        self.set_action(
+            id.clone(),
+            keys,
+            Rc::new(move || match f() {
+                Ok(_) => (),
+                Err(err) => error!("action {} failed: {}", id, err),
+            }),
+        )
     }
 
     pub fn remove_action(&mut self, id: &str) {
         self.window.get().0.borrow_mut().remove_action(id)
     }
-
 }
 
 impl UsrCtrl for HotkeySink {
@@ -155,7 +166,7 @@ impl UsrCtrl for HotkeySink {
         HotkeySink(RefCell::new(HotkeySinkInner {
             functions: HashMap::new(),
             last_id: -1,
-            actions: HashMap::new()
+            actions: HashMap::new(),
         }))
     }
 

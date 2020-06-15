@@ -3,7 +3,7 @@ use std::mem;
 use std::ptr::null_mut;
 use std::ptr;
 
-use lightports::{clear_last_error, NonNull, Result, result, WString};
+use crate::{clear_last_error, NonNull, Result, result, WString};
 use winapi::shared::minwindef::{UINT};
 use winapi::shared::minwindef::HINSTANCE;
 use winapi::shared::windef::{

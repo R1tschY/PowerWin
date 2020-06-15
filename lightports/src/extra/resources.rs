@@ -1,31 +1,17 @@
 use std::borrow::Cow;
-use std::ops::Deref;
-use std::ptr;
 
-use lightports::{result, Result};
-use lightports::{Wstr, WString};
-use winapi::shared::minwindef::HINSTANCE;
-use winapi::shared::windef::HICON;
-use winapi::um::winuser::DestroyIcon;
-use winapi::um::winuser::IMAGE_ICON;
-use winapi::um::winuser::LoadImageW;
-use winapi::um::winuser::LR_DEFAULTSIZE;
-use winapi::um::winuser::LR_SHARED;
-use winapi::um::winuser::MAKEINTRESOURCEW;
-
-use crate::size::Size;
-
+use crate::{WString, Wstr};
 
 pub enum ResourceRef<'t> {
     ResourceName(Cow<'t, Wstr>),
-    ResourceId(u16)
+    ResourceId(u16),
 }
 
 pub enum ResourceSize {
     Resource,
     Small,
     Large,
-    Specific(i32, i32)
+    Specific(i32, i32),
 }
 
 impl<'t> From<u16> for ResourceRef<'t> {

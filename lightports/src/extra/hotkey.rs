@@ -1,4 +1,4 @@
-use lightports::{result, Result};
+use crate::{result, Result};
 use winapi::um::winuser::{RegisterHotKey, UnregisterHotKey};
 use winapi::shared::windef::HWND;
 use crate::sys::AsHwnd;

@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use lightports::{result, Result, Wstr};
+use crate::{result, Result, Wstr};
 use winapi::um::shellapi::{
     NIF_MESSAGE, NIF_SHOWTIP, NIF_TIP, NIF_ICON,
     NIM_ADD, NIM_DELETE, NIM_MODIFY, NIM_SETVERSION,

@@ -1,6 +1,6 @@
 use winapi::um::shlobj::SHGetKnownFolderPath;
 use std::ptr;
-use lightports::{hresult, Result, FromWide};
+use crate::{hresult, Result, FromWide};
 use std::path::PathBuf;
 use winapi::um::shtypes::KNOWNFOLDERID;
 

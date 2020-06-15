@@ -8,7 +8,7 @@ use std::io;
 use std::ffi::OsStr;
 use std::mem::size_of;
 use winapi::um::winuser::WNDPROC;
-use lightports::{WString};
+use crate::{WString};
 
 bitflags! {
     #[derive(Default)]

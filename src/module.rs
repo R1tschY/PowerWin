@@ -3,7 +3,7 @@ use config::Config;
 
 pub struct ModuleContext<'a> {
     actions: &'a mut Actions,
-    config: &'a Config
+    config: &'a Config,
 }
 
 impl<'a> ModuleContext<'a> {
@@ -20,10 +20,9 @@ impl<'a> ModuleContext<'a> {
     }
 }
 
-
 pub trait ModuleBuilder {
     fn name(&self) -> &'static str;
-    fn build(&self, ctx: &mut ModuleContext) -> Box<Module>;
+    fn build(&self, ctx: &mut ModuleContext) -> Box<dyn Module>;
 }
 
 pub trait Module {

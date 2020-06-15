@@ -7,7 +7,7 @@ use std::ptr;
 use std::io;
 use std::cell::Cell;
 
-use lightports::Result;
+use crate::Result;
 use log::error;
 use winapi::shared::minwindef::{HINSTANCE, LPARAM, LRESULT, UINT, WPARAM};
 use winapi::shared::windef::{HMENU, HWND};

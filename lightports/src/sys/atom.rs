@@ -1,6 +1,6 @@
 use std::ffi::c_void;
 
-use lightports::{WString};
+use crate::{WString};
 
 
 /// parameter type for functions, that accept a ATOM or a string.

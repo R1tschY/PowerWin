@@ -1,36 +1,34 @@
 extern crate config;
 extern crate lightports;
-extern crate lightports_gui;
 extern crate winapi;
 
-use lightports::debug::output_debug_string;
-use lightports_gui::{
+use lightports::app::app_instance;
+use lightports::extra::icon::Icon;
+use lightports::extra::resources::ResourceSize;
+use lightports::output_debug_string;
+use lightports::{
     shell::TrayIcon,
-    sys::{LResult, WParam},
-    sys::{Window, WindowClass},
     sys::dispatch_messages,
-    sys::LParam,
     sys::post_quit_message,
+    sys::LParam,
     sys::WindowFunctions,
     sys::WindowStyle,
+    sys::{LResult, WParam},
+    sys::{Window, WindowClass},
     user_control::UserControlClassBuilderExt,
-    usr_ctrl::UsrCtrl
+    usr_ctrl::UsrCtrl,
 };
-use winapi::um::winuser::*;
-use lightports_gui::app::app_instance;
 use usewin::actions::Actions;
 use usewin::hotkeys::HotKeysModuleBuilder;
 use usewin::module::{ModuleBuilder, ModuleContext};
-use lightports_gui::extra::icon::Icon;
-use lightports_gui::extra::resources::ResourceSize;
-use winapi::shared::minwindef::HINSTANCE;
 use usewin::resources::POWERWIN_SMALL_ICON;
+use winapi::shared::minwindef::HINSTANCE;
+use winapi::um::winuser::*;
 
 const MSG_TRAYICON: u32 = WM_USER + 0x27;
 
-
 struct MyControl {
-    _tray_icon: TrayIcon
+    _tray_icon: TrayIcon,
 }
 
 impl UsrCtrl for MyControl {
@@ -41,8 +39,10 @@ impl UsrCtrl for MyControl {
             .callback_message(MSG_TRAYICON)
             .icon(
                 Icon::from_resource_shared(*hinst, POWERWIN_SMALL_ICON, ResourceSize::Small)
-                    .expect("app icon could not be loaded"))
-            .add().expect("creation of tray icon failed");
+                    .expect("app icon could not be loaded"),
+            )
+            .add()
+            .expect("creation of tray icon failed");
 
         MyControl { _tray_icon }
     }
@@ -51,30 +51,28 @@ impl UsrCtrl for MyControl {
         match msg {
             WM_CLOSE => {
                 post_quit_message(0);
-            },
+            }
             WM_HOTKEY => {
                 println!("WM_HOTKEY");
             }
 
             MSG_TRAYICON if l.high_word() == 42 => {
                 println!("msg: {:x} x: {} y: {}", l.low_word(), w.get_x(), w.get_y());
-            },
+            }
 
-            _ => ()
+            _ => (),
         }
 
         hwnd.default_proc(msg, w, l)
     }
 }
 
-
 fn main() {
     println!("Hello, world!");
     output_debug_string("Hello, windows!");
 
     let mut settings = config::Config::default();
-    settings
-        .merge(config::File::with_name("Settings")).unwrap();
+    settings.merge(config::File::with_name("Settings")).unwrap();
     // println!("\n{:?} \n\n-----------",
     //          settings.try_into::<HashMap<String, HashMap<String, String>>>().unwrap());
 
