@@ -105,7 +105,7 @@ impl Actions {
         }
     }
 
-    pub fn set_action_internal(&mut self, action: Action) {
+    fn set_action_internal(&mut self, action: Action) {
         let hwnd = self.window.as_hwnd();
         let id = action.id.clone();
         match self.window.get().0.borrow_mut().set_action(hwnd, action) {
@@ -185,6 +185,6 @@ impl UsrCtrl for HotkeySink {
             func();
         }
 
-        LResult::from(0)
+        0.into()
     }
 }

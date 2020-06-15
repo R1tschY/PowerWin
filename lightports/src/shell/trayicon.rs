@@ -2,11 +2,8 @@ use std::borrow::Cow;
 
 use crate::{result, Result, Wstr};
 use winapi::um::shellapi::{
-    NIF_MESSAGE, NIF_SHOWTIP, NIF_TIP, NIF_ICON,
-    NIM_ADD, NIM_DELETE, NIM_MODIFY, NIM_SETVERSION,
-    NOTIFYICON_VERSION_4,
-    NOTIFYICONDATAW,
-    Shell_NotifyIconW,
+    Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_SHOWTIP, NIF_TIP, NIM_ADD, NIM_DELETE,
+    NIM_MODIFY, NIM_SETVERSION, NOTIFYICONDATAW, NOTIFYICON_VERSION_4,
 };
 
 use crate::extra::icon::Icon;
@@ -14,12 +11,16 @@ use crate::sys::Window;
 
 pub struct TrayIcon {
     hwnd: Window,
-    id: u32
+    id: u32,
 }
 
 impl TrayIcon {
     pub fn build(hwnd: Window, id: u32) -> TrayIconBuilder {
         TrayIconBuilder::new(hwnd, id)
+    }
+
+    pub fn id(&self) -> u32 {
+        self.id
     }
 
     pub fn change(&self) -> TrayIconBuilder {
@@ -49,10 +50,10 @@ impl TrayIconBuilder {
         }
     }
 
-     pub fn tool_tip<'t, T: Into<Cow<'t, Wstr>>>(&mut self, value: T) -> &mut Self {
-         self._tool_tip(&value.into());
-         self
-     }
+    pub fn tool_tip<'t, T: Into<Cow<'t, Wstr>>>(&mut self, value: T) -> &mut Self {
+        self._tool_tip(&value.into());
+        self
+    }
 
     fn _tool_tip(&mut self, value: &Wstr) {
         self.inner.uFlags |= NIF_TIP | NIF_SHOWTIP;
@@ -77,7 +78,10 @@ impl TrayIconBuilder {
             *self.inner.u.uVersion_mut() = NOTIFYICON_VERSION_4;
             result(Shell_NotifyIconW(NIM_SETVERSION, &mut self.inner))?;
         }
-        Ok(TrayIcon { hwnd: Window::from(self.inner.hWnd), id: self.inner.uID })
+        Ok(TrayIcon {
+            hwnd: Window::from(self.inner.hWnd),
+            id: self.inner.uID,
+        })
     }
 
     pub fn modify(&mut self) -> Result<()> {
@@ -100,7 +104,5 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_builder_new() {
-
-    }
+    fn test_builder_new() {}
 }

@@ -11,6 +11,7 @@ config = { version = "0.9", default-features = false, features = ["ini"] }
 log = "0.4"
 lazy_static = "1.2.0"
 nom = "4.1"
+simplelog = "^0.8.0"
 
 [build-dependencies]
 embed-resource = "1.1.4"

@@ -49,7 +49,7 @@ impl HotKeysModule {
         actions.set_system_action("system.shutdown", "CTRL+F11", shutdown_system);
         actions.set_system_action("system.reboot", "CTRL+F10", reboot_system);
         actions.set_system_action("user.logoff", "CTRL+F9", logoff_user);
-        HotKeysModule
+        Self
     }
 }
 

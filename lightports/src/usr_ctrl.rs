@@ -1,9 +1,9 @@
-use crate::sys::{Window, WParam, LParam, LResult, WindowClassStyle};
+use crate::sys::{LParam, LResult, WParam, Window, WindowClassStyle};
 
 pub trait UsrCtrl {
     type CreateParam;
 
-    fn create(hwnd: Window, params: &Self::CreateParam) -> Self;
+    fn create(hwnd: Window, param: &Self::CreateParam) -> Self;
 
     fn class_style() -> WindowClassStyle {
         WindowClassStyle::default()
@@ -13,4 +13,3 @@ pub trait UsrCtrl {
         hwnd.default_proc(msg, w, l)
     }
 }
-

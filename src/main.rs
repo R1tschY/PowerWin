@@ -1,7 +1,3 @@
-extern crate config;
-extern crate lightports;
-extern crate winapi;
-
 use lightports::app::app_instance;
 use lightports::extra::icon::Icon;
 use lightports::extra::resources::ResourceSize;
@@ -18,9 +14,11 @@ use lightports::{
     user_control::UserControlClassBuilderExt,
     usr_ctrl::UsrCtrl,
 };
+use log::{debug, LevelFilter};
 use winapi::shared::minwindef::HINSTANCE;
 use winapi::um::winuser::*;
 
+use simplelog::{ConfigBuilder, SimpleLogger};
 use usewin::actions::Actions;
 use usewin::hotkeys::HotKeysModuleBuilder;
 use usewin::module::{ModuleBuilder, ModuleContext};
@@ -28,11 +26,11 @@ use usewin::resources::POWERWIN_SMALL_ICON;
 
 const MSG_TRAYICON: u32 = WM_USER + 0x27;
 
-struct MyControl {
+struct TrayControl {
     _tray_icon: TrayIcon,
 }
 
-impl UsrCtrl for MyControl {
+impl UsrCtrl for TrayControl {
     type CreateParam = HINSTANCE;
 
     fn create(hwnd: Window, hinst: &HINSTANCE) -> Self {
@@ -45,7 +43,7 @@ impl UsrCtrl for MyControl {
             .add()
             .expect("creation of tray icon failed");
 
-        MyControl { _tray_icon }
+        Self { _tray_icon }
     }
 
     fn message(&self, hwnd: Window, msg: u32, w: WParam, l: LParam) -> LResult {
@@ -57,7 +55,7 @@ impl UsrCtrl for MyControl {
                 println!("WM_HOTKEY");
             }
 
-            MSG_TRAYICON if l.high_word() == 42 => {
+            MSG_TRAYICON if l.high_word() as u32 == self._tray_icon.id() => {
                 println!("msg: {:x} x: {} y: {}", l.low_word(), w.get_x(), w.get_y());
             }
 
@@ -69,7 +67,9 @@ impl UsrCtrl for MyControl {
 }
 
 fn main() {
-    println!("Hello, world!");
+    SimpleLogger::init(LevelFilter::Debug, ConfigBuilder::new().build()).unwrap();
+
+    debug!("Hello, world!");
     output_debug_string("Hello, windows!");
 
     let mut settings = config::Config::default();
@@ -82,8 +82,8 @@ fn main() {
     let win_class = WindowClass::build()
         .class_name("UserControl::test_message")
         .module(module)
-        .register_user_control::<MyControl>()
-        .unwrap();
+        .register_user_control::<TrayControl>()
+        .expect("Window class could not be created");
 
     let window = win_class
         .build_window()
@@ -92,7 +92,7 @@ fn main() {
         .size(300, 200)
         .pos(200, 200)
         .create(&module)
-        .unwrap();
+        .expect("Window could not be created");
 
     let mut actions = Actions::new();
     let mut ctx = ModuleContext::new(&mut actions, &settings);
