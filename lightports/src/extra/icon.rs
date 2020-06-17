@@ -18,9 +18,9 @@ use crate::extra::resources::{ResourceRef, ResourceSize};
 pub struct Icon(HICON);
 
 impl Icon {
-    pub fn create<'t>(
+    pub fn create(
         hinst: HINSTANCE,
-        res: ResourceRef<'t>,
+        res: ResourceRef,
         size: ResourceSize,
         flags: u32,
     ) -> Result<Icon> {
@@ -55,8 +55,8 @@ impl Icon {
         res: R,
         size: ResourceSize,
     ) -> Result<OwnedIcon> {
-        assert!(hinst != ptr::null_mut());
-        Self::create(hinst, res.into(), size, 0).map(|i| OwnedIcon(i))
+        assert!(!hinst.is_null());
+        Self::create(hinst, res.into(), size, 0).map(OwnedIcon)
     }
 
     pub fn from_resource_shared<'t, R: Into<ResourceRef<'t>>>(
@@ -64,7 +64,7 @@ impl Icon {
         res: R,
         size: ResourceSize,
     ) -> Result<Icon> {
-        assert!(hinst != ptr::null_mut());
+        assert!(!hinst.is_null());
         Self::create(hinst, res.into(), size, LR_SHARED)
     }
 

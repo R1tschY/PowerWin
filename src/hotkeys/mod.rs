@@ -66,7 +66,7 @@ unsafe fn enable_privilege(privilege: &str) -> io::Result<()> {
     ))?;
 
     // Get the LUID for the shutdown privilege.
-    let privilege_name = WString::from_str(privilege);
+    let privilege_name = WString::from_os_str(privilege);
     result(LookupPrivilegeValueW(
         ptr::null_mut(),
         privilege_name.as_ptr(),

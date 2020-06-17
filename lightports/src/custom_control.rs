@@ -8,13 +8,15 @@ pub enum WindowMsg<T: Fn() -> () + 'static> {
 }
 pub use self::WindowMsg::*;
 
+pub type MessageHandlerBox = Box<dyn Fn(WParam, LParam) -> Option<LResult>>;
+
 trait MessageHandlerBuilder {
     fn message(&self) -> u32;
-    fn create(self) -> Box<dyn Fn(WParam, LParam) -> Option<LResult>>;
+    fn create(self) -> MessageHandlerBox;
 }
 
 pub struct CustomControl {
-    connections: HashMap<u32, Box<dyn Fn(WParam, LParam) -> Option<LResult>>>,
+    connections: HashMap<u32, MessageHandlerBox>,
 }
 
 impl CustomControl {

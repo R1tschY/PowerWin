@@ -1,14 +1,19 @@
 use std::mem;
 
-use winapi::shared::minwindef::{LOWORD, HIWORD};
+use winapi::shared::minwindef::{HIWORD, LOWORD};
 use winapi::shared::windowsx::{GET_X_LPARAM, GET_Y_LPARAM};
 
-#[derive(Copy, Clone)] pub struct WParam(usize);
-#[derive(Copy, Clone)] pub struct LParam(isize);
-#[derive(Copy, Clone)] pub struct LResult(isize);
+#[derive(Copy, Clone)]
+pub struct WParam(usize);
+#[derive(Copy, Clone)]
+pub struct LParam(isize);
+#[derive(Copy, Clone)]
+pub struct LResult(isize);
 
 impl WParam {
-    pub fn into_raw(&self) -> usize { return self.0 }
+    pub fn as_raw(&self) -> usize {
+        self.0
+    }
 
     pub unsafe fn as_ptr<T>(&self) -> *const T {
         mem::transmute(self.0)
@@ -18,15 +23,25 @@ impl WParam {
         mem::transmute(self.0)
     }
 
-    pub fn low_word(&self) -> u16 { LOWORD(self.0 as u32) }
-    pub fn high_word(&self) -> u16 { HIWORD(self.0 as u32) }
+    pub fn low_word(&self) -> u16 {
+        LOWORD(self.0 as u32)
+    }
+    pub fn high_word(&self) -> u16 {
+        HIWORD(self.0 as u32)
+    }
 
-    pub fn get_x(&self) -> i32 { GET_X_LPARAM(unsafe { mem::transmute(self.0) }) }
-    pub fn get_y(&self) -> i32 { GET_Y_LPARAM(unsafe { mem::transmute(self.0) }) }
+    pub fn get_x(&self) -> i32 {
+        GET_X_LPARAM(unsafe { mem::transmute(self.0) })
+    }
+    pub fn get_y(&self) -> i32 {
+        GET_Y_LPARAM(unsafe { mem::transmute(self.0) })
+    }
 }
 
 impl LParam {
-    pub fn into_raw(&self) -> isize { return self.0 }
+    pub fn as_raw(&self) -> isize {
+        self.0
+    }
 
     pub unsafe fn as_ptr<T>(&self) -> *const T {
         mem::transmute(self.0)
@@ -36,15 +51,25 @@ impl LParam {
         mem::transmute(self.0)
     }
 
-    pub fn low_word(&self) -> u16 { LOWORD(self.0 as u32) }
-    pub fn high_word(&self) -> u16 { HIWORD(self.0 as u32) }
+    pub fn low_word(&self) -> u16 {
+        LOWORD(self.0 as u32)
+    }
+    pub fn high_word(&self) -> u16 {
+        HIWORD(self.0 as u32)
+    }
 
-    pub fn get_x(&self) -> i32 { GET_X_LPARAM(self.0) }
-    pub fn get_y(&self) -> i32 { GET_Y_LPARAM(self.0) }
+    pub fn get_x(&self) -> i32 {
+        GET_X_LPARAM(self.0)
+    }
+    pub fn get_y(&self) -> i32 {
+        GET_Y_LPARAM(self.0)
+    }
 }
 
 impl LResult {
-    pub fn into_raw(&self) -> isize { return self.0 }
+    pub fn as_raw(&self) -> isize {
+        self.0
+    }
 
     pub unsafe fn as_ptr<T>(&self) -> *const T {
         mem::transmute(self.0)

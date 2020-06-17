@@ -1,6 +1,5 @@
 use std::ffi::{c_void, OsStr};
 use std::mem;
-use std::ptr;
 use std::ptr::null_mut;
 
 use crate::{clear_last_error, result, NonNull, Result, WString};
@@ -94,7 +93,7 @@ pub trait AsHwnd {
 
 impl AsHwnd for HWND {
     fn as_hwnd(&self) -> HWND {
-        self.clone()
+        *self
     }
 }
 
@@ -174,7 +173,7 @@ impl Window {
 impl AsHwnd for Window {
     #[inline]
     fn as_hwnd(&self) -> HWND {
-        assert!(self.0 != ptr::null_mut());
+        assert!(!self.0.is_null());
         self.0
     }
 }
@@ -236,12 +235,12 @@ impl WindowBuilder {
     }
 
     pub fn class_name<T: AsRef<OsStr>>(&mut self, name: T) -> &mut Self {
-        self.class = AtomOrString::Str(WString::from_str(name));
+        self.class = AtomOrString::Str(WString::from_os_str(name));
         self
     }
 
     pub fn window_name<T: AsRef<OsStr>>(&mut self, title: T) -> &mut Self {
-        self.window_name = WString::from_str(title); // TODO: into
+        self.window_name = WString::from_os_str(title); // TODO: into
         self
     }
 
@@ -306,6 +305,6 @@ impl WindowBuilder {
 impl NonNull for Window {
     #[inline]
     fn non_null(&self) -> bool {
-        self.0 != null_mut()
+        !self.0.is_null()
     }
 }

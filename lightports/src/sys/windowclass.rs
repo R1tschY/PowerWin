@@ -68,7 +68,7 @@ impl WindowClassBuilder {
     }
 
     pub fn class_name<T: AsRef<OsStr>>(&mut self, value: T) -> &mut WindowClassBuilder {
-        self.class_name = WString::from_str(value);
+        self.class_name = WString::from_os_str(value);
         self
     }
 

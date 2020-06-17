@@ -63,7 +63,7 @@ impl HotkeySinkInner {
     }
 
     fn parse_key_combination(input: &str) -> Vec<Key> {
-        let keys = if !input.is_empty() {
+        if !input.is_empty() {
             match Self::parse_key_combination_to_vk(input) {
                 Ok(keys) => keys,
                 Err(err) => {
@@ -73,8 +73,7 @@ impl HotkeySinkInner {
             }
         } else {
             vec![]
-        };
-        keys
+        }
     }
 
     pub fn refresh_actions(&mut self) {
@@ -247,7 +246,7 @@ impl UsrCtrl for HotkeySink {
             return hwnd.default_proc(msg, w, l);
         }
 
-        let id = w.into_raw() as i32;
+        let id = w.as_raw() as i32;
         let actions = self.0.borrow();
         if let Some(action_id) = actions.functions.get(&id) {
             if let Some(action) = actions.actions.get(action_id) {

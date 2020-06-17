@@ -25,14 +25,14 @@ non_zero_impl! { u8 i32 isize }
 impl<T> NonNull for *const T {
     #[inline]
     fn non_null(&self) -> bool {
-        *self != ptr::null()
+        !self.is_null()
     }
 }
 
 impl<T> NonNull for *mut T {
     #[inline]
     fn non_null(&self) -> bool {
-        *self != ptr::null_mut()
+        !self.is_null()
     }
 }
 

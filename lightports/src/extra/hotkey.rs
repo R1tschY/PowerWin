@@ -5,8 +5,6 @@ use winapi::um::winuser::{RegisterHotKey, UnregisterHotKey};
 
 /// for documentation: Windows RegisterHotKey function
 pub struct HotKey {
-    modifiers: u32,
-    vk: u32,
     hwnd: HWND,
     id: i32,
 }
@@ -17,12 +15,7 @@ impl HotKey {
         let modifiers = modifiers as u32;
         let vk = vk as u32;
 
-        result(unsafe { RegisterHotKey(hwnd, id, modifiers, vk) }).map(|_| HotKey {
-            modifiers,
-            vk,
-            hwnd,
-            id,
-        })
+        result(unsafe { RegisterHotKey(hwnd, id, modifiers, vk) }).map(|_| HotKey { hwnd, id })
     }
 
     pub fn id(&self) -> i32 {

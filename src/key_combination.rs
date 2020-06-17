@@ -131,7 +131,7 @@ fn char_to_vk(c: &char) -> io::Result<(u32, u32)> {
             "unsupported character key (two utf16 characters needed)",
         ))
     } else {
-        let res = unsafe { VkKeyScanExW(utf16[0].clone(), GetKeyboardLayout(0)) };
+        let res = unsafe { VkKeyScanExW(utf16[0], GetKeyboardLayout(0)) };
         if res == -1 {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,

@@ -1,13 +1,13 @@
-use std::ffi::{OsStr, OsString};
-use std::os::windows::ffi::{OsStrExt, OsStringExt};
-use std::cmp;
-use std::slice;
-use std::mem;
 use std::borrow::Cow;
+use std::cmp;
+use std::ffi::{OsStr, OsString};
+use std::mem;
+use std::os::windows::ffi::{OsStrExt, OsStringExt};
+use std::slice;
 
-use std::path::PathBuf;
 use std::borrow::Borrow;
 use std::ops::Deref;
+use std::path::PathBuf;
 
 unsafe fn wstrlen(p: *mut u16) -> usize {
     for i in 0.. {
@@ -19,11 +19,10 @@ unsafe fn wstrlen(p: *mut u16) -> usize {
 }
 
 pub struct Wstr {
-    inner: [u16]
+    inner: [u16],
 }
 
 impl Wstr {
-
     pub unsafe fn from_bytes_terminated_unchecked(s: &[u16]) -> &Wstr {
         mem::transmute(s)
     }
@@ -41,11 +40,9 @@ impl Wstr {
     }
 }
 
-
-
 #[derive(Clone)]
 pub struct WString {
-    inner: Vec<u16>
+    inner: Vec<u16>,
 }
 
 impl WString {
@@ -81,14 +78,19 @@ impl WString {
         self.inner
     }
 
-    pub fn as_bytes(&self) -> &[u16] { &self.inner[..self.inner.len() - 1] }
-    pub fn as_bytes_terminated(&self) -> &[u16] { &self.inner }
+    pub fn as_bytes(&self) -> &[u16] {
+        &self.inner[..self.inner.len() - 1]
+    }
+    pub fn as_bytes_terminated(&self) -> &[u16] {
+        &self.inner
+    }
 
-    pub fn as_wstr(&self) -> &Wstr { &*self }
-
+    pub fn as_wstr(&self) -> &Wstr {
+        &*self
+    }
 
     #[inline]
-    pub fn from_str<T: AsRef<OsStr>>(s: T) -> WString {
+    pub fn from_os_str<T: AsRef<OsStr>>(s: T) -> WString {
         to_wide(s.as_ref())
     }
 }
@@ -115,7 +117,7 @@ impl Default for WString {
 
 impl<'t> Default for &'t Wstr {
     fn default() -> Self {
-        const EMPTY: &'static [u16] = &[0];
+        const EMPTY: &[u16] = &[0];
         unsafe { Wstr::from_bytes_terminated_unchecked(EMPTY) }
     }
 }
@@ -125,10 +127,11 @@ fn to_wide(s: &OsStr) -> WString {
     WString::new(v)
 }
 
-
 impl Borrow<Wstr> for WString {
     #[inline]
-    fn borrow(&self) -> &Wstr { self }
+    fn borrow(&self) -> &Wstr {
+        self
+    }
 }
 
 impl ToOwned for Wstr {
@@ -150,28 +153,42 @@ impl<'t> From<&'t Wstr> for WString {
 // cow integration
 
 impl<'t> From<&'t Wstr> for Cow<'t, Wstr> {
-    #[inline] fn from(s: &'t Wstr) -> Self { Cow::Borrowed(s) }
+    #[inline]
+    fn from(s: &'t Wstr) -> Self {
+        Cow::Borrowed(s)
+    }
 }
 
 impl<'t> From<&'t WString> for Cow<'t, Wstr> {
-    #[inline] fn from(s: &'t WString) -> Self { Cow::Borrowed(s.as_wstr()) }
+    #[inline]
+    fn from(s: &'t WString) -> Self {
+        Cow::Borrowed(s.as_wstr())
+    }
 }
 
 impl<'t> From<WString> for Cow<'t, Wstr> {
-    #[inline] fn from(s: WString) -> Self { Cow::Owned(s) }
+    #[inline]
+    fn from(s: WString) -> Self {
+        Cow::Owned(s)
+    }
 }
 
 impl<'t, T: AsRef<OsStr>> From<T> for WString {
-    fn from(s: T) -> Self { to_wide(s.as_ref()) }
+    fn from(s: T) -> Self {
+        to_wide(s.as_ref())
+    }
 }
 
 // from wide
 
-pub trait FromWide where Self: Sized {
+pub trait FromWide
+where
+    Self: Sized,
+{
     fn from_wide(wide: &[u16]) -> Self;
 
     unsafe fn from_wide_ptr(wide: *mut u16) -> Self {
-        return Self::from_wide(slice::from_raw_parts(wide, wstrlen(wide)));
+        Self::from_wide(slice::from_raw_parts(wide, wstrlen(wide)))
     }
 }
 
@@ -188,6 +205,3 @@ impl FromWide for PathBuf {
         PathBuf::from(<OsString as OsStringExt>::from_wide(wide))
     }
 }
-
-
-
