@@ -2,16 +2,13 @@ use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::io;
-use std::rc::Rc;
 
 use lightports::app::app_instance;
 use lightports::extra::hotkey::HotKey;
 use lightports::sys::*;
 use lightports::user_control::*;
 use lightports::usr_ctrl::UsrCtrl;
-use lightports::Result;
-use log::error;
-use log::info;
+use log::{error, info, warn};
 use winapi::shared::windef::HWND;
 use winapi::um::winuser::WM_DESTROY;
 use winapi::um::winuser::WM_HOTKEY;
@@ -33,72 +30,119 @@ lazy_static! {
 }
 
 struct HotkeySinkInner {
-    functions: HashMap<i32, Rc<dyn Fn()>>,
+    hwnd: HWND,
     last_id: i32,
-    actions: HashMap<Cow<'static, str>, (Option<HotKey>, Action)>,
+    functions: HashMap<i32, Cow<'static, str>>,
+    hotkeys: HashMap<Cow<'static, str>, HotKey>,
+    actions: HashMap<Cow<'static, str>, Action>,
 }
 
 struct HotkeySink(RefCell<HotkeySinkInner>);
 
 impl HotkeySinkInner {
-    pub fn set_action(&mut self, hwnd: HWND, action: Action) -> Result<()> {
-        if self.actions.contains_key(&action.id) {
-            self.remove_action(&action.id);
-        }
-
-        self.last_id += 1;
-        if self.last_id > 0xBFFF {
-            return Err(io::Error::new(
-                io::ErrorKind::Other,
-                "no hotkey identifiers left",
-            ));
-        }
-
-        if let Some(func) = action.func.clone() {
-            let hotkey = HotKey::new(
-                action.modifiers as isize,
-                action.vk as i32,
-                &hwnd,
-                self.last_id,
-            )?;
-            self.actions
-                .insert(action.id.clone(), (Some(hotkey), action));
-            self.functions.insert(self.last_id, func);
+    fn parse_key_combination_to_vk(input: &str) -> io::Result<Vec<Key>> {
+        if let Some(combi) = parse_key_combination(input) {
+            Ok(combi)
         } else {
-            self.actions.insert(action.id.clone(), (None, action));
+            Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid key combination",
+            ))
+        }
+    }
+
+    pub fn set_action(&mut self, input: &str, id: Cow<'static, str>, func: Option<Box<dyn Fn()>>) {
+        let keys = Self::parse_key_combination(input);
+        let action = Action { id, keys, func };
+
+        if self.actions.contains_key(action.id()) {
+            warn!("Action {} will be overwriten", action.id());
         }
 
-        Ok(())
+        self.actions.insert(action.id.clone(), action);
+    }
+
+    fn parse_key_combination(input: &str) -> Vec<Key> {
+        let keys = if !input.is_empty() {
+            match Self::parse_key_combination_to_vk(input) {
+                Ok(keys) => keys,
+                Err(err) => {
+                    error!("invalid key combination {}: {}", input, err);
+                    vec![]
+                }
+            }
+        } else {
+            vec![]
+        };
+        keys
+    }
+
+    pub fn refresh_actions(&mut self) {
+        for action in self.actions.values_mut() {
+            if action.keys.is_empty() || action.func.is_none() {
+                if let Some(hotkey) = self.hotkeys.remove(action.id()) {
+                    self.functions.remove(&hotkey.id());
+                }
+                continue;
+            }
+            info!("Registering {} to {:?}", action.id(), action.keys());
+
+            self.last_id += 1;
+            if self.last_id > 0xBFFF {
+                error!("no hotkey identifiers left");
+                return;
+            }
+
+            if let Ok((modifiers, vk)) = to_vk(action.keys()) {
+                let hotkey = HotKey::new(modifiers as isize, vk as i32, self.hwnd, self.last_id);
+                if let Ok(hotkey) = hotkey {
+                    self.hotkeys.insert(action.id.clone(), hotkey);
+                    self.functions.insert(self.last_id, action.id.clone());
+                } else {
+                    error!("failed to register hotkey: {:?}", hotkey.err().unwrap());
+                }
+            } else {
+                error!(
+                    "failed to translate key combination {:?} to virtual key and modifier",
+                    action.keys
+                );
+            }
+        }
     }
 
     pub fn remove_action(&mut self, id: &str) {
-        if let Some((Some(hotkey), _action)) = self.actions.remove(id) {
-            self.functions.remove(&hotkey.id());
+        if let Some(_action) = self.actions.remove(id) {
+            if let Some(hotkey) = self.hotkeys.remove(id) {
+                self.functions.remove(&hotkey.id());
+            }
+        }
+    }
+
+    pub fn remap(&mut self, id: &str, keys: &str) {
+        if let Some(action) = self.actions.get_mut(id) {
+            action.keys = Self::parse_key_combination(keys);
+        } else {
+            error!("Cannot remap non-existend action {} to {:?}", id, keys);
         }
     }
 
     pub fn clear_actions(&mut self) {
         self.functions.clear();
         self.actions.clear();
+        self.hotkeys.clear();
     }
 
     pub fn dump_actions(&self) {
         for action in self.actions.values() {
-            info!(
-                "Registered action {} to {:?}",
-                action.1.id(),
-                action.1.keys()
-            );
+            info!("Registered action {} to {:?}", action.id(), action.keys());
         }
     }
 }
 
 pub struct Action {
     id: Cow<'static, str>,
-    modifiers: u32, // TODO: change to Vec<Key> or KeyCombination
-    vk: u32,
     keys: Vec<Key>,
-    func: Option<Rc<dyn Fn()>>,
+    func: Option<Box<dyn Fn()>>,
 }
 
 impl Action {
@@ -133,45 +177,22 @@ impl Actions {
         &mut self,
         input: &str,
         id: Cow<'static, str>,
-        func: Option<Rc<dyn Fn()>>,
+        func: Option<Box<dyn Fn()>>,
     ) {
-        match Self::parse_key_combination_to_vk(input) {
-            Ok((keys, (modifiers, vk))) => {
-                let action = Action {
-                    id,
-                    modifiers,
-                    vk,
-                    keys,
-                    func,
-                };
-
-                let hwnd = self.window.as_hwnd();
-                let id = action.id.clone();
-                if let Err(err) = self.window.get().0.borrow_mut().set_action(hwnd, action) {
-                    error!("cannot register action {}: {}", id, err);
-                }
-            }
-            Err(err) => error!("cannot register hotkey {}: {}", input, err),
-        };
-    }
-
-    fn parse_key_combination_to_vk(input: &str) -> io::Result<(Vec<Key>, (u32, u32))> {
-        if let Some(combi) = parse_key_combination(input) {
-            to_vk(&combi).map(|vkey| (combi, vkey))
-        } else {
-            Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "invalid key combination",
-            ))
-        }
+        self.window.get().0.borrow_mut().set_action(input, id, func);
     }
 
     pub fn set_doc_action<I: Into<Cow<'static, str>>>(&mut self, id: I, keys: &str) {
         self.set_action_internal(keys, id.into(), None);
     }
 
-    pub fn set_action<I: Into<Cow<'static, str>>>(&mut self, id: I, keys: &str, f: Rc<dyn Fn()>) {
-        self.set_action_internal(keys, id.into(), Some(f));
+    pub fn set_action<I: Into<Cow<'static, str>>>(
+        &mut self,
+        id: I,
+        keys: &str,
+        f: impl Fn() + 'static,
+    ) {
+        self.set_action_internal(keys, id.into(), Some(Box::new(f)));
     }
 
     pub fn set_system_action<I: Into<Cow<'static, str>>, T: Fn() -> io::Result<()> + 'static>(
@@ -181,33 +202,39 @@ impl Actions {
         f: T,
     ) {
         let id = id.into();
-        self.set_action(
-            id.clone(),
-            keys,
-            Rc::new(move || match f() {
-                Ok(_) => (),
-                Err(err) => error!("action {} failed: {}", id, err),
-            }),
-        )
+        self.set_action(id.clone(), keys, move || match f() {
+            Ok(_) => (),
+            Err(err) => error!("action {} failed: {}", id, err),
+        })
     }
 
     pub fn remove_action(&mut self, id: &str) {
         self.window.get().0.borrow_mut().remove_action(id)
     }
 
+    pub fn refresh_actions(&mut self) {
+        self.window.get().0.borrow_mut().refresh_actions();
+    }
+
     pub fn dump_actions(&self) {
         self.window.get().0.borrow().dump_actions();
+    }
+
+    pub fn remap(&mut self, id: &str, keys: &str) {
+        self.window.get().0.borrow_mut().remap(id, keys);
     }
 }
 
 impl UsrCtrl for HotkeySink {
     type CreateParam = ();
 
-    fn create(_hwnd: Window, _params: &()) -> Self {
+    fn create(hwnd: Window, _params: &()) -> Self {
         HotkeySink(RefCell::new(HotkeySinkInner {
+            hwnd: hwnd.as_hwnd(),
             functions: HashMap::new(),
             last_id: -1,
             actions: HashMap::new(),
+            hotkeys: HashMap::new(),
         }))
     }
 
@@ -221,8 +248,13 @@ impl UsrCtrl for HotkeySink {
         }
 
         let id = w.into_raw() as i32;
-        if let Some(func) = self.0.borrow().functions.get(&id) {
-            func();
+        let actions = self.0.borrow();
+        if let Some(action_id) = actions.functions.get(&id) {
+            if let Some(action) = actions.actions.get(action_id) {
+                if let Some(func) = &action.func {
+                    func();
+                }
+            }
         }
 
         0.into()

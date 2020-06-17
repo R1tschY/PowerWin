@@ -98,7 +98,9 @@ fn main() {
     let mut ctx = ModuleContext::new(&mut actions, &settings);
     let _module = HotKeysModuleBuilder.build(&mut ctx);
 
-    actions.dump_actions();
+    actions.remap("system.suspend", "pause");
+    actions.remap("usewin.quit", "ctrl+f12");
+    actions.refresh_actions();
 
     window.show(SW_SHOW);
 

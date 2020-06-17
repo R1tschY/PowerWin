@@ -1,7 +1,6 @@
 use std::io;
 use std::mem;
 use std::ptr;
-use std::rc::Rc;
 
 use lightports::sys::post_quit_message;
 use lightports::{result, void_result, WString};
@@ -39,12 +38,12 @@ pub struct HotKeysModule;
 
 impl HotKeysModule {
     pub fn new(actions: &mut Actions) -> Self {
-        actions.set_system_action("system.shutdown", "CTRL+F11", shutdown_system);
-        actions.set_system_action("system.reboot", "CTRL+F10", reboot_system);
+        actions.set_system_action("system.shutdown", "", shutdown_system);
+        actions.set_system_action("system.reboot", "", reboot_system);
         actions.set_system_action("system.suspend", "", suspend_system);
         actions.set_system_action("system.hibernate", "", hibernate_system);
-        actions.set_system_action("user.logoff", "CTRL+F9", logoff_user);
-        actions.set_action("usewin.quit", "CTRL+F12", Rc::new(|| post_quit_message(0)));
+        actions.set_system_action("user.logoff", "", logoff_user);
+        actions.set_action("usewin.quit", "", || post_quit_message(0));
         Self
     }
 }

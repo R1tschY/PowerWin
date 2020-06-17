@@ -60,7 +60,7 @@ pub fn result<T: NonNull>(t: T) -> Result<T> {
 }
 
 pub fn void_result<T: NonNull>(t: T) -> Result<()> {
-    result(t).map(|e| ())
+    result(t).map(|_| ())
 }
 
 #[inline]
