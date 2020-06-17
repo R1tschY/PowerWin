@@ -3,31 +3,25 @@ use std::mem;
 use std::ptr;
 use std::rc::Rc;
 
-use lightports::result;
 use lightports::sys::post_quit_message;
-use lightports::WString;
-use winapi::um::processthreadsapi::GetCurrentProcess;
-use winapi::um::processthreadsapi::OpenProcessToken;
-use winapi::um::reason::SHTDN_REASON_MAJOR_OTHER;
-use winapi::um::reason::SHTDN_REASON_MINOR_OTHER;
+use lightports::{result, void_result, WString};
+use winapi::um::powrprof::SetSuspendState;
+use winapi::um::processthreadsapi::{GetCurrentProcess, OpenProcessToken};
+use winapi::um::reason::{SHTDN_REASON_MAJOR_OTHER, SHTDN_REASON_MINOR_OTHER};
 use winapi::um::securitybaseapi::AdjustTokenPrivileges;
 use winapi::um::winbase::LookupPrivilegeValueW;
-use winapi::um::winnt::HANDLE;
-use winapi::um::winnt::SE_PRIVILEGE_ENABLED;
-use winapi::um::winnt::SE_SHUTDOWN_NAME;
-use winapi::um::winnt::TOKEN_ADJUST_PRIVILEGES;
-use winapi::um::winnt::TOKEN_PRIVILEGES;
-use winapi::um::winnt::TOKEN_QUERY;
-use winapi::um::winuser::ExitWindowsEx;
-use winapi::um::winuser::EWX_HYBRID_SHUTDOWN;
-use winapi::um::winuser::EWX_SHUTDOWN;
+use winapi::um::winnt::{
+    HANDLE, SE_PRIVILEGE_ENABLED, SE_SHUTDOWN_NAME, TOKEN_ADJUST_PRIVILEGES, TOKEN_PRIVILEGES,
+    TOKEN_QUERY,
+};
+use winapi::um::winuser::{
+    ExitWindowsEx, EWX_HYBRID_SHUTDOWN, EWX_LOGOFF, EWX_REBOOT, EWX_SHUTDOWN,
+};
 
 use crate::actions::Actions;
 use crate::module::Module;
 use crate::module::ModuleBuilder;
 use crate::module::ModuleContext;
-use winapi::um::winuser::EWX_LOGOFF;
-use winapi::um::winuser::EWX_REBOOT;
 
 pub struct HotKeysModuleBuilder;
 
@@ -45,10 +39,12 @@ pub struct HotKeysModule;
 
 impl HotKeysModule {
     pub fn new(actions: &mut Actions) -> Self {
-        actions.set_action("usewin.quit", "CTRL+F12", Rc::new(|| post_quit_message(0)));
         actions.set_system_action("system.shutdown", "CTRL+F11", shutdown_system);
         actions.set_system_action("system.reboot", "CTRL+F10", reboot_system);
+        actions.set_system_action("system.suspend", "", suspend_system);
+        actions.set_system_action("system.hibernate", "", hibernate_system);
         actions.set_system_action("user.logoff", "CTRL+F9", logoff_user);
+        actions.set_action("usewin.quit", "CTRL+F12", Rc::new(|| post_quit_message(0)));
         Self
     }
 }
@@ -82,51 +78,57 @@ unsafe fn enable_privilege(privilege: &str) -> io::Result<()> {
     tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
     // Get the shutdown privilege for this process.
-    result(AdjustTokenPrivileges(
+    void_result(AdjustTokenPrivileges(
         token,
         0,
         &mut tkp,
         0,
         ptr::null_mut(),
         ptr::null_mut(),
-    ))?;
-
-    Ok(())
+    ))
 }
 
 fn shutdown_system() -> io::Result<()> {
     unsafe {
         enable_privilege(SE_SHUTDOWN_NAME)?;
 
-        result(ExitWindowsEx(
+        void_result(ExitWindowsEx(
             EWX_HYBRID_SHUTDOWN | EWX_SHUTDOWN,
             SHTDN_REASON_MAJOR_OTHER | SHTDN_REASON_MINOR_OTHER,
-        ))?;
+        ))
     }
-
-    Ok(())
 }
 
 fn reboot_system() -> io::Result<()> {
     unsafe {
         enable_privilege(SE_SHUTDOWN_NAME)?;
 
-        result(ExitWindowsEx(
+        void_result(ExitWindowsEx(
             EWX_REBOOT,
             SHTDN_REASON_MAJOR_OTHER | SHTDN_REASON_MINOR_OTHER,
-        ))?;
+        ))
     }
-
-    Ok(())
 }
 
 fn logoff_user() -> io::Result<()> {
     unsafe {
-        result(ExitWindowsEx(
+        void_result(ExitWindowsEx(
             EWX_LOGOFF,
             SHTDN_REASON_MAJOR_OTHER | SHTDN_REASON_MINOR_OTHER,
-        ))?;
+        ))
     }
+}
 
-    Ok(())
+fn suspend_system() -> io::Result<()> {
+    unsafe {
+        enable_privilege(SE_SHUTDOWN_NAME)?;
+        void_result(SetSuspendState(false as u8, false as u8, false as u8))
+    }
+}
+
+fn hibernate_system() -> io::Result<()> {
+    unsafe {
+        enable_privilege(SE_SHUTDOWN_NAME)?;
+        void_result(SetSuspendState(true as u8, false as u8, false as u8))
+    }
 }
