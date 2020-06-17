@@ -7,7 +7,6 @@ pub use error::*;
 pub use string::*;
 
 pub mod app;
-pub mod control;
 pub mod custom_control;
 pub mod extra;
 pub mod shell;

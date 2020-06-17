@@ -4,8 +4,6 @@ use std::collections::HashMap;
 use std::io;
 use std::rc::Rc;
 
-use crate::key_combination::parse_key_combination_to_vk;
-use lazy_static::lazy_static;
 use lightports::app::app_instance;
 use lightports::extra::hotkey::HotKey;
 use lightports::sys::*;
@@ -13,11 +11,16 @@ use lightports::user_control::*;
 use lightports::usr_ctrl::UsrCtrl;
 use lightports::Result;
 use log::error;
+use log::info;
 use winapi::shared::windef::HWND;
 use winapi::um::winuser::WM_DESTROY;
 use winapi::um::winuser::WM_HOTKEY;
 use winapi::um::winuser::WS_EX_TOOLWINDOW;
 use winapi::um::winuser::WS_POPUP;
+
+use lazy_static::lazy_static;
+
+use crate::key_combination::{parse_key_combination, to_vk, Key};
 
 lazy_static! {
     static ref ACTIONS_WNDCLASS: UserControlClass<HotkeySink> = {
@@ -78,13 +81,34 @@ impl HotkeySinkInner {
         self.functions.clear();
         self.actions.clear();
     }
+
+    pub fn dump_actions(&self) {
+        for action in self.actions.values() {
+            info!(
+                "Registered action {} to {:?}",
+                action.1.id(),
+                action.1.keys()
+            );
+        }
+    }
 }
 
 pub struct Action {
-    pub id: Cow<'static, str>,
-    pub modifiers: u32, // TODO: change to Vec<Key> or KeyCombination
-    pub vk: u32,
-    pub func: Option<Rc<dyn Fn()>>,
+    id: Cow<'static, str>,
+    modifiers: u32, // TODO: change to Vec<Key> or KeyCombination
+    vk: u32,
+    keys: Vec<Key>,
+    func: Option<Rc<dyn Fn()>>,
+}
+
+impl Action {
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn keys(&self) -> &[Key] {
+        &self.keys
+    }
 }
 
 pub struct Actions {
@@ -105,37 +129,49 @@ impl Actions {
         }
     }
 
-    fn set_action_internal(&mut self, action: Action) {
-        let hwnd = self.window.as_hwnd();
-        let id = action.id.clone();
-        match self.window.get().0.borrow_mut().set_action(hwnd, action) {
-            Err(err) => error!("cannot register action {}: {}", id, err),
-            _ => (),
+    fn set_action_internal(
+        &mut self,
+        input: &str,
+        id: Cow<'static, str>,
+        func: Option<Rc<dyn Fn()>>,
+    ) {
+        match Self::parse_key_combination_to_vk(input) {
+            Ok((keys, (modifiers, vk))) => {
+                let action = Action {
+                    id,
+                    modifiers,
+                    vk,
+                    keys,
+                    func,
+                };
+
+                let hwnd = self.window.as_hwnd();
+                let id = action.id.clone();
+                if let Err(err) = self.window.get().0.borrow_mut().set_action(hwnd, action) {
+                    error!("cannot register action {}: {}", id, err);
+                }
+            }
+            Err(err) => error!("cannot register hotkey {}: {}", input, err),
+        };
+    }
+
+    fn parse_key_combination_to_vk(input: &str) -> io::Result<(Vec<Key>, (u32, u32))> {
+        if let Some(combi) = parse_key_combination(input) {
+            to_vk(&combi).map(|vkey| (combi, vkey))
+        } else {
+            Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid key combination",
+            ))
         }
     }
 
     pub fn set_doc_action<I: Into<Cow<'static, str>>>(&mut self, id: I, keys: &str) {
-        match parse_key_combination_to_vk(keys) {
-            Ok((modifiers, vk)) => self.set_action_internal(Action {
-                id: id.into(),
-                modifiers,
-                vk,
-                func: None,
-            }),
-            Err(err) => error!("cannot register hotkey {}: {}", keys, err),
-        }
+        self.set_action_internal(keys, id.into(), None);
     }
 
     pub fn set_action<I: Into<Cow<'static, str>>>(&mut self, id: I, keys: &str, f: Rc<dyn Fn()>) {
-        match parse_key_combination_to_vk(keys) {
-            Ok((modifiers, vk)) => self.set_action_internal(Action {
-                id: id.into(),
-                modifiers,
-                vk,
-                func: Some(f),
-            }),
-            Err(err) => error!("cannot register hotkey {}: {}", keys, err),
-        }
+        self.set_action_internal(keys, id.into(), Some(f));
     }
 
     pub fn set_system_action<I: Into<Cow<'static, str>>, T: Fn() -> io::Result<()> + 'static>(
@@ -157,6 +193,10 @@ impl Actions {
 
     pub fn remove_action(&mut self, id: &str) {
         self.window.get().0.borrow_mut().remove_action(id)
+    }
+
+    pub fn dump_actions(&self) {
+        self.window.get().0.borrow().dump_actions();
     }
 }
 

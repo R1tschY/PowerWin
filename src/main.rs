@@ -96,7 +96,9 @@ fn main() {
 
     let mut actions = Actions::new();
     let mut ctx = ModuleContext::new(&mut actions, &settings);
-    let _module = HotKeysModuleBuilder().build(&mut ctx);
+    let _module = HotKeysModuleBuilder.build(&mut ctx);
+
+    actions.dump_actions();
 
     window.show(SW_SHOW);
 

@@ -9,9 +9,10 @@ winapi = { version = "0.3.6", features = ["std", "errhandlingapi", "debugapi", "
 lightports = { path = "lightports" }
 config = { version = "0.9", default-features = false, features = ["ini"] }
 log = "0.4"
-lazy_static = "1.2.0"
+lazy_static = "^1.4.0"
 nom = "4.1"
 simplelog = "^0.8.0"
+chassis = { git = "https://github.com/R1tschY/chassis.git", rev = "8b5225291c515b6d3300f1baa07af1c67aaf8420" }
 
 [build-dependencies]
 embed-resource = "1.1.4"

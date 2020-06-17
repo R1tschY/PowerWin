@@ -11,7 +11,7 @@ use nom::{
 };
 use winapi::um::winuser::{
     GetKeyboardLayout, VkKeyScanExW, MOD_ALT, MOD_CONTROL, MOD_SHIFT, MOD_WIN, VK_BACK, VK_DELETE,
-    VK_END, VK_ESCAPE, VK_F1, VK_HOME, VK_INSERT, VK_NEXT, VK_PRIOR, VK_RETURN,
+    VK_END, VK_ESCAPE, VK_F1, VK_HOME, VK_INSERT, VK_NEXT, VK_PAUSE, VK_PRIOR, VK_RETURN,
 };
 
 lazy_static! {
@@ -30,6 +30,7 @@ lazy_static! {
             ("page_up", Key::PageUp),
             ("page_down", Key::PageDown),
             ("esc", Key::Esc),
+            ("pause", Key::Pause),
             ("plus", Key::Char('+')),
         ]
         .iter()
@@ -55,6 +56,7 @@ pub enum Key {
     Insert,
     Esc,
     Enter,
+    Pause,
 }
 
 fn is_decimal_digit(d: char) -> bool {
@@ -183,21 +185,11 @@ pub fn to_vk(key_seq: &[Key]) -> io::Result<(u32, u32)> {
             Key::Insert => vk = VK_INSERT as u32,
             Key::Esc => vk = VK_ESCAPE as u32,
             Key::Enter => vk = VK_RETURN as u32,
+            Key::Pause => vk = VK_PAUSE as u32,
         }
     }
 
     Ok((modifier, vk))
-}
-
-pub fn parse_key_combination_to_vk(input: &str) -> io::Result<(u32, u32)> {
-    if let Some(combi) = parse_key_combination(input) {
-        to_vk(&combi)
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "invalid key combination",
-        ))
-    }
 }
 
 #[cfg(test)]

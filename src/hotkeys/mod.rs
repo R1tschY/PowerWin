@@ -29,7 +29,7 @@ use crate::module::ModuleContext;
 use winapi::um::winuser::EWX_LOGOFF;
 use winapi::um::winuser::EWX_REBOOT;
 
-pub struct HotKeysModuleBuilder();
+pub struct HotKeysModuleBuilder;
 
 impl ModuleBuilder for HotKeysModuleBuilder {
     fn name(&self) -> &'static str {
