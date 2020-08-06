@@ -22,33 +22,32 @@ use crate::module::Module;
 use crate::module::ModuleBuilder;
 use crate::module::ModuleContext;
 
-pub struct HotKeysModuleBuilder;
+pub struct SystemActionsModuleBuilder;
 
-impl ModuleBuilder for HotKeysModuleBuilder {
+impl ModuleBuilder for SystemActionsModuleBuilder {
     fn name(&self) -> &'static str {
         "hotkeys"
     }
 
     fn build(&self, ctx: &mut ModuleContext) -> Box<dyn Module> {
-        Box::new(HotKeysModule::new(ctx.actions()))
+        Box::new(SystemActionsModule::new(ctx.actions()))
     }
 }
 
-pub struct HotKeysModule;
+pub struct SystemActionsModule;
 
-impl HotKeysModule {
+impl SystemActionsModule {
     pub fn new(actions: &mut Actions) -> Self {
         actions.set_system_action("system.shutdown", "", shutdown_system);
         actions.set_system_action("system.reboot", "", reboot_system);
         actions.set_system_action("system.suspend", "", suspend_system);
         actions.set_system_action("system.hibernate", "", hibernate_system);
         actions.set_system_action("user.logoff", "", logoff_user);
-        actions.set_action("usewin.quit", "", || post_quit_message(0));
         Self
     }
 }
 
-impl Module for HotKeysModule {
+impl Module for SystemActionsModule {
     fn name(&self) -> &'static str {
         "hotkeys"
     }

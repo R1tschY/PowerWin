@@ -251,6 +251,7 @@ impl UsrCtrl for HotkeySink {
         if let Some(action_id) = actions.functions.get(&id) {
             if let Some(action) = actions.actions.get(action_id) {
                 if let Some(func) = &action.func {
+                    info!("Action triggered by shortcut: {}", action_id);
                     func();
                 }
             }
