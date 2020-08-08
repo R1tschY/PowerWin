@@ -10,7 +10,7 @@ pub use self::WindowMsg::*;
 
 pub type MessageHandlerBox = Box<dyn Fn(WParam, LParam) -> Option<LResult>>;
 
-trait MessageHandlerBuilder {
+pub trait MessageHandlerBuilder {
     fn message(&self) -> u32;
     fn create(self) -> MessageHandlerBox;
 }
@@ -20,7 +20,7 @@ pub struct CustomControl {
 }
 
 impl CustomControl {
-    fn connect<T: MessageHandlerBuilder>(&mut self, t: T) {
+    pub fn connect<T: MessageHandlerBuilder>(&mut self, t: T) {
         self.connections.insert(t.message(), t.create());
     }
 }

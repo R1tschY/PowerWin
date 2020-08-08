@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use std::io;
 use std::num;
+use std::{fmt, io};
 
 use lazy_static::lazy_static;
 use nom::types::CompleteStr;
@@ -39,7 +39,7 @@ lazy_static! {
     };
 }
 
-#[derive(Eq, PartialEq, Debug, Copy, Clone)]
+#[derive(Eq, PartialEq, Hash, Debug, Copy, Clone)]
 pub enum Key {
     Ctrl,
     Alt,
@@ -57,6 +57,24 @@ pub enum Key {
     Esc,
     Enter,
     Pause,
+}
+
+impl fmt::Display for Key {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use fmt::Write;
+
+        match self {
+            Key::F(i) => f.write_fmt(format_args!("F{}", i)),
+            Key::Char(c) => {
+                if c.is_control() || c.is_whitespace() {
+                    f.write_fmt(format_args!("\\u{:08X}", *c as u32))
+                } else {
+                    f.write_char(*c)
+                }
+            }
+            _ => fmt::Debug::fmt(self, f),
+        }
+    }
 }
 
 fn is_decimal_digit(d: char) -> bool {

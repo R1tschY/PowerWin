@@ -6,14 +6,14 @@ use winapi::um::errhandlingapi::{GetLastError, SetLastError};
 pub type Error = io::Error;
 pub type Result<T> = io::Result<T>;
 
-pub trait NonNull {
-    fn non_null(&self) -> bool;
+pub trait WinResult {
+    fn is_null(&self) -> bool;
 }
 
 macro_rules! non_zero_impl {
-    ($($type:ident)*) => ($(impl NonNull for $type {
+    ($($type:ident)*) => ($(impl WinResult for $type {
         #[inline]
-        fn non_null(&self) -> bool { *self != 0 }
+        fn is_null(&self) -> bool { *self == 0 }
     })*)
 }
 
@@ -22,17 +22,17 @@ macro_rules! non_zero_impl {
 // isize -> LONG_PTR
 non_zero_impl! { u8 i32 isize }
 
-impl<T> NonNull for *const T {
+impl<T> WinResult for *const T {
     #[inline]
-    fn non_null(&self) -> bool {
-        !self.is_null()
+    fn is_null(&self) -> bool {
+        *self == ptr::null()
     }
 }
 
-impl<T> NonNull for *mut T {
+impl<T> WinResult for *mut T {
     #[inline]
-    fn non_null(&self) -> bool {
-        !self.is_null()
+    fn is_null(&self) -> bool {
+        *self == ptr::null_mut()
     }
 }
 
@@ -48,10 +48,11 @@ pub fn last_os_error() -> u32 {
     unsafe { GetLastError() }
 }
 
-pub fn result<T: NonNull>(t: T) -> Result<T> {
-    if !t.non_null() {
+pub fn result<T: WinResult>(t: T) -> Result<T> {
+    if t.is_null() {
         let error = last_os_error();
         if error != 0 {
+            clear_last_error();
             return Err(Error::from_raw_os_error(error as i32));
         }
     }
@@ -59,7 +60,7 @@ pub fn result<T: NonNull>(t: T) -> Result<T> {
     Ok(t)
 }
 
-pub fn void_result<T: NonNull>(t: T) -> Result<()> {
+pub fn void_result<T: WinResult>(t: T) -> Result<()> {
     result(t).map(|_| ())
 }
 

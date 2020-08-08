@@ -3,11 +3,11 @@ use std::mem;
 use winapi::shared::minwindef::{HIWORD, LOWORD};
 use winapi::shared::windowsx::{GET_X_LPARAM, GET_Y_LPARAM};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct WParam(usize);
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct LParam(isize);
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct LResult(isize);
 
 impl WParam {
@@ -71,12 +71,12 @@ impl LResult {
         self.0
     }
 
-    pub unsafe fn as_ptr<T>(&self) -> *const T {
-        mem::transmute(self.0)
+    pub fn as_ptr<T>(&self) -> *const T {
+        unsafe { mem::transmute(self.0) }
     }
 
-    pub unsafe fn as_mut_ptr<T>(&self) -> *mut T {
-        mem::transmute(self.0)
+    pub fn as_mut_ptr<T>(&self) -> *mut T {
+        unsafe { mem::transmute(self.0) }
     }
 }
 

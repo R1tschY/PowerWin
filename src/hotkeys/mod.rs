@@ -2,7 +2,6 @@ use std::io;
 use std::mem;
 use std::ptr;
 
-use lightports::sys::post_quit_message;
 use lightports::{result, void_result, WString};
 use winapi::um::powrprof::SetSuspendState;
 use winapi::um::processthreadsapi::{GetCurrentProcess, OpenProcessToken};
@@ -17,7 +16,8 @@ use winapi::um::winuser::{
     ExitWindowsEx, EWX_HYBRID_SHUTDOWN, EWX_LOGOFF, EWX_REBOOT, EWX_SHUTDOWN,
 };
 
-use crate::actions::Actions;
+use crate::core::actions::Action;
+use crate::core::services::actions::ActionsManager;
 use crate::module::Module;
 use crate::module::ModuleBuilder;
 use crate::module::ModuleContext;
@@ -37,12 +37,12 @@ impl ModuleBuilder for SystemActionsModuleBuilder {
 pub struct SystemActionsModule;
 
 impl SystemActionsModule {
-    pub fn new(actions: &mut Actions) -> Self {
-        actions.set_system_action("system.shutdown", "", shutdown_system);
-        actions.set_system_action("system.reboot", "", reboot_system);
-        actions.set_system_action("system.suspend", "", suspend_system);
-        actions.set_system_action("system.hibernate", "", hibernate_system);
-        actions.set_system_action("user.logoff", "", logoff_user);
+    pub fn new(actions: &mut ActionsManager) -> Self {
+        actions.register(Action::with_iofn("system.shutdown", shutdown_system));
+        actions.register(Action::with_iofn("system.reboot", reboot_system));
+        actions.register(Action::with_iofn("system.suspend", suspend_system));
+        actions.register(Action::with_iofn("system.hibernate", hibernate_system));
+        actions.register(Action::with_iofn("user.logoff", logoff_user));
         Self
     }
 }

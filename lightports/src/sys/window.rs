@@ -1,13 +1,13 @@
 use std::ffi::{c_void, OsStr};
-use std::mem;
+use std::ptr;
 use std::ptr::null_mut;
 
-use crate::{clear_last_error, result, NonNull, Result, WString};
+use crate::{clear_last_error, result, Result, WString, WinResult};
 use winapi::shared::minwindef::HINSTANCE;
 use winapi::shared::minwindef::UINT;
 use winapi::shared::windef::{HMENU, HWND};
-use winapi::um::winuser::CreateWindowExW;
 use winapi::um::winuser::HWND_MESSAGE;
+use winapi::um::winuser::{CreateWindowExW, CW_USEDEFAULT};
 use winapi::um::winuser::{
     DefWindowProcW, DestroyWindow, GetWindowLongPtrW, SetWindowLongPtrW, ShowWindow,
 };
@@ -104,8 +104,7 @@ pub trait WindowFunctions {
     fn show(&self, cmd: i32) -> bool;
     fn destroy(&self) -> Result<()>;
     fn get_attribute(&self, index: i32) -> Result<isize>;
-    fn set_attribute(&self, index: i32, data: isize);
-    fn try_set_attribute(&self, index: i32, data: isize) -> Result<isize>;
+    fn set_attribute(&self, index: i32, data: isize) -> Result<isize>;
 }
 
 impl<T: IsA<Window>> WindowFunctions for T {
@@ -121,36 +120,31 @@ impl<T: IsA<Window>> WindowFunctions for T {
 
     #[inline]
     fn get_attribute(&self, index: i32) -> Result<isize> {
+        clear_last_error();
         unsafe { result(GetWindowLongPtrW(self.as_hwnd(), index)) }
     }
 
     #[inline]
-    fn set_attribute(&self, index: i32, data: isize) {
+    fn set_attribute(&self, index: i32, data: isize) -> Result<isize> {
         unsafe {
-            SetWindowLongPtrW(self.as_hwnd(), index, data);
-        }
-    }
-
-    fn try_set_attribute(&self, index: i32, data: isize) -> Result<isize> {
-        clear_last_error();
-        unsafe {
-            result(SetWindowLongPtrW(
-                self.as_hwnd(),
-                index,
-                mem::transmute(data),
-            ))
+            clear_last_error();
+            result(SetWindowLongPtrW(self.as_hwnd(), index, data))
         }
     }
 }
 
 /// low level HWND abstraction
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub struct Window(HWND);
 
 impl Window {
     #[inline]
     pub fn as_hwnd(&self) -> HWND {
         self.0
+    }
+
+    pub fn is_null(&self) -> bool {
+        self.0 == ptr::null_mut()
     }
 
     pub fn build() -> WindowBuilder {
@@ -208,10 +202,10 @@ impl WindowBuilder {
             class: AtomOrString::Str(WString::default()),
             window_name: WString::default(),
             style: 0,
-            x: 0,
-            y: 0,
-            width: 0,
-            height: 0,
+            x: CW_USEDEFAULT,
+            y: CW_USEDEFAULT,
+            width: CW_USEDEFAULT,
+            height: CW_USEDEFAULT,
             parent: null_mut(),
             menu: null_mut(),
             module: null_mut(),
@@ -302,9 +296,9 @@ impl WindowBuilder {
     }
 }
 
-impl NonNull for Window {
+impl WinResult for Window {
     #[inline]
-    fn non_null(&self) -> bool {
+    fn is_null(&self) -> bool {
         !self.0.is_null()
     }
 }

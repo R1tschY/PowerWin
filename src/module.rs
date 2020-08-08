@@ -1,17 +1,17 @@
-use crate::actions::Actions;
+use crate::core::services::actions::ActionsManager;
 use config::Config;
 
 pub struct ModuleContext<'a> {
-    actions: &'a mut Actions,
+    actions: &'a mut ActionsManager,
     config: &'a Config,
 }
 
 impl<'a> ModuleContext<'a> {
-    pub fn new(actions: &'a mut Actions, config: &'a Config) -> Self {
+    pub fn new(actions: &'a mut ActionsManager, config: &'a Config) -> Self {
         ModuleContext { actions, config }
     }
 
-    pub fn actions(&mut self) -> &mut Actions {
+    pub fn actions(&mut self) -> &mut ActionsManager {
         self.actions
     }
 

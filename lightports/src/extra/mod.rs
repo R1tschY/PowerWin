@@ -1,3 +1,4 @@
 pub mod hotkey;
-pub mod resources;
 pub mod icon;
+pub mod module;
+pub mod resources;

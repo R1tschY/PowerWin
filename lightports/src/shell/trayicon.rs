@@ -72,7 +72,8 @@ impl TrayIconBuilder {
         self
     }
 
-    pub fn add(&mut self) -> Result<TrayIcon> {
+    // TODO: split add and build
+    pub fn build(&mut self) -> Result<TrayIcon> {
         unsafe {
             result(Shell_NotifyIconW(NIM_ADD, &mut self.inner))?;
             *self.inner.u.uVersion_mut() = NOTIFYICON_VERSION_4;
@@ -84,6 +85,7 @@ impl TrayIconBuilder {
         })
     }
 
+    // TODO: wrong place
     pub fn modify(&mut self) -> Result<()> {
         unsafe {
             result(Shell_NotifyIconW(NIM_MODIFY, &mut self.inner))?;
@@ -91,6 +93,7 @@ impl TrayIconBuilder {
         Ok(())
     }
 
+    // TODO: wrong place
     pub fn delete(&mut self) -> Result<()> {
         unsafe {
             result(Shell_NotifyIconW(NIM_DELETE, &mut self.inner))?;
