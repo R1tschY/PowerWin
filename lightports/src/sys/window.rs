@@ -6,11 +6,11 @@ use crate::{clear_last_error, result, Result, WString, WinResult};
 use winapi::shared::minwindef::HINSTANCE;
 use winapi::shared::minwindef::UINT;
 use winapi::shared::windef::{HMENU, HWND};
-use winapi::um::winuser::HWND_MESSAGE;
-use winapi::um::winuser::{CreateWindowExW, CW_USEDEFAULT};
+use winapi::um::winuser::{CreateWindowExW, PostMessageW, CW_USEDEFAULT};
 use winapi::um::winuser::{
     DefWindowProcW, DestroyWindow, GetWindowLongPtrW, SetWindowLongPtrW, ShowWindow,
 };
+use winapi::um::winuser::{GetForegroundWindow, HWND_MESSAGE};
 
 use crate::sys::{AtomOrString, LParam, LResult, WParam, WindowClass};
 use bitflags::bitflags;
@@ -105,6 +105,7 @@ pub trait WindowFunctions {
     fn destroy(&self) -> Result<()>;
     fn get_attribute(&self, index: i32) -> Result<isize>;
     fn set_attribute(&self, index: i32, data: isize) -> Result<isize>;
+    fn post_message(&self, msg: u32, w: WParam, l: LParam) -> Result<()>;
 }
 
 impl<T: IsA<Window>> WindowFunctions for T {
@@ -131,6 +132,10 @@ impl<T: IsA<Window>> WindowFunctions for T {
             result(SetWindowLongPtrW(self.as_hwnd(), index, data))
         }
     }
+
+    fn post_message(&self, msg: u32, w: WParam, l: LParam) -> Result<()> {
+        unsafe { PostMessageW(self.as_hwnd(), msg, w.into(), l.into()).into_void_result() }
+    }
 }
 
 /// low level HWND abstraction
@@ -149,6 +154,12 @@ impl Window {
 
     pub fn build() -> WindowBuilder {
         WindowBuilder::new()
+    }
+
+    pub fn get_foreground_window() -> Option<Self> {
+        unsafe { GetForegroundWindow() }
+            .into_option()
+            .map(|e| e.into())
     }
 
     #[inline]

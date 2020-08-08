@@ -170,7 +170,7 @@ fn user_control_proc<T: UsrCtrl>(hwnd: Window, msg: UINT, w: WPARAM, l: LPARAM) 
 
     if log_enabled!(Trace) {
         trace!(
-            "Handling message id {} with {:?}",
+            "Handled message {} with {:?}",
             get_message_name(msg),
             result
         );

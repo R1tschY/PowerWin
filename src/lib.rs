@@ -5,4 +5,5 @@ pub mod resources;
 
 pub mod core;
 
-pub mod hotkeys;
+pub mod app;
+pub mod modules;

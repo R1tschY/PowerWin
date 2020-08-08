@@ -20,7 +20,7 @@ impl<'a> ModuleContext<'a> {
     }
 }
 
-pub trait ModuleBuilder {
+pub trait ModuleFactory {
     fn name(&self) -> &'static str;
     fn build(&self, ctx: &mut ModuleContext) -> Box<dyn Module>;
 }

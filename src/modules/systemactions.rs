@@ -2,7 +2,7 @@ use std::io;
 use std::mem;
 use std::ptr;
 
-use lightports::{result, void_result, WString};
+use lightports::{WString, WinResult};
 use winapi::um::powrprof::SetSuspendState;
 use winapi::um::processthreadsapi::{GetCurrentProcess, OpenProcessToken};
 use winapi::um::reason::{SHTDN_REASON_MAJOR_OTHER, SHTDN_REASON_MINOR_OTHER};
@@ -19,14 +19,14 @@ use winapi::um::winuser::{
 use crate::core::actions::Action;
 use crate::core::services::actions::ActionsManager;
 use crate::module::Module;
-use crate::module::ModuleBuilder;
 use crate::module::ModuleContext;
+use crate::module::ModuleFactory;
 
-pub struct SystemActionsModuleBuilder;
+pub struct SystemActionsModuleFactory;
 
-impl ModuleBuilder for SystemActionsModuleBuilder {
+impl ModuleFactory for SystemActionsModuleFactory {
     fn name(&self) -> &'static str {
-        "hotkeys"
+        "systemactions"
     }
 
     fn build(&self, ctx: &mut ModuleContext) -> Box<dyn Module> {
@@ -49,7 +49,7 @@ impl SystemActionsModule {
 
 impl Module for SystemActionsModule {
     fn name(&self) -> &'static str {
-        "hotkeys"
+        "systemactions"
     }
 }
 
@@ -58,42 +58,39 @@ unsafe fn enable_privilege(privilege: &str) -> io::Result<()> {
     let mut tkp: TOKEN_PRIVILEGES = mem::zeroed();
 
     // Get a token for this process.
-    result(OpenProcessToken(
+    OpenProcessToken(
         GetCurrentProcess(),
         TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
         &mut token,
-    ))?;
+    )
+    .into_result()?;
 
     // Get the LUID for the shutdown privilege.
     let privilege_name = WString::from_os_str(privilege);
-    result(LookupPrivilegeValueW(
+    LookupPrivilegeValueW(
         ptr::null_mut(),
         privilege_name.as_ptr(),
         &mut tkp.Privileges[0].Luid,
-    ))?;
+    )
+    .into_result()?;
 
     tkp.PrivilegeCount = 1; // one privilege to set
     tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
     // Get the shutdown privilege for this process.
-    void_result(AdjustTokenPrivileges(
-        token,
-        0,
-        &mut tkp,
-        0,
-        ptr::null_mut(),
-        ptr::null_mut(),
-    ))
+    AdjustTokenPrivileges(token, 0, &mut tkp, 0, ptr::null_mut(), ptr::null_mut())
+        .into_void_result()
 }
 
 fn shutdown_system() -> io::Result<()> {
     unsafe {
         enable_privilege(SE_SHUTDOWN_NAME)?;
 
-        void_result(ExitWindowsEx(
+        ExitWindowsEx(
             EWX_HYBRID_SHUTDOWN | EWX_SHUTDOWN,
             SHTDN_REASON_MAJOR_OTHER | SHTDN_REASON_MINOR_OTHER,
-        ))
+        )
+        .into_void_result()
     }
 }
 
@@ -101,32 +98,34 @@ fn reboot_system() -> io::Result<()> {
     unsafe {
         enable_privilege(SE_SHUTDOWN_NAME)?;
 
-        void_result(ExitWindowsEx(
+        ExitWindowsEx(
             EWX_REBOOT,
             SHTDN_REASON_MAJOR_OTHER | SHTDN_REASON_MINOR_OTHER,
-        ))
+        )
+        .into_void_result()
     }
 }
 
 fn logoff_user() -> io::Result<()> {
     unsafe {
-        void_result(ExitWindowsEx(
+        ExitWindowsEx(
             EWX_LOGOFF,
             SHTDN_REASON_MAJOR_OTHER | SHTDN_REASON_MINOR_OTHER,
-        ))
+        )
+        .into_void_result()
     }
 }
 
 fn suspend_system() -> io::Result<()> {
     unsafe {
         enable_privilege(SE_SHUTDOWN_NAME)?;
-        void_result(SetSuspendState(false as u8, false as u8, false as u8))
+        SetSuspendState(false as u8, false as u8, false as u8).into_void_result()
     }
 }
 
 fn hibernate_system() -> io::Result<()> {
     unsafe {
         enable_privilege(SE_SHUTDOWN_NAME)?;
-        void_result(SetSuspendState(true as u8, false as u8, false as u8))
+        SetSuspendState(true as u8, false as u8, false as u8).into_void_result()
     }
 }

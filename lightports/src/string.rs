@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 use std::cmp;
 use std::ffi::{OsStr, OsString};
-use std::mem;
 use std::os::windows::ffi::{OsStrExt, OsStringExt};
 use std::slice;
 
@@ -24,7 +23,7 @@ pub struct Wstr {
 
 impl Wstr {
     pub unsafe fn from_bytes_terminated_unchecked(s: &[u16]) -> &Wstr {
-        mem::transmute(s)
+        &*(s as *const [u16] as *const Wstr)
     }
 
     pub fn as_ptr(&self) -> *const u16 {

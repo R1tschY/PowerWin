@@ -6,8 +6,24 @@ use winapi::um::errhandlingapi::{GetLastError, SetLastError};
 pub type Error = io::Error;
 pub type Result<T> = io::Result<T>;
 
-pub trait WinResult {
+pub trait WinResult: Sized {
     fn is_null(&self) -> bool;
+
+    fn into_result(self) -> Result<Self> {
+        result(self)
+    }
+
+    fn into_void_result(self) -> Result<()> {
+        void_result(self)
+    }
+
+    fn into_option(self) -> Option<Self> {
+        if self.is_null() {
+            None
+        } else {
+            Some(self)
+        }
+    }
 }
 
 macro_rules! non_zero_impl {

@@ -82,11 +82,12 @@ impl HotkeySinkInner {
 
             if let Ok((modifiers, vk)) = to_vk(ks.keys()) {
                 let hotkey = HotKey::new(modifiers as isize, vk as i32, self.hwnd, self.last_id);
-                if let Ok(hotkey) = hotkey {
-                    self.hotkeys.push(hotkey);
-                    self.bindings.insert(self.last_id, action.clone());
-                } else {
-                    error!("Failed to register hotkey: `{}`", hotkey.err().unwrap());
+                match hotkey {
+                    Ok(hotkey) => {
+                        self.hotkeys.push(hotkey);
+                        self.bindings.insert(self.last_id, action.clone());
+                    }
+                    Err(err) => error!("Failed to register hotkey `{}`: {}", ks, err),
                 }
             } else {
                 error!(
