@@ -1,5 +1,4 @@
 use lightports::sys::{Window, WindowFunctions};
-use winapi::shared::minwindef::WPARAM;
 use winapi::um::winuser::{
     SC_CLOSE, SC_CONTEXTHELP, SC_KEYMENU, SC_MAXIMIZE, SC_MINIMIZE, SC_MOVE, SC_NEXTWINDOW,
     SC_PREVWINDOW, SC_RESTORE, SC_SIZE, WM_SYSCOMMAND,
@@ -56,5 +55,5 @@ fn system_command(msg: usize) -> io::Result<()> {
 }
 
 fn system_command_action(id: &'static str, msg: usize) -> Rc<Action> {
-    Action::with_iofn(id, || system_command(msg))
+    Action::with_iofn(id, move || system_command(msg))
 }

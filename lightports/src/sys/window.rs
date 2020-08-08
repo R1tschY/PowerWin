@@ -3,15 +3,16 @@ use std::ptr;
 use std::ptr::null_mut;
 
 use crate::{clear_last_error, result, Result, WString, WinResult};
-use winapi::shared::minwindef::HINSTANCE;
 use winapi::shared::minwindef::UINT;
+use winapi::shared::minwindef::{FALSE, HINSTANCE, TRUE};
 use winapi::shared::windef::{HMENU, HWND};
-use winapi::um::winuser::{CreateWindowExW, PostMessageW, CW_USEDEFAULT};
+use winapi::um::winuser::{CreateWindowExW, GetMenu, GetSystemMenu, PostMessageW, CW_USEDEFAULT};
 use winapi::um::winuser::{
     DefWindowProcW, DestroyWindow, GetWindowLongPtrW, SetWindowLongPtrW, ShowWindow,
 };
 use winapi::um::winuser::{GetForegroundWindow, HWND_MESSAGE};
 
+use crate::extra::menu::MenuView;
 use crate::sys::{AtomOrString, LParam, LResult, WParam, WindowClass};
 use bitflags::bitflags;
 
@@ -100,12 +101,24 @@ impl AsHwnd for HWND {
 pub trait IsA<T>: AsHwnd + 'static {}
 impl<T> IsA<T> for T where T: AsHwnd + 'static {}
 
-pub trait WindowFunctions {
+pub trait WindowFunctions: AsHwnd {
     fn show(&self, cmd: i32) -> bool;
     fn destroy(&self) -> Result<()>;
     fn get_attribute(&self, index: i32) -> Result<isize>;
     fn set_attribute(&self, index: i32, data: isize) -> Result<isize>;
     fn post_message(&self, msg: u32, w: WParam, l: LParam) -> Result<()>;
+
+    fn get_menu(&self) -> MenuView {
+        unsafe { GetMenu(self.as_hwnd()).into() }
+    }
+
+    fn get_system_menu(&self) -> MenuView {
+        unsafe { GetSystemMenu(self.as_hwnd(), FALSE).into() }
+    }
+
+    fn reset_system_menu(&self) -> MenuView {
+        unsafe { GetSystemMenu(self.as_hwnd(), TRUE).into() }
+    }
 }
 
 impl<T: IsA<Window>> WindowFunctions for T {
