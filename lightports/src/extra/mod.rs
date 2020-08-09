@@ -1,3 +1,4 @@
+pub mod cursor;
 pub mod hotkey;
 pub mod icon;
 pub mod menu;

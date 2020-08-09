@@ -1,12 +1,11 @@
+mod messages;
 mod window;
 mod windowclass;
-mod param;
-mod messages;
-mod atom;
 
+pub use crate::def::atom::{atom_to_wchar_ptr, AtomOrString};
+pub use crate::def::param::{LParam, LResult, WParam};
+pub use crate::sys::messages::{dispatch_messages, post_quit_message, send_message};
 pub use crate::sys::window::{
-    Window, WindowBuilder, WindowFunctions, IsA, AsHwnd, WindowStyle, WindowExStyle};
+    AsHwnd, IsA, Window, WindowBuilder, WindowExStyle, WindowFunctions, WindowStyle,
+};
 pub use crate::sys::windowclass::{WindowClass, WindowClassBuilder, WindowClassStyle};
-pub use crate::sys::param::{WParam, LParam, LResult};
-pub use crate::sys::messages::{send_message, dispatch_messages, post_quit_message};
-pub use crate::sys::atom::{AtomOrString, atom_to_wchar_ptr};

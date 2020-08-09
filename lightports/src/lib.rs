@@ -8,6 +8,7 @@ pub use string::*;
 
 pub mod app;
 pub mod custom_control;
+pub mod def;
 pub mod extra;
 pub mod messages;
 pub mod shell;

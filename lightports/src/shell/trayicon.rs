@@ -1,13 +1,14 @@
 use std::borrow::Cow;
 
 use crate::{result, Result, Wstr};
+use winapi::shared::windef::POINT;
 use winapi::um::shellapi::{
     Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_SHOWTIP, NIF_TIP, NIM_ADD, NIM_DELETE,
     NIM_MODIFY, NIM_SETVERSION, NOTIFYICONDATAW, NOTIFYICON_VERSION_4,
 };
 
 use crate::extra::icon::Icon;
-use crate::sys::Window;
+use crate::sys::{LParam, LResult, WParam, Window};
 
 pub struct TrayIcon {
     hwnd: Window,
@@ -25,6 +26,20 @@ impl TrayIcon {
 
     pub fn change(&self) -> TrayIconBuilder {
         TrayIconBuilder::new(self.hwnd, self.id)
+    }
+
+    pub fn message(&self, w: WParam, l: LParam, f: impl Fn(u32, POINT) -> LResult) -> LResult {
+        if l.high_word() as u32 == self.id {
+            f(
+                l.low_word() as u32,
+                POINT {
+                    x: w.get_x(),
+                    y: w.get_y(),
+                },
+            )
+        } else {
+            0.into()
+        }
     }
 }
 

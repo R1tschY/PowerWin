@@ -12,7 +12,7 @@ use winapi::um::winuser::{
 };
 use winapi::um::winuser::{GetForegroundWindow, HWND_MESSAGE};
 
-use crate::extra::menu::MenuView;
+use crate::extra::menu::{Menu, MenuView};
 use crate::sys::{AtomOrString, LParam, LResult, WParam, WindowClass};
 use bitflags::bitflags;
 
@@ -102,54 +102,47 @@ pub trait IsA<T>: AsHwnd + 'static {}
 impl<T> IsA<T> for T where T: AsHwnd + 'static {}
 
 pub trait WindowFunctions: AsHwnd {
-    fn show(&self, cmd: i32) -> bool;
-    fn destroy(&self) -> Result<()>;
-    fn get_attribute(&self, index: i32) -> Result<isize>;
-    fn set_attribute(&self, index: i32, data: isize) -> Result<isize>;
-    fn post_message(&self, msg: u32, w: WParam, l: LParam) -> Result<()>;
-
-    fn get_menu(&self) -> MenuView {
-        unsafe { GetMenu(self.as_hwnd()).into() }
-    }
-
-    fn get_system_menu(&self) -> MenuView {
-        unsafe { GetSystemMenu(self.as_hwnd(), FALSE).into() }
-    }
-
-    fn reset_system_menu(&self) -> MenuView {
-        unsafe { GetSystemMenu(self.as_hwnd(), TRUE).into() }
-    }
-}
-
-impl<T: IsA<Window>> WindowFunctions for T {
     #[inline]
     fn show(&self, cmd: i32) -> bool {
-        unsafe { ShowWindow(self.as_hwnd(), cmd) != 0 }
+        unsafe { ShowWindow(self.as_hwnd(), cmd) == TRUE }
     }
 
-    #[inline]
     fn destroy(&self) -> Result<()> {
-        unsafe { result(DestroyWindow(self.as_hwnd())).map(|_| ()) }
+        unsafe { DestroyWindow(self.as_hwnd()).into_void_result() }
     }
 
-    #[inline]
     fn get_attribute(&self, index: i32) -> Result<isize> {
         clear_last_error();
-        unsafe { result(GetWindowLongPtrW(self.as_hwnd(), index)) }
+        unsafe { GetWindowLongPtrW(self.as_hwnd(), index).into_result() }
     }
 
-    #[inline]
     fn set_attribute(&self, index: i32, data: isize) -> Result<isize> {
         unsafe {
             clear_last_error();
-            result(SetWindowLongPtrW(self.as_hwnd(), index, data))
+            SetWindowLongPtrW(self.as_hwnd(), index, data).into_result()
         }
     }
 
     fn post_message(&self, msg: u32, w: WParam, l: LParam) -> Result<()> {
         unsafe { PostMessageW(self.as_hwnd(), msg, w.into(), l.into()).into_void_result() }
     }
+
+    fn get_menu(&self) -> Option<MenuView> {
+        unsafe { GetMenu(self.as_hwnd()).into_option().map(|e| e.into()) }
+    }
+
+    fn get_system_menu(&self) -> Menu {
+        unsafe { GetSystemMenu(self.as_hwnd(), FALSE).into() }
+    }
+
+    fn reset_system_menu(&self) -> () {
+        unsafe {
+            GetSystemMenu(self.as_hwnd(), TRUE);
+        }
+    }
 }
+
+impl<T: IsA<Window>> WindowFunctions for T {}
 
 /// low level HWND abstraction
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]

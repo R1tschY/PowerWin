@@ -16,4 +16,6 @@ pub trait UsrCtrl {
     fn message(&self, hwnd: Window, msg: u32, w: WParam, l: LParam) -> LResult {
         hwnd.default_proc(msg, w, l)
     }
+
+    // TODO: pre_init_message
 }

@@ -1,20 +1,27 @@
-use crate::{WinResult, Wstr};
-use bitflags::bitflags;
 use std::{io, mem, ptr};
+
+use bitflags::bitflags;
 use winapi::shared::minwindef::TRUE;
 use winapi::shared::ntdef::LPCWSTR;
 use winapi::shared::windef::HMENU;
 use winapi::um::winuser::{
     AppendMenuW, CheckMenuItem, CreateMenu, CreatePopupMenu, DeleteMenu, DestroyMenu, GetMenuState,
-    InsertMenuW, IsMenu, MF_BYCOMMAND, MF_BYPOSITION, MF_CHECKED, MF_DISABLED, MF_ENABLED,
-    MF_GRAYED, MF_POPUP, MF_SEPARATOR, MF_STRING, MF_UNCHECKED,
+    InsertMenuW, IsMenu, TrackPopupMenu, MF_BYCOMMAND, MF_BYPOSITION, MF_CHECKED, MF_DISABLED,
+    MF_ENABLED, MF_GRAYED, MF_POPUP, MF_SEPARATOR, MF_STRING, MF_UNCHECKED, TPM_BOTTOMALIGN,
+    TPM_CENTERALIGN, TPM_HORNEGANIMATION, TPM_HORPOSANIMATION, TPM_LEFTALIGN, TPM_LEFTBUTTON,
+    TPM_NOANIMATION, TPM_NONOTIFY, TPM_RIGHTALIGN, TPM_RIGHTBUTTON, TPM_TOPALIGN, TPM_VCENTERALIGN,
+    TPM_VERNEGANIMATION, TPM_VERPOSANIMATION,
 };
+
+use crate::def::point::Point;
+use crate::sys::AsHwnd;
+use crate::{WString, WinResult};
 
 const MINUS_ONE: u32 = -1i32 as u32;
 
 bitflags! {
     #[derive(Default)]
-    pub struct MenuEntryFlags: u32 {
+    pub struct MenuFlags: u32 {
         const CHECKED = MF_CHECKED;
         const DISABLED = MF_DISABLED;
         const ENABLED = MF_ENABLED;
@@ -23,24 +30,46 @@ bitflags! {
     }
 }
 
-pub enum MenuItem<'a> {
-    Seperator,
-    Menu(&'a Wstr, &'a dyn MenuTrait),
-    TextEntry(&'a Wstr, u32),
+bitflags! {
+    #[derive(Default)]
+    pub struct TrackFlags: u32 {
+        const CENTERALIGN = TPM_CENTERALIGN;
+        const LEFTALIGN = TPM_LEFTALIGN;
+        const RIGHTALIGN = TPM_RIGHTALIGN;
+        const BOTTOMALIGN = TPM_BOTTOMALIGN;
+        const TOPALIGN = TPM_TOPALIGN;
+        const VCENTERALIGN = TPM_VCENTERALIGN;
+        const NONOTIFY = TPM_NONOTIFY;
+        const LEFTBUTTON = TPM_LEFTBUTTON;
+        const RIGHTBUTTON = TPM_RIGHTBUTTON;
+        const HORNEGANIMATION = TPM_HORNEGANIMATION;
+        const HORPOSANIMATION = TPM_HORPOSANIMATION;
+        const NOANIMATION = TPM_NOANIMATION;
+        const VERNEGANIMATION = TPM_VERNEGANIMATION;
+        const VERPOSANIMATION = TPM_VERPOSANIMATION;
+    }
 }
 
-pub trait MenuTrait {
-    fn as_hmenu(&self) -> HMENU;
+pub enum MenuItem<'a> {
+    Seperator,
+    Menu(WString, &'a dyn AsHmenu),
+    TextEntry(WString, u16),
+}
 
+pub trait AsHmenu {
+    fn as_hmenu(&self) -> HMENU;
+}
+
+pub trait MenuFunctions: AsHmenu {
     fn is_valid(&self) -> bool {
         self.as_hmenu() != ptr::null_mut() && unsafe { IsMenu(self.as_hmenu()) == TRUE }
     }
 
-    fn contains(&self, command_id: u32) -> bool {
-        get_state(self.as_hmenu(), command_id, MF_BYCOMMAND).is_some()
+    fn contains(&self, command_id: u16) -> bool {
+        get_state(self.as_hmenu(), command_id as u32, MF_BYCOMMAND).is_some()
     }
 
-    fn add(&self, item: MenuItem, flags: MenuEntryFlags) -> io::Result<()> {
+    fn add(&self, item: MenuItem, flags: MenuFlags) -> io::Result<()> {
         unsafe {
             let (flags_item, idnew_item, new_item) = get_create_params(item);
             AppendMenuW(
@@ -53,7 +82,7 @@ pub trait MenuTrait {
         }
     }
 
-    fn insert_at(&self, pos: u32, item: MenuItem, flags: MenuEntryFlags) -> io::Result<()> {
+    fn insert_at(&self, pos: u32, item: MenuItem, flags: MenuFlags) -> io::Result<()> {
         unsafe {
             let (flags_item, idnew_item, new_item) = get_create_params(item);
 
@@ -68,13 +97,13 @@ pub trait MenuTrait {
         }
     }
 
-    fn insert_before(&self, command: u32, item: MenuItem, flags: MenuEntryFlags) -> io::Result<()> {
+    fn insert_before(&self, command: u16, item: MenuItem, flags: MenuFlags) -> io::Result<()> {
         unsafe {
             let (flags_item, idnew_item, new_item) = get_create_params(item);
 
             InsertMenuW(
                 self.as_hmenu(),
-                command,
+                command as u32,
                 MF_BYCOMMAND | flags_item | flags.bits,
                 idnew_item,
                 new_item,
@@ -87,20 +116,20 @@ pub trait MenuTrait {
         unsafe { DeleteMenu(self.as_hmenu(), pos, MF_BYPOSITION).into_void_result() }
     }
 
-    fn delete(&self, command: u32) -> io::Result<()> {
-        unsafe { DeleteMenu(self.as_hmenu(), command, MF_BYCOMMAND).into_void_result() }
+    fn delete(&self, command: u16) -> io::Result<()> {
+        unsafe { DeleteMenu(self.as_hmenu(), command as u32, MF_BYCOMMAND).into_void_result() }
     }
 
-    fn is_checked(&self, command: u32) -> Option<bool> {
-        get_state(self.as_hmenu(), command, MF_BYCOMMAND).map(|s| s & MF_CHECKED != 0)
+    fn is_checked(&self, command: u16) -> Option<bool> {
+        get_state(self.as_hmenu(), command as u32, MF_BYCOMMAND).map(|s| s & MF_CHECKED != 0)
     }
 
     fn is_checked_at(&self, pos: u32) -> Option<bool> {
         get_state(self.as_hmenu(), pos, MF_BYPOSITION).map(|s| s & MF_CHECKED != 0)
     }
 
-    fn is_enabled(&self, command: u32) -> Option<bool> {
-        get_state(self.as_hmenu(), command, MF_BYCOMMAND)
+    fn is_enabled(&self, command: u16) -> Option<bool> {
+        get_state(self.as_hmenu(), command as u32, MF_BYCOMMAND)
             .map(|s| s & (MF_DISABLED | MF_GRAYED) != 0)
     }
 
@@ -108,11 +137,11 @@ pub trait MenuTrait {
         get_state(self.as_hmenu(), pos, MF_BYPOSITION).map(|s| s & (MF_DISABLED | MF_GRAYED) != 0)
     }
 
-    fn set_checked(&self, command: u32, value: bool) -> Option<u32> {
+    fn set_checked(&self, command: u16, value: bool) -> Option<u32> {
         unsafe {
             state_result(CheckMenuItem(
                 self.as_hmenu(),
-                command,
+                command as u32,
                 MF_BYCOMMAND | (if value { MF_CHECKED } else { MF_UNCHECKED }),
             ))
         }
@@ -128,12 +157,28 @@ pub trait MenuTrait {
         }
     }
 
-    // fn open(&self, pt: Point, window: impl AsHwnd) {
-    //     ::TrackPopupMenu(self.as_hmenu,
-    //                      TPM_LEFTALIGN | TPM_RIGHTBUTTON,
-    //                      pt.getX(), pt.getY(), 0, window, nullptr);
-    // }
+    fn track_popup_menu(
+        &self,
+        flags: TrackFlags,
+        pt: Point,
+        window: impl AsHwnd,
+    ) -> io::Result<()> {
+        unsafe {
+            TrackPopupMenu(
+                self.as_hmenu(),
+                flags.bits(),
+                pt.x,
+                pt.y,
+                0,
+                window.as_hwnd(),
+                ptr::null_mut(),
+            )
+            .into_void_result()
+        }
+    }
 }
+
+impl<T: AsHmenu> MenuFunctions for T {}
 
 fn get_create_params(item: MenuItem) -> (u32, usize, LPCWSTR) {
     match item {
@@ -164,7 +209,7 @@ fn state_result(result: u32) -> Option<u32> {
 pub struct MenuView(HMENU);
 pub struct Menu(HMENU);
 
-impl MenuTrait for MenuView {
+impl AsHmenu for MenuView {
     fn as_hmenu(&self) -> HMENU {
         self.0
     }
@@ -186,7 +231,7 @@ impl Menu {
     }
 }
 
-impl MenuTrait for Menu {
+impl AsHmenu for Menu {
     fn as_hmenu(&self) -> HMENU {
         self.0
     }

@@ -1,6 +1,6 @@
 use std::mem;
 
-use winapi::shared::minwindef::{HIWORD, LOWORD};
+use winapi::shared::minwindef::{HIWORD, LOWORD, LPARAM};
 use winapi::shared::windowsx::{GET_X_LPARAM, GET_Y_LPARAM};
 
 #[derive(Copy, Clone, Debug)]
@@ -31,10 +31,10 @@ impl WParam {
     }
 
     pub fn get_x(&self) -> i32 {
-        GET_X_LPARAM(unsafe { mem::transmute(self.0) })
+        GET_X_LPARAM(self.0 as LPARAM)
     }
     pub fn get_y(&self) -> i32 {
-        GET_Y_LPARAM(unsafe { mem::transmute(self.0) })
+        GET_Y_LPARAM(self.0 as LPARAM)
     }
 }
 
