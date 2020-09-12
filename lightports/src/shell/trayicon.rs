@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::{result, Result, Wstr};
+use crate::{result, Result, WinResult, Wstr};
 use winapi::shared::windef::POINT;
 use winapi::um::shellapi::{
     Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_SHOWTIP, NIF_TIP, NIM_ADD, NIM_DELETE,
@@ -40,6 +40,22 @@ impl TrayIcon {
         } else {
             0.into()
         }
+    }
+
+    pub fn add(&mut self) -> Result<()> {
+        unsafe {
+            Shell_NotifyIconW(NIM_ADD, &mut self.inner).into_result()?;
+            *self.inner.u.uVersion_mut() = NOTIFYICON_VERSION_4;
+            Shell_NotifyIconW(NIM_SETVERSION, &mut self.inner).into_void_result()
+        }
+    }
+
+    pub fn modify(&mut self) -> Result<()> {
+        unsafe { Shell_NotifyIconW(NIM_MODIFY, &mut self.inner).into_void_result() }
+    }
+
+    pub fn delete(&mut self) -> Result<()> {
+        unsafe { Shell_NotifyIconW(NIM_DELETE, &mut self.inner).into_void_result() }
     }
 }
 
@@ -98,22 +114,6 @@ impl TrayIconBuilder {
             hwnd: Window::from(self.inner.hWnd),
             id: self.inner.uID,
         })
-    }
-
-    // TODO: wrong place
-    pub fn modify(&mut self) -> Result<()> {
-        unsafe {
-            result(Shell_NotifyIconW(NIM_MODIFY, &mut self.inner))?;
-        }
-        Ok(())
-    }
-
-    // TODO: wrong place
-    pub fn delete(&mut self) -> Result<()> {
-        unsafe {
-            result(Shell_NotifyIconW(NIM_DELETE, &mut self.inner))?;
-        }
-        Ok(())
     }
 }
 

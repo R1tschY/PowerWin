@@ -9,14 +9,17 @@ pub type Result<T> = io::Result<T>;
 pub trait WinResult: Sized {
     fn is_null(&self) -> bool;
 
+    #[inline]
     fn into_result(self) -> Result<Self> {
         result(self)
     }
 
+    #[inline]
     fn into_void_result(self) -> Result<()> {
         void_result(self)
     }
 
+    #[inline]
     fn into_option(self) -> Option<Self> {
         if self.is_null() {
             None
