@@ -55,13 +55,13 @@ impl WString {
         WString { inner: v }
     }
 
+    pub fn from_terminated_unchecked(v: Vec<u16>) -> WString {
+        WString { inner: v }
+    }
+
     pub unsafe fn from_raw(p: *mut u16) -> WString {
         let len = wstrlen(p);
         WString::from_vec_unchecked(slice::from_raw_parts(p, len).into())
-    }
-
-    pub fn into_raw(mut self) -> *mut u16 {
-        self.inner.as_mut_ptr()
     }
 
     pub fn into_string(self) -> Result<String, OsString> {
@@ -84,8 +84,23 @@ impl WString {
         &self.inner
     }
 
+    pub fn as_mut_ptr(&mut self) -> *mut u16 {
+        self.inner.as_mut_ptr()
+    }
+    pub fn as_ptr(&self) -> *const u16 {
+        self.inner.as_ptr()
+    }
+
     pub fn as_wstr(&self) -> &Wstr {
         &*self
+    }
+
+    pub fn chars_len(&self) -> usize {
+        self.inner.len()
+    }
+
+    pub fn bytes_len(&self) -> usize {
+        self.inner.len() * 2
     }
 
     #[inline]
