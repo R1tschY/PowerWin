@@ -42,26 +42,14 @@ impl TrayIcon {
         }
     }
 
-    pub fn add(&mut self) -> Result<()> {
-        unsafe {
-            Shell_NotifyIconW(NIM_ADD, &mut self.inner).into_result()?;
-            *self.inner.u.uVersion_mut() = NOTIFYICON_VERSION_4;
-            Shell_NotifyIconW(NIM_SETVERSION, &mut self.inner).into_void_result()
-        }
-    }
-
-    pub fn modify(&mut self) -> Result<()> {
-        unsafe { Shell_NotifyIconW(NIM_MODIFY, &mut self.inner).into_void_result() }
-    }
-
-    pub fn delete(&mut self) -> Result<()> {
-        unsafe { Shell_NotifyIconW(NIM_DELETE, &mut self.inner).into_void_result() }
+    pub fn delete(&self) -> Result<()> {
+        self.change().delete()
     }
 }
 
 impl Drop for TrayIcon {
     fn drop(&mut self) {
-        self.change().delete().unwrap_or_default();
+        self.delete().unwrap_or_default();
     }
 }
 
@@ -103,8 +91,7 @@ impl TrayIconBuilder {
         self
     }
 
-    // TODO: split add and build
-    pub fn build(&mut self) -> Result<TrayIcon> {
+    pub fn add(&mut self) -> Result<TrayIcon> {
         unsafe {
             result(Shell_NotifyIconW(NIM_ADD, &mut self.inner))?;
             *self.inner.u.uVersion_mut() = NOTIFYICON_VERSION_4;
@@ -114,6 +101,14 @@ impl TrayIconBuilder {
             hwnd: Window::from(self.inner.hWnd),
             id: self.inner.uID,
         })
+    }
+
+    fn delete(&mut self) -> Result<()> {
+        unsafe { Shell_NotifyIconW(NIM_DELETE, &mut self.inner).into_void_result() }
+    }
+
+    pub fn modify(&mut self) -> Result<()> {
+        unsafe { Shell_NotifyIconW(NIM_MODIFY, &mut self.inner).into_void_result() }
     }
 }
 

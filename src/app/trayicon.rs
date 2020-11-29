@@ -53,7 +53,7 @@ impl UsrCtrl for TrayControl {
                 Icon::from_resource_shared(*hinst, POWERWIN_SMALL_ICON, ResourceSize::Small)
                     .expect("app icon could not be loaded"),
             )
-            .build()
+            .add()
             .expect("creation of tray icon failed");
 
         let popup_menu = Menu::new_popup().expect("creation of popup menu failed");
